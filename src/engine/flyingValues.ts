@@ -13,7 +13,7 @@ const dy = -2
 const numStartY = GAME.actionPositionVertical - SpriteSize.cat.height
 const txtStartY = numStartY - delta
 
-export default class FlyingValues {
+export class FlyingValues {
   private ctx: CanvasRenderingContext2D | null = null
   private messages: Message[] = []
 

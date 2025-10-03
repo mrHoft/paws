@@ -1,5 +1,4 @@
-// @ts-ignore
-import GIF from '../utils/gif.js'
+import { GifFactory, type GifObject } from '../utils/gif'
 import { setValue } from '../utils/data.js'
 
 const PATH = ''
@@ -19,21 +18,6 @@ const assets: Record<string, string> = {
   'MistyMountains.layer3': 'MistyMountains/layer_3.png',
 }
 
-export type TGifObject = {
-  onerror: (e: any) => void
-  load: (url: string) => void
-  onloadall: (res: { type: 'loadall'; obj: TGifObject }) => void
-  frames: { image: HTMLCanvasElement }[]
-  loading: any
-  image: HTMLCanvasElement
-  lastFrame: { image: HTMLCanvasElement } | null
-  width: number
-  height: number
-  src: string
-  currentFrame: number
-  frameCount: number
-}
-
 export class Resource {
   public total: number
   public progress = 0 // 0 - 100 in percents
@@ -43,7 +27,7 @@ export class Resource {
   protected static _initialized = false
   protected static _progressCallback: (progress: number) => void
   protected static _errorCallback: (message: string) => void
-  public sprite: Record<string, HTMLImageElement | TGifObject> = {}
+  public sprite: Record<string, HTMLImageElement | GifObject> = {}
 
   private constructor() {
     this.total = Object.keys(assets).length
@@ -59,7 +43,7 @@ export class Resource {
   private loadGif = (name: string, url: string) => {
     // Timeout just waits till script has been parsed and executed then starts loading a gif
     setTimeout(() => {
-      const newGif: TGifObject = GIF() // creates a new gif
+      const newGif: GifObject = GifFactory() // creates a new gif
       newGif.onerror = function (err) {
         console.log('Gif loading error ' + err.type)
         if (Resource._errorCallback) {
@@ -133,11 +117,3 @@ export class Resource {
     return (Resource.__instance = new Resource())
   }
 }
-
-/* Callback example
-const tempCallback = (progress: number) => {
-  console.log(`Resource loading: ${progress}%`)
-}
-*/
-
-export default Resource

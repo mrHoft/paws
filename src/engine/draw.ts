@@ -1,7 +1,7 @@
 import { GAME, SpriteSize } from '../const'
-import Resource, { type TGifObject } from './resource'
+import { Resource } from './resource'
 
-export default class Draw {
+export class Draw {
   private ctx: CanvasRenderingContext2D | null = null
   private resource = Resource.get()
 
@@ -57,7 +57,7 @@ export default class Draw {
   }
 
   public drawTarget = (name: string, x: number, y: number, height: number, animate = false) => {
-    const image: HTMLImageElement | TGifObject = this.resource.sprite[name]
+    const image = this.resource.sprite[name]
     if (image instanceof HTMLImageElement) {
       let width = (image.width * height) / image.height
       let newY = Math.floor(y - height * 0.9)
@@ -71,7 +71,7 @@ export default class Draw {
       this.ctx!.drawImage(image, newX, newY, width, height)
     } else {
       // GifObject
-      const frame = animate ? image.image : image.frames[image.frameCount - 1].image
+      const frame = animate ? image.image! : image.frames[image.frameCount - 1].image
       this.drawObject(frame, x, y + height / 8, height / 1.5)
     }
   }

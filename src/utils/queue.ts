@@ -4,7 +4,7 @@ type El = {
   prev: El | null
 } | null
 
-export default class Queue {
+export class Queue {
   private size = 0
   private head: El = null
   private tail: El = null

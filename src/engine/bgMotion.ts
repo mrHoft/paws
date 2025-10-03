@@ -1,5 +1,5 @@
 import { CANVAS } from '../const'
-import Resource from './resource'
+import { Resource } from './resource'
 import { getValue } from '../utils/data'
 
 export type Layer = {

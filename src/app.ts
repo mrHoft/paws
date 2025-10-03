@@ -1,4 +1,4 @@
-import Resource from './engine/resource'
+import { Resource } from './engine/resource'
 import { CANVAS } from './const'
 
 const autoStart = true
@@ -143,7 +143,7 @@ export class App extends AppView {
       setCombo: () => console.log('Handle combo'),
       setTooltip: () => console.log('Handle tooltip'),
       updateScore: () => console.log('Handle score'),
-      updateCatched: () => console.log('Handle catch'),
+      updateCaught: () => console.log('Handle catch'),
     }
     const engine = Engine.get({ ctx: gameCanvas.getContext('2d')!, handlers })
     engine.start()

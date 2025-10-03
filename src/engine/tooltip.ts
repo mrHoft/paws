@@ -1,6 +1,6 @@
-import { TOOLTIP } from '../const'
+import { TOOLTIP } from '~/const'
 
-export default class Tooltip {
+export class Tooltip {
   private tooltip = {
     shown: false,
     firstTip: true,

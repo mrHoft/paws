@@ -1,7 +1,7 @@
-import type { TTargetName } from '../const'
-import type { TGifObject } from './resource'
+import type { TTargetName } from '~/const'
+import type { GifObject } from '~/utils/gif'
 
-export type Action = 'run' | 'stay' | 'jump' | 'path' | 'scene' | 'return' | null
+export type TAction = 'run' | 'stay' | 'jump' | 'path' | 'scene' | 'return' | null
 
 export type Target = {
   nameCurr: TTargetName
@@ -18,7 +18,7 @@ export type Target = {
   atPosition: boolean
 }
 
-export type TCatched = {
+export type TCaught = {
   butterfly: number
   grasshopper: number
   frog: number
@@ -30,7 +30,7 @@ export type TGame = {
   SPEED: number
   successHeightModifier: number
   updateTime: number
-  action: Action
+  action: TAction
   ctx: CanvasRenderingContext2D | null
   definingTrajectory: boolean
   timer: number
@@ -42,11 +42,11 @@ export type TGame = {
   paused: boolean
   combo: number
   score: number
-  catched: TCatched
+  caught: TCaught
 }
 
 export type TCat = {
-  source: TGifObject
+  source: GifObject
   jumpHeight: number
   jumpStage: number
   trajectoryDirection: number

@@ -1,18 +1,18 @@
 import type { TGame } from './types'
 
-export default class Events {
+export class ControlEvents {
   private game: TGame
   private prepareJumpStart: () => void
   private prepareJumpEnd: () => void
   private pause: (state: boolean) => void
-  private static __instance: Events
+  private static __instance: ControlEvents
 
   constructor(game: TGame, prepareJumpStart: () => void, prepareJumpEnd: () => void, pause: (state: boolean) => void) {
     this.game = game
     this.prepareJumpStart = prepareJumpStart
     this.prepareJumpEnd = prepareJumpEnd
     this.pause = pause
-    if (Events.__instance) return Events.__instance
+    if (ControlEvents.__instance) return ControlEvents.__instance
   }
 
   private canJump = (): boolean => {
@@ -42,7 +42,7 @@ export default class Events {
     }
   }
 
-  private touchend = (event: MouseEvent | TouchEvent) => {
+  private touchend = (/* event: MouseEvent | TouchEvent */) => {
     if (this.game.definingTrajectory) {
       this.prepareJumpEnd()
     }

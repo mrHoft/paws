@@ -1,7 +1,22 @@
-function activateFullscreen(el: HTMLElement) {
-  const element = el || document.documentElement
-  const fullscreenEnabled =
-    document.fullscreenEnabled || document.mozFullScreenEnable || document.webkitFullscreenEnabled
+type TDocument = Document & {
+  mozFullScreenEnabled?: boolean,
+  webkitFullscreenEnabled?: boolean,
+  mozFullScreenElement: Element | null,
+  webkitFullscreenElement: Element | null,
+  mozCancelFullScreen: () => Promise<void>,
+  webkitExitFullscreen: () => Promise<void>
+}
+
+type TElement = HTMLElement & {
+  mozRequestFullScreen: () => Promise<void>
+  webkitRequestFullscreen: () => Promise<void>
+  msRequestFullscreen: () => Promise<void>
+}
+
+function fullScreenActivate(el: HTMLElement) {
+  const element = (el || document.documentElement) as TElement
+  const d = document as TDocument
+  const fullscreenEnabled = d.fullscreenEnabled || d.mozFullScreenEnabled || d.webkitFullscreenEnabled
 
   if (fullscreenEnabled) {
     if (element.requestFullscreen) {
@@ -16,24 +31,25 @@ function activateFullscreen(el: HTMLElement) {
   }
 }
 
-function deactivateFullscreen() {
-  if (document.exitFullscreen) {
-    document.exitFullscreen()
-  } else if (document.mozCancelFullScreen) {
-    document.mozCancelFullScreen()
-  } else if (document.webkitExitFullscreen) {
-    document.webkitExitFullscreen()
+function fullScreenDeactivate() {
+  const d = document as TDocument
+  if (d.exitFullscreen) {
+    d.exitFullscreen()
+  } else if (d.mozCancelFullScreen) {
+    d.mozCancelFullScreen()
+  } else if (d.webkitExitFullscreen) {
+    d.webkitExitFullscreen()
   }
 }
 
-function switchFullscreen(fullscreen: boolean, el: HTMLElement = document.documentElement) {
+function fullScreenSwitch(fullscreen: boolean, el: HTMLElement = document.documentElement) {
   if (fullscreen) {
-    activateFullscreen(el)
+    fullScreenActivate(el)
   } else {
-    const fullscreenElement =
-      document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement
+    const d = document as TDocument
+    const fullscreenElement = d.fullscreenElement || d.mozFullScreenElement || d.webkitFullscreenElement
     if (fullscreenElement) {
-      deactivateFullscreen()
+      fullScreenDeactivate()
     }
   }
 }
@@ -41,7 +57,7 @@ function switchFullscreen(fullscreen: boolean, el: HTMLElement = document.docume
 /*
 document.addEventListener('fullscreenchange', event => {
   const fullscreenElement =
-    document.fullscreenElement || document.mozFullScreenElemen || document.webkitFullscreenElement
+    document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement
   if (fullscreenElement) {
     console.log('Entered fullscreen.')
   } else {
@@ -49,4 +65,4 @@ document.addEventListener('fullscreenchange', event => {
   }
 })
  */
-export default switchFullscreen
+export default fullScreenSwitch

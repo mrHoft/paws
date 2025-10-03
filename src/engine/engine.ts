@@ -1,14 +1,13 @@
-import {
-  ANIMAL_LIST, BARRIER_LIST, CANVAS, DIFFICULTY_PER_LEVEL, GAME, TARGET_SCORE, type TAnimalName
-} from '../const'
-import Draw from './draw'
-import Resource, { type TGifObject } from './resource'
+import { ANIMAL_LIST, BARRIER_LIST, CANVAS, DIFFICULTY_PER_LEVEL, GAME, TARGET_SCORE, type TAnimalName } from '../const'
+import { Draw } from './draw'
+import { Resource } from './resource'
 import { BgMotion } from './bgMotion'
-import FlyingValues from './flyingValues'
-import Queue from '../utils/queue'
-import Events from './events'
-import Tooltip from './tooltip'
-import type { Target, TCat, TCatched, TGame } from './types'
+import { FlyingValues } from './flyingValues'
+import { ControlEvents } from './events'
+import { Tooltip } from './tooltip'
+import type { Target, TCat, TCaught, TGame } from './types'
+import type { GifObject } from '~/utils/gif'
+import { Queue } from '~/utils/queue'
 
 export class Engine {
   private game: TGame = {
@@ -30,7 +29,7 @@ export class Engine {
     paused: false,
     combo: 0, // Combo multiplier for score
     score: GAME.initialScore,
-    catched: {
+    caught: {
       butterfly: 0,
       grasshopper: 0,
       frog: 0,
@@ -39,7 +38,7 @@ export class Engine {
     },
   }
   private cat: TCat = {
-    source: {} as TGifObject,
+    source: {} as GifObject,
     jumpHeight: GAME.jumpHeightMin,
     jumpStage: 0,
     trajectoryDirection: 1,
@@ -64,8 +63,8 @@ export class Engine {
   private resource: Resource
   private draw: Draw
   private fly: FlyingValues
-  private Events: Events
-  private Tooltip: Tooltip
+  private events: ControlEvents
+  private tooltip: Tooltip
   private bgMotion: BgMotion
   private meterStack = new Queue()
   private setPauseVisible: (pause: boolean) => void
@@ -74,7 +73,7 @@ export class Engine {
   private showCombo: (value: number) => void
   private setTooltip: (tooltip: string) => void
   private updateScore: (score: number) => void
-  private updateCatched: (id: keyof TCatched) => void
+  private updateCaught: (id: keyof TCaught) => void
   private static __instance: Engine
 
   private constructor(ctx: CanvasRenderingContext2D, handlers: Record<string, (value?: any) => void>) {
@@ -84,18 +83,18 @@ export class Engine {
     this.showCombo = handlers.setCombo
     this.setTooltip = handlers.setTooltip
     this.updateScore = handlers.updateScore
-    this.updateCatched = handlers.updateCatched
+    this.updateCaught = handlers.updateCaught
 
     this.game.ctx = ctx
     this.game.successHeight = GAME.defaultTargetHeight * this.game.successHeightModifier
     this.draw = new Draw(this.game.ctx!)
     this.fly = new FlyingValues(this.game.ctx!)
     this.bgMotion = new BgMotion({})
-    this.Events = new Events(this.game, this.prepareJumpStart, this.prepareJumpEnd, this.pause)
-    this.Tooltip = new Tooltip(this.setTooltip)
+    this.events = new ControlEvents(this.game, this.prepareJumpStart, this.prepareJumpEnd, this.pause)
+    this.tooltip = new Tooltip(this.setTooltip)
 
     this.resource = Resource.get()
-    this.cat.source = this.resource.sprite.cat as TGifObject
+    this.cat.source = this.resource.sprite.cat as GifObject
   }
 
   private setScore = (value: number, multiplier = 1) => {
@@ -103,7 +102,7 @@ export class Engine {
     this.game.score += value * multiplier * combo
     this.updateScore(this.game.score)
     if (value != 0) this.fly.throw(value * combo, multiplier, this.cat.CatX)
-    if (this.game.success) this.Tooltip.hide()
+    if (this.game.success) this.tooltip.hide()
   }
 
   private commitFail = (reason?: 'timeout') => {
@@ -114,7 +113,7 @@ export class Engine {
       this.handleGameOver()
       return
     }
-    this.Tooltip.show(reason || (this.target.isBarrier ? 'barrier' : 'animal'))
+    this.tooltip.show(reason || (this.target.isBarrier ? 'barrier' : 'animal'))
 
     this.game.combo = 0
     this.showCombo(this.game.combo)
@@ -139,7 +138,7 @@ export class Engine {
       }
       const name: TAnimalName = this.target.nameCurr as TAnimalName
 
-      this.updateCatched(name)
+      this.updateCaught(name)
       this.target.nameCurr = 'none'
     }
     this.levelPrepare()
@@ -156,7 +155,7 @@ export class Engine {
 
   private prepareJumpEnd = () => {
     this.game.definingTrajectory = false
-    // Prevent accidentially tapping
+    // Prevent accidental taps
     if (this.cat.jumpHeight > GAME.jumpHeightMin + GAME.trajectoryStep * 2) {
       this.game.action = 'jump'
       this.cat.atPosition = false
@@ -266,7 +265,7 @@ export class Engine {
   // Renders one frame
   private render = () => {
     // Development time patch
-    if (!this.cat.source) this.cat.source = this.resource.sprite.cat as TGifObject
+    if (!this.cat.source) this.cat.source = this.resource.sprite.cat as GifObject
     performance.mark('beginRenderProcess')
     this.game.ctx!.clearRect(0, 0, CANVAS.width, CANVAS.height)
     if (!this.target.atPosition && (this.game.action == 'return' || this.game.action == 'scene')) {
@@ -281,19 +280,19 @@ export class Engine {
       case 'return':
         // this.sceneReturn()
         this.sceneChange()
-        this.draw.drawCat(this.cat.source.image, this.cat.CatX, this.cat.CatY)
+        this.draw.drawCat(this.cat.source.image!, this.cat.CatX, this.cat.CatY)
         break
       case 'scene':
         this.sceneChange()
-        this.draw.drawCat(this.cat.source.image, this.cat.CatX, this.cat.CatY)
+        this.draw.drawCat(this.cat.source.image!, this.cat.CatX, this.cat.CatY)
         break
       case 'run':
-        this.draw.drawCat(this.cat.source.image, this.cat.CatX, this.cat.CatY)
+        this.draw.drawCat(this.cat.source.image!, this.cat.CatX, this.cat.CatY)
         break
       case 'jump':
         this.defineJump()
         break
-      default: //'stay'
+      default: // 'stay'
         this.draw.drawCat(this.cat.source.frames[2].image, this.cat.CatX, this.cat.CatY)
     }
     this.fly.render()
@@ -304,8 +303,9 @@ export class Engine {
       const measure = performance.measure('measureRenderProcess', 'beginRenderProcess', 'endRenderProcess')
       const duration = Math.floor(measure.duration * 1000)
       if (duration > 0) this.meterStack.enqueue(duration)
+      const fps = Math.floor(10000 / this.meterStack.average(10))
       this.game.ctx!.fillStyle = 'black'
-      this.game.ctx!.fillText(`mms/frame: ${this.meterStack.average(10)}`, 580, 18)
+      this.game.ctx!.fillText(`fps: ${fps}`, 580, 18)
     }
   }
 
@@ -362,21 +362,21 @@ export class Engine {
     this.game.action = 'scene'
   }
 
-  public start(score = 0, catched: TCatched = this.game.catched) {
+  public start(score = 0, caught: TCaught = this.game.caught) {
     this.draw = new Draw(this.game.ctx!)
     this.fly = new FlyingValues(this.game.ctx!)
-    this.Events = new Events(this.game, this.prepareJumpStart, this.prepareJumpEnd, this.pause)
-    this.Tooltip = new Tooltip(this.setTooltip)
+    this.events = new ControlEvents(this.game, this.prepareJumpStart, this.prepareJumpEnd, this.pause)
+    this.tooltip = new Tooltip(this.setTooltip)
     this.game.ctx!.font = '18px Arial'
     this.game.score = score
-    this.game.catched = catched
-    this.Events.registerEvents()
+    this.game.caught = caught
+    this.events.registerEvents()
     this.levelPrepare()
-    this.Tooltip.show('start')
+    this.tooltip.show('start')
   }
 
   public stop() {
-    this.Events.unRegisterEvents()
+    this.events.unRegisterEvents()
     window.clearTimeout(this.game.timer)
   }
 
@@ -386,11 +386,11 @@ export class Engine {
     console.log(`Game: ${this.game.paused ? 'Paused' : 'Continued'}`)
 
     if (this.game.paused) {
-      this.Events.unRegisterEvents()
+      this.events.unRegisterEvents()
       this.setPauseVisible(true)
       window.clearTimeout(this.game.timer)
     } else {
-      this.Events.registerEvents()
+      this.events.registerEvents()
       requestAnimationFrame(this.update)
     }
   }
@@ -405,7 +405,7 @@ export class Engine {
         Engine.__instance.showCombo = handlers.setCombo
         Engine.__instance.setTooltip = handlers.setTooltip
         Engine.__instance.updateScore = handlers.updateScore
-        Engine.__instance.updateCatched = handlers.updateCatched
+        Engine.__instance.updateCaught = handlers.updateCaught
       }
       return Engine.__instance
     }
