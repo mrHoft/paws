@@ -43,19 +43,21 @@ export class Resource {
   private loadGif = (name: string, url: string) => {
     // Timeout just waits till script has been parsed and executed then starts loading a gif
     setTimeout(() => {
-      const newGif: GifObject = GifFactory() // creates a new gif
+      const newGif = GifFactory()
       newGif.onerror = function (err) {
         console.log('Gif loading error ' + err.type)
         if (Resource._errorCallback) {
           Resource._errorCallback(`Img loading error: ${err.type}`)
         }
       }
-      newGif.onloadall = res => {
+      newGif.onloadall = (/* res */) => {
+        /*
         const dimensions = {
           width: res.obj.width,
           height: res.obj.height,
         }
         console.log('Loaded gif:', name, dimensions)
+        */
         this.countOne()
       }
       newGif.load(url)
@@ -69,11 +71,13 @@ export class Resource {
     const newImg = document.createElement('img')
     newImg.src = url
     newImg.onload = () => {
+      /*
       const dimensions = {
         width: newImg.width,
         height: newImg.height,
       }
       console.log('Loaded img:', name, dimensions)
+       */
       this.countOne()
     }
     newImg.onerror = function (error) {

@@ -78,6 +78,10 @@ export class App extends AppView {
 
   public init = async (): Promise<void> => {
     this.loaderInit()
+    this.main.addEventListener('contextmenu', (event) => {
+      event.preventDefault()
+      return false
+    })
 
     this.loading.start = Date.now()
 
@@ -116,21 +120,17 @@ export class App extends AppView {
     bgCanvas.width = CANVAS.width
     bgCanvas.height = CANVAS.height
     bgCanvas.setAttribute('style', 'z-index: 1')
-    bgCanvas.addEventListener('contextmenu', (event) => {
-      event.preventDefault()
-      return false
-    })
 
     const gameCanvas = document.createElement('canvas')
     gameCanvas.width = CANVAS.width
     gameCanvas.height = CANVAS.height
     gameCanvas.className = 'game_layer'
     gameCanvas.setAttribute('style', 'z-index: 2')
-    gameCanvas.addEventListener('contextmenu', (event) => {
-      event.preventDefault()
-      return false
-    })
-    this.main.append(bgCanvas, gameCanvas)
+
+    const { Overlay } = await import('./ui/overlay/overlay');
+    const overlay = new Overlay()
+
+    this.main.append(bgCanvas, gameCanvas, overlay.element)
 
     const { BgMotion } = await import('./engine/bgMotion');
     new BgMotion({ ctx: bgCanvas.getContext('2d')! })
@@ -139,10 +139,10 @@ export class App extends AppView {
     const handlers = {
       setPauseVisible: () => console.log('Handle pause'),
       handleGameOver: () => console.log('Handle game over'),
-      setLevel: () => console.log('Handle level'),
-      setCombo: () => console.log('Handle combo'),
+      setLevel: overlay.handleLevel,
+      updateScore: overlay.handleScore,
+      setCombo: overlay.handleCombo,
       setTooltip: () => console.log('Handle tooltip'),
-      updateScore: () => console.log('Handle score'),
       updateCaught: () => console.log('Handle catch'),
     }
     const engine = Engine.get({ ctx: gameCanvas.getContext('2d')!, handlers })
