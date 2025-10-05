@@ -142,8 +142,8 @@ export class App extends AppView {
       setLevel: overlay.handleLevel,
       updateScore: overlay.handleScore,
       setCombo: overlay.handleCombo,
-      setTooltip: () => console.log('Handle tooltip'),
-      updateCaught: () => console.log('Handle catch'),
+      setTooltip: overlay.handleTooltip,
+      updateCaught: overlay.caught.handleUpdate,
     }
     const engine = Engine.get({ ctx: gameCanvas.getContext('2d')!, handlers })
     engine.start()

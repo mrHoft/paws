@@ -21,6 +21,16 @@
   --color-blue70: #8592c1;
   --color-blue80: #c3cefa;
   --color-blue90: #cedbf0;
+
+  --color-orange10: #fef3e8;
+  --color-orange20: #f9a765;
+  --color-orange30: #e4640a;
+  --color-orange40: #c8550d;
+  --color-orange50: #ad460f;
+  --color-orange60: #923710;
+  --color-orange70: #772811;
+  --color-orange80: #5c1912;
+  --color-orange90: #410a13;
 }
 
 body {

@@ -1,4 +1,4 @@
-type TDocument = Document & {
+interface FullscreenDocument extends Document {
   mozFullScreenEnabled?: boolean,
   webkitFullscreenEnabled?: boolean,
   mozFullScreenElement: Element | null,
@@ -7,50 +7,55 @@ type TDocument = Document & {
   webkitExitFullscreen: () => Promise<void>
 }
 
-type TElement = HTMLElement & {
+interface FullscreenElement extends HTMLElement {
   mozRequestFullScreen: () => Promise<void>
   webkitRequestFullscreen: () => Promise<void>
   msRequestFullscreen: () => Promise<void>
 }
 
-function fullScreenActivate(el: HTMLElement) {
-  const element = (el || document.documentElement) as TElement
-  const d = document as TDocument
+async function fullscreenActivate(el: HTMLElement): Promise<void> {
+  const element = (el || document.documentElement) as FullscreenElement
+  const d = document as FullscreenDocument
   const fullscreenEnabled = d.fullscreenEnabled || d.mozFullScreenEnabled || d.webkitFullscreenEnabled
 
-  if (fullscreenEnabled) {
+  if (!fullscreenEnabled) return;
+
+  try {
     if (element.requestFullscreen) {
-      element.requestFullscreen() // W3C spec
+      await element.requestFullscreen()
     } else if (element.mozRequestFullScreen) {
-      element.mozRequestFullScreen() // Firefox
+      await element.mozRequestFullScreen()
     } else if (element.webkitRequestFullscreen) {
-      element.webkitRequestFullscreen() // Safari
+      await element.webkitRequestFullscreen()
     } else if (element.msRequestFullscreen) {
-      element.msRequestFullscreen() // IE/Edge
+      await element.msRequestFullscreen()
     }
+  } catch (error) {
+    console.error('Error activating fullscreen:', error)
   }
 }
 
-function fullScreenDeactivate() {
-  const d = document as TDocument
+async function fullscreenDeactivate() {
+  const d = document as FullscreenDocument
   if (d.exitFullscreen) {
-    d.exitFullscreen()
+    await d.exitFullscreen()
   } else if (d.mozCancelFullScreen) {
-    d.mozCancelFullScreen()
+    await d.mozCancelFullScreen()
   } else if (d.webkitExitFullscreen) {
-    d.webkitExitFullscreen()
+    await d.webkitExitFullscreen()
   }
 }
 
-function fullScreenSwitch(fullscreen: boolean, el: HTMLElement = document.documentElement) {
+function isFullscreenActive(): boolean {
+  const doc = document as FullscreenDocument;
+  return !!(doc.fullscreenElement || doc.mozFullScreenElement || doc.webkitFullscreenElement);
+}
+
+export async function fullscreenSwitch(fullscreen: boolean, el: HTMLElement = document.documentElement): Promise<void> {
   if (fullscreen) {
-    fullScreenActivate(el)
-  } else {
-    const d = document as TDocument
-    const fullscreenElement = d.fullscreenElement || d.mozFullScreenElement || d.webkitFullscreenElement
-    if (fullscreenElement) {
-      fullScreenDeactivate()
-    }
+    await fullscreenActivate(el)
+  } else if (isFullscreenActive()) {
+    await fullscreenDeactivate()
   }
 }
 
@@ -65,4 +70,3 @@ document.addEventListener('fullscreenchange', event => {
   }
 })
  */
-export default fullScreenSwitch

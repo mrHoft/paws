@@ -1,14 +1,19 @@
+import { GAME } from '~/const'
+import { Caught } from './caught'
+
 import styles from './overlay.module.css'
 
 const icons = {
   settings: '/icons/settings.svg',
   fullscreen: '/icons/fullscreen.svg',
+  fullscreenExit: '/icons/fullscreen-exit.svg',
   pause: '/icons/pause.svg'
 }
 
 class OverlayView {
   protected container: HTMLDivElement
   protected upper: HTMLDivElement
+  protected middle: HTMLDivElement
   protected bottom: HTMLDivElement
 
   constructor() {
@@ -17,10 +22,13 @@ class OverlayView {
 
     this.upper = document.createElement('div')
     this.upper.className = styles.row
+    this.middle = document.createElement('div')
+    this.middle.className = styles.middle
+    const blank = document.createElement('div')
     this.bottom = document.createElement('div')
     this.bottom.className = styles.row
 
-    this.container.append(this.upper, this.bottom)
+    this.container.append(this.upper, this.middle, blank, this.bottom)
   }
 
   protected createButton = ({ src }: { src: string }) => {
@@ -38,35 +46,48 @@ class OverlayView {
 }
 
 export class Overlay extends OverlayView {
+  public readonly caught: Caught
   private player: { level: HTMLSpanElement, score: HTMLSpanElement, combo: HTMLSpanElement }
 
   constructor() {
     super()
-    const row1 = document.createElement('div')
-    const level = document.createElement('span')
-    level.innerText = '0'
-    row1.append('Level: ', level)
+    this.caught = new Caught()
 
-    const row2 = document.createElement('div')
-    const score = document.createElement('span')
-    score.innerText = '0'
-    row2.append('Score: ', score)
+    const level = document.createElement('div')
+    const levelValue = document.createElement('span')
+    level.className = styles.player
+    levelValue.innerText = '0'
+    level.append('Level: ', levelValue)
 
-    const row3 = document.createElement('div')
-    const combo = document.createElement('span')
-    combo.innerText = '0'
-    row3.append('Combo: ', combo)
+    const score = document.createElement('div')
+    const scoreValue = document.createElement('span')
+    score.className = styles.player
+    scoreValue.innerText = '0'
+    score.append('Score: ', scoreValue)
+
+    const combo = document.createElement('div')
+    combo.className = styles.combo
+    combo.setAttribute('style', 'display: none;')
+    const comboValue = document.createElement('span')
+    comboValue.innerText = 'x0'
+    combo.append('Combo: ', comboValue)
 
     const player = document.createElement('div')
-    player.append(row1, row2, row3)
-    this.player = { level, score, combo }
+    player.append(level, score, combo)
+    this.player = { level: levelValue, score: scoreValue, combo: comboValue }
 
     const pause = this.createButton({ src: icons.pause })
-    this.upper.append(player, pause)
+    this.upper.append(player, this.caught.element, pause)
 
     const settings = this.createButton({ src: icons.settings })
+
+    const botRight = document.createElement('div')
+    botRight.className = styles['bot-right']
+    const version = document.createElement('div')
+    version.innerText = GAME.version
     const fullscreen = this.createButton({ src: icons.fullscreen })
-    this.bottom.append(settings, fullscreen)
+    botRight.append(version, fullscreen)
+    this.bottom.append(settings, botRight)
   }
 
   public handleLevel = (value: number) => {
@@ -78,6 +99,16 @@ export class Overlay extends OverlayView {
   }
 
   public handleCombo = (value: number) => {
-    this.player.combo.innerText = value.toString()
+    this.player.combo.innerText = `x${value}`
+    const parent = this.player.combo.parentElement
+    if (value) {
+      parent?.setAttribute('style', 'display: block;')
+    } else {
+      parent?.setAttribute('style', 'display: none;')
+    }
+  }
+
+  public handleTooltip = (message: string) => {
+    this.middle.innerText = message
   }
 }
