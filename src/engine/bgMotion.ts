@@ -1,26 +1,26 @@
-import { CANVAS } from '../const'
+import { CANVAS } from '~/const'
 import { Resource } from './resource'
-import { getValue } from '../utils/data'
+import { getValue } from '~/utils/data'
 
-export type Layer = {
+interface Layer {
   img: HTMLImageElement | null
   x: number
   y: number
   dx: number
-  imgW: number
-  imgH: number
+  width: number
+  height: number
 }
 
-type LayersData = {
+interface LayersData {
   src: string
   dx: number
   isTop?: boolean
 }
 
 const layersData: LayersData[] = [
-  { src: 'MistyMountains.layer1', dx: 0, isTop: true },
-  { src: 'MistyMountains.layer2', dx: -0.25 },
-  { src: 'MistyMountains.layer3', dx: -1 },
+  { src: 'mountains.layer1', dx: 0, isTop: true },
+  { src: 'mountains.layer2', dx: -0.25 },
+  { src: 'mountains.layer3', dx: -1 },
 ]
 
 export class BgMotion {
@@ -55,13 +55,13 @@ export class BgMotion {
       const layerObj: Layer = {
         img,
         dx: layer.dx,
-        imgW: CANVAS.width,
-        get imgH(): number {
-          return this.imgW * aspectRatio
+        width: CANVAS.width,
+        get height(): number {
+          return this.width * aspectRatio
         },
         x: 0,
         get y(): number {
-          return layer.isTop ? 0 : CANVAS.height - this.imgH
+          return layer.isTop ? 0 : CANVAS.height - this.height
         },
       }
       this.layersArr.push(layerObj)
@@ -76,10 +76,10 @@ export class BgMotion {
       }
 
       if (layer.x > -CANVAS.width) {
-        this.ctx?.drawImage(layer.img as CanvasImageSource, CANVAS.width + layer.x, layer.y, layer.imgW, layer.imgH)
+        this.ctx?.drawImage(layer.img as CanvasImageSource, CANVAS.width - 1 + layer.x, layer.y, layer.width, layer.height)
       }
 
-      this.ctx?.drawImage(layer.img as CanvasImageSource, layer.x, layer.y, layer.imgW, layer.imgH)
+      this.ctx?.drawImage(layer.img as CanvasImageSource, layer.x, layer.y, layer.width, layer.height)
       layer.x += speed * layer.dx
     })
   }

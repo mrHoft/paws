@@ -69,21 +69,21 @@ export class Engine {
   private tooltip: Tooltip
   private bgMotion: BgMotion
   private meterStack = new Queue()
-  private setPauseVisible: (pause: boolean) => void
+  private handlePause: (pause: boolean) => void
   private handleGameOver: () => void
   private showLevel: (value: number) => void
   private showCombo: (value: number) => void
-  private setTooltip: (tooltip: string) => void
+  private showTooltip: (tooltip: string) => void
   private updateScore: (score: number) => void
   private updateCaught: (id: keyof TCaught) => void
   private static __instance: Engine
 
   private constructor(ctx: CanvasRenderingContext2D, handlers: Record<string, (value?: any) => void>) {
-    this.setPauseVisible = handlers.setPauseVisible
+    this.handlePause = handlers.handlePause
     this.handleGameOver = handlers.handleGameOver
     this.showLevel = handlers.setLevel
     this.showCombo = handlers.setCombo
-    this.setTooltip = handlers.setTooltip
+    this.showTooltip = handlers.showTooltip
     this.updateScore = handlers.updateScore
     this.updateCaught = handlers.updateCaught
 
@@ -95,7 +95,7 @@ export class Engine {
     this.fly = new FlyingValues(this.game.ctx!)
     this.bgMotion = new BgMotion({})
     this.events = new ControlEvents(this.game, this.prepareJumpStart, this.prepareJumpEnd, this.pause)
-    this.tooltip = new Tooltip(this.setTooltip)
+    this.tooltip = new Tooltip(this.showTooltip)
 
     this.resource = Resource.get()
     this.cat.source = this.resource.sprite.cat as GifObject
@@ -312,7 +312,7 @@ export class Engine {
       const duration = Math.floor(measure.duration * 1000)
       if (duration > 0) this.meterStack.enqueue(duration)
       const fps = Math.floor(10000 / this.meterStack.average(10))
-      this.game.ctx!.fillStyle = 'black'
+      this.game.ctx!.fillStyle = '#cedbf0'
       this.game.ctx!.fillText(`fps: ${fps}`, 580, 18)
     }
   }
@@ -374,7 +374,7 @@ export class Engine {
     this.draw = new Draw(this.game.ctx!)
     this.fly = new FlyingValues(this.game.ctx!)
     this.events = new ControlEvents(this.game, this.prepareJumpStart, this.prepareJumpEnd, this.pause)
-    this.tooltip = new Tooltip(this.setTooltip)
+    this.tooltip = new Tooltip(this.showTooltip)
     this.game.ctx!.font = '18px Arial'
     this.game.score = score
     this.game.caught = caught
@@ -395,7 +395,7 @@ export class Engine {
 
     if (this.game.paused) {
       this.events.unRegisterEvents()
-      this.setPauseVisible(true)
+      this.handlePause(true)
       window.clearTimeout(this.game.timer)
     } else {
       this.events.registerEvents()
@@ -407,11 +407,11 @@ export class Engine {
     if (Engine.__instance) {
       // Renew handlers
       if (handlers) {
-        Engine.__instance.setPauseVisible = handlers.setPauseVisible
+        Engine.__instance.handlePause = handlers.handlePause
         Engine.__instance.handleGameOver = handlers.handleGameOver
         Engine.__instance.showLevel = handlers.setLevel
         Engine.__instance.showCombo = handlers.setCombo
-        Engine.__instance.setTooltip = handlers.setTooltip
+        Engine.__instance.showTooltip = handlers.showTooltip
         Engine.__instance.updateScore = handlers.updateScore
         Engine.__instance.updateCaught = handlers.updateCaught
       }

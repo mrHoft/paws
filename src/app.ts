@@ -1,5 +1,6 @@
 import { Resource } from './engine/resource'
 import { CANVAS } from './const'
+import { Weather } from './ui/weather/weather'
 
 const autoStart = true
 
@@ -137,16 +138,17 @@ export class App extends AppView {
 
     const { Engine } = await import('./engine/engine');
     const handlers = {
-      setPauseVisible: () => console.log('Handle pause'),
+      handlePause: () => console.log('Handle pause'),
       handleGameOver: () => console.log('Handle game over'),
       setLevel: overlay.handleLevel,
       updateScore: overlay.handleScore,
       setCombo: overlay.handleCombo,
-      setTooltip: overlay.handleTooltip,
+      showTooltip: overlay.handleTooltip,
       updateCaught: overlay.caught.handleUpdate,
     }
     const engine = Engine.get({ ctx: gameCanvas.getContext('2d')!, handlers })
     engine.start()
+    new Weather({ container: this.main })
   }
 
   private onError = ({ source }: { source: TErrorSource }) => (message: string) => {

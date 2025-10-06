@@ -65,7 +65,7 @@ export class Sound {
 
     const music = this.tracks[track]
     if (!music || !music.ready) {
-      console.log(`Pending music: ${track}. ${music ? music.name : ''}`)
+      // console.log(`Pending music: ${track}. ${music ? music.name : ''}`)
       this.pending = track
       return
     }
@@ -159,7 +159,7 @@ export class Sound {
       this.loaded += 1
       this.ready = ~~((this.loaded / countTotal) * 100)
       this.tracks[track].ready = true
-      console.log(`${track}. Can play '${name}'. Pending: ${this.pending}`)
+      // console.log(`${track}. Can play '${name}'. Pending: ${this.pending}`)
 
       if (this.pending === track) {
         this.play(this.pending, true)

@@ -1,11 +1,11 @@
-.overlay {
+.overlay_layer {
   position: absolute;
   top: 0;
   left: 0;
   bottom: 0;
   right: 0;
   padding: 1rem;
-  z-index: 3;
+  z-index: 10;
   display: flex;
   flex-direction: column;
   justify-content: space-between;

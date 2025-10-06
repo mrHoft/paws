@@ -13,9 +13,9 @@ const assets: Record<string, string> = {
   gnome: 'sprites/garden-gnome.png',
   grasshopper: 'sprites/grasshopper.gif',
   mouse: 'sprites/mouse-brown.gif',
-  'MistyMountains.layer1': 'MistyMountains/layer_1.png',
-  'MistyMountains.layer2': 'MistyMountains/layer_2.png',
-  'MistyMountains.layer3': 'MistyMountains/layer_3.png',
+  'mountains.layer1': 'mountains/layer_1.png',
+  'mountains.layer2': 'mountains/layer_2.png',
+  'mountains.layer3': 'mountains/layer_3.png',
 }
 
 export class Resource {

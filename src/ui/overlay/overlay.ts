@@ -18,7 +18,7 @@ class OverlayView {
 
   constructor() {
     this.container = document.createElement('div')
-    this.container.className = styles.overlay
+    this.container.className = styles.overlay_layer
 
     this.upper = document.createElement('div')
     this.upper.className = styles.row
@@ -56,7 +56,7 @@ export class Overlay extends OverlayView {
     const level = document.createElement('div')
     const levelValue = document.createElement('span')
     level.className = styles.player
-    levelValue.innerText = '0'
+    levelValue.innerText = '1'
     level.append('Level: ', levelValue)
 
     const score = document.createElement('div')
@@ -91,7 +91,7 @@ export class Overlay extends OverlayView {
   }
 
   public handleLevel = (value: number) => {
-    this.player.level.innerText = value.toString()
+    this.player.level.innerText = (value + 1).toString()
   }
 
   public handleScore = (value: number) => {
