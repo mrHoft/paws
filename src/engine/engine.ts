@@ -8,8 +8,10 @@ import { Tooltip } from './tooltip'
 import type { Target, TCat, TCaught, TGame } from './types'
 import type { GifObject } from '~/utils/gif'
 import { Queue } from '~/utils/queue'
+import { Sound } from '~/utils/sound'
 
 export class Engine {
+  private sound: Sound
   private game: TGame = {
     SPEED: 0.5, // Game complexity refers to current level (Slow: 0.5 Max: 1)
     successHeightModifier: 1.3, // Defines jump to target height ratio
@@ -85,6 +87,8 @@ export class Engine {
     this.updateScore = handlers.updateScore
     this.updateCaught = handlers.updateCaught
 
+    this.sound = new Sound()
+    this.sound.play(0, true)
     this.game.ctx = ctx
     this.game.successHeight = GAME.defaultTargetHeight * this.game.successHeightModifier
     this.draw = new Draw(this.game.ctx!)
@@ -114,6 +118,7 @@ export class Engine {
       return
     }
     this.tooltip.show(reason || (this.target.isBarrier ? 'barrier' : 'animal'))
+    if (this.target.isBarrier) this.sound.use('impact')
 
     this.game.combo = 0
     this.showCombo(this.game.combo)
@@ -134,11 +139,13 @@ export class Engine {
         if (this.game.combo > 1) {
           this.showCombo(this.game.combo)
           this.fly.throw('Combo:', this.game.combo, this.cat.CatX)
+          this.sound.use('combo')
         }
       }
       const name: TAnimalName = this.target.nameCurr as TAnimalName
 
       this.updateCaught(name)
+      this.sound.use('catch')
       this.target.nameCurr = 'none'
     }
     this.levelPrepare()
@@ -157,6 +164,7 @@ export class Engine {
     this.game.definingTrajectory = false
     // Prevent accidental taps
     if (this.cat.jumpHeight > GAME.jumpHeightMin + GAME.trajectoryStep * 2) {
+      this.sound.use('jump')
       this.game.action = 'jump'
       this.cat.atPosition = false
       this.cat.jumpStage = -Math.PI
