@@ -1,0 +1,41 @@
+.pause {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  z-index: 11;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  background-color: #0004;
+}
+
+.pause__header {
+  margin: 0 0 2rem;
+  font-size: 2rem;
+  line-height: 1;
+  padding: 0.5rem 1rem;
+  background-color: var(--color-orange30);
+  border-radius: 1.5rem;
+  text-align: center;
+}
+
+.pause__btns {
+  display: flex;
+  gap: 2rem;
+}
+
+.btn {
+  width: 3rem;
+  height: 3rem;
+  background-color: var(--color-orange30);
+  border-radius: 50%;
+  padding: 0.5rem;
+  box-sizing: border-box;
+}
+
+.btn img {
+  width: 2rem;
+  height: 2rem;
+}

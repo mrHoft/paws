@@ -23,22 +23,22 @@ const layersData: LayersData[] = [
   { src: 'mountains.layer3', dx: -1 },
 ]
 
-export class BgMotion {
+export class Backdrop {
   private ctx: CanvasRenderingContext2D | null = null
   private timer: number | null = null
   private layersArr: Layer[] = []
   private clearX = CANVAS.width
   private clearY = CANVAS.height
-  private static __instance: BgMotion
+  private static __instance: Backdrop
   private resource = Resource.get()
 
   constructor({ ctx }: { ctx?: CanvasRenderingContext2D }) {
-    if (BgMotion.__instance) {
-      if (ctx) BgMotion.__instance.ctx = ctx
-      return BgMotion.__instance
+    if (Backdrop.__instance) {
+      if (ctx) Backdrop.__instance.ctx = ctx
+      return Backdrop.__instance
     }
-    BgMotion.__instance = this
-    if (ctx) BgMotion.__instance.ctx = ctx
+    Backdrop.__instance = this
+    if (ctx) Backdrop.__instance.ctx = ctx
     this.init()
   }
 

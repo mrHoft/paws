@@ -13,7 +13,6 @@ interface WeatherLeaf extends HTMLImageElement {
 }
 
 interface WeatherOptions {
-  container?: HTMLElement;
   leafCount?: number;
 }
 
@@ -23,7 +22,7 @@ export class Weather {
   private isDestroyed: boolean = false;
 
   constructor(options: WeatherOptions = {}) {
-    const { container = document.body, leafCount = 3 } = options;
+    const { leafCount = 3 } = options;
 
     this.container = document.createElement('div');
     this.container.className = styles.weather_layer;
@@ -31,8 +30,6 @@ export class Weather {
     for (let i = 0; i < leafCount; i++) {
       this.addLeaf();
     }
-
-    container.appendChild(this.container);
   }
 
   private createWeatherLeaf(): WeatherLeaf {
@@ -123,20 +120,24 @@ export class Weather {
     return this.leaves.length;
   }
 
-  public pause() {
-    this.leaves.forEach(leaf => {
-      if (leaf.animation) {
-        leaf.animation.pause();
-      }
-    });
+  public pause(state: boolean) {
+    if (state) {
+      this.leaves.forEach(leaf => {
+        if (leaf.animation) {
+          leaf.animation.pause();
+        }
+      });
+    } else {
+      this.leaves.forEach(leaf => {
+        if (leaf.animation) {
+          leaf.animation.play();
+        }
+      });
+    }
   }
 
-  public resume() {
-    this.leaves.forEach(leaf => {
-      if (leaf.animation) {
-        leaf.animation.play();
-      }
-    });
+  public get element() {
+    return this.container
   }
 }
 /*

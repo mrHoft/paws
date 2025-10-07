@@ -40,6 +40,13 @@ export class Caught {
     }
   }
 
+  public handleReset = () => {
+    for (const name of slots) {
+      this.count[name] = 0
+      this.slot[name]!.innerText = '0'
+    }
+  }
+
   private createSlot = (name: TAnimalName) => {
     const slot = document.createDocumentFragment()
     const icon = document.createElement('img')

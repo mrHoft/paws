@@ -49,7 +49,7 @@ export class Overlay extends OverlayView {
   public readonly caught: Caught
   private player: { level: HTMLSpanElement, score: HTMLSpanElement, combo: HTMLSpanElement }
 
-  constructor() {
+  constructor({ handlePause }: { handlePause: (_show: boolean) => void }) {
     super()
     this.caught = new Caught()
 
@@ -77,6 +77,10 @@ export class Overlay extends OverlayView {
     this.player = { level: levelValue, score: scoreValue, combo: comboValue }
 
     const pause = this.createButton({ src: icons.pause })
+    pause.addEventListener('mousedown', (event) => {
+      event.stopPropagation()
+      handlePause(true)
+    })
     this.upper.append(player, this.caught.element, pause)
 
     const settings = this.createButton({ src: icons.settings })

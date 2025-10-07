@@ -21,7 +21,7 @@ const countTotal = Object.keys(sounds).length + music.length * 2
 export class Sound {
   static _instance: Sound
   private sound = { volume: 0.5, muted: false }
-  private music = { volume: 0.25, muted: false }
+  private music = { volume: 0.45, muted: true }
   private sounds: Record<string, HTMLAudioElement[]> = {}
   private tracks: { name: string; audio: HTMLAudioElement; ready: boolean }[] = []
   private loaded = 0

@@ -1,6 +1,8 @@
 import { Resource } from './engine/resource'
 import { CANVAS } from './const'
 import { Weather } from './ui/weather/weather'
+import { PauseModal } from './ui/pause/pause'
+import { Overlay } from './ui/overlay/overlay'
 
 const autoStart = true
 
@@ -76,6 +78,9 @@ export class AppView {
 
 export class App extends AppView {
   private loading = { start: 0 }
+  private pause?: PauseModal
+  private overlay?: Overlay
+  private weather?: Weather
 
   public init = async (): Promise<void> => {
     this.loaderInit()
@@ -128,27 +133,38 @@ export class App extends AppView {
     gameCanvas.className = 'game_layer'
     gameCanvas.setAttribute('style', 'z-index: 2')
 
-    const { Overlay } = await import('./ui/overlay/overlay');
-    const overlay = new Overlay()
-
-    this.main.append(bgCanvas, gameCanvas, overlay.element)
-
-    const { BgMotion } = await import('./engine/bgMotion');
-    new BgMotion({ ctx: bgCanvas.getContext('2d')! })
+    const { Backdrop } = await import('./engine/backdrop');
+    new Backdrop({ ctx: bgCanvas.getContext('2d')! })
 
     const { Engine } = await import('./engine/engine');
     const handlers = {
-      handlePause: () => console.log('Handle pause'),
+      handlePause: this.handlePause,
       handleGameOver: () => console.log('Handle game over'),
-      setLevel: overlay.handleLevel,
-      updateScore: overlay.handleScore,
-      setCombo: overlay.handleCombo,
-      showTooltip: overlay.handleTooltip,
-      updateCaught: overlay.caught.handleUpdate,
+      setLevel: (value: number) => this.overlay?.handleLevel(value),
+      setCombo: (value: number) => this.overlay?.handleCombo(value),
+      updateScore: (value: number) => this.overlay?.handleScore(value),
+      updateCaught: (value: string) => this.overlay?.caught.handleUpdate(value),
+      resetCaught: () => this.overlay?.caught.handleReset(),
+      showTooltip: (value: string) => this.overlay?.handleTooltip(value),
     }
     const engine = Engine.get({ ctx: gameCanvas.getContext('2d')!, handlers })
+
+
+    this.overlay = new Overlay({ handlePause: engine.pause })
+    this.weather = new Weather()
+    this.pause = new PauseModal({
+      pause: (state: boolean) => { engine.pause(state); this.weather?.pause(state) },
+      restart: () => { engine.start({ restart: true }); this.weather?.pause(false) }
+    })
+
+    this.main.append(bgCanvas, gameCanvas, this.overlay.element, this.weather.element, this.pause.element)
+
     engine.start()
-    new Weather({ container: this.main })
+  }
+
+  private handlePause = (state: boolean) => {
+    this.pause?.show(state)
+    this.weather?.pause(state)
   }
 
   private onError = ({ source }: { source: TErrorSource }) => (message: string) => {

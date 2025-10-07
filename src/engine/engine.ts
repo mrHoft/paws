@@ -1,7 +1,7 @@
 import { ANIMAL_LIST, BARRIER_LIST, CANVAS, DIFFICULTY_PER_LEVEL, GAME, TARGET_SCORE, type TAnimalName } from '../const'
 import { Draw } from './draw'
 import { Resource } from './resource'
-import { BgMotion } from './bgMotion'
+import { Backdrop } from './backdrop'
 import { FlyingValues } from './flyingValues'
 import { ControlEvents } from './events'
 import { Tooltip } from './tooltip'
@@ -9,6 +9,14 @@ import type { Target, TCat, TCaught, TGame } from './types'
 import type { GifObject } from '~/utils/gif'
 import { Queue } from '~/utils/queue'
 import { Sound } from '~/utils/sound'
+
+const caughtDefault: TCaught = {
+  butterfly: 0,
+  grasshopper: 0,
+  frog: 0,
+  bird: 0,
+  mouse: 0,
+}
 
 export class Engine {
   private sound: Sound
@@ -31,13 +39,7 @@ export class Engine {
     paused: false,
     combo: 0, // Combo multiplier for score
     score: GAME.initialScore,
-    caught: {
-      butterfly: 0,
-      grasshopper: 0,
-      frog: 0,
-      bird: 0,
-      mouse: 0,
-    },
+    caught: { ...caughtDefault }
   }
   private cat: TCat = {
     source: {} as GifObject,
@@ -67,7 +69,7 @@ export class Engine {
   private fly: FlyingValues
   private events: ControlEvents
   private tooltip: Tooltip
-  private bgMotion: BgMotion
+  private bgMotion: Backdrop
   private meterStack = new Queue()
   private handlePause: (pause: boolean) => void
   private handleGameOver: () => void
@@ -76,6 +78,7 @@ export class Engine {
   private showTooltip: (tooltip: string) => void
   private updateScore: (score: number) => void
   private updateCaught: (id: keyof TCaught) => void
+  private resetCaught: () => void
   private static __instance: Engine
 
   private constructor(ctx: CanvasRenderingContext2D, handlers: Record<string, (value?: any) => void>) {
@@ -86,6 +89,7 @@ export class Engine {
     this.showTooltip = handlers.showTooltip
     this.updateScore = handlers.updateScore
     this.updateCaught = handlers.updateCaught
+    this.resetCaught = handlers.resetCaught
 
     this.sound = new Sound()
     this.sound.play(0, true)
@@ -93,7 +97,7 @@ export class Engine {
     this.game.successHeight = GAME.defaultTargetHeight * this.game.successHeightModifier
     this.draw = new Draw(this.game.ctx!)
     this.fly = new FlyingValues(this.game.ctx!)
-    this.bgMotion = new BgMotion({})
+    this.bgMotion = new Backdrop({})
     this.events = new ControlEvents(this.game, this.prepareJumpStart, this.prepareJumpEnd, this.pause)
     this.tooltip = new Tooltip(this.showTooltip)
 
@@ -270,7 +274,6 @@ export class Engine {
     return
   }
 
-  // Renders one frame
   private render = () => {
     // Development time patch
     if (!this.cat.source) this.cat.source = this.resource.sprite.cat as GifObject
@@ -370,17 +373,28 @@ export class Engine {
     this.game.action = 'scene'
   }
 
-  public start(score = 0, caught: TCaught = this.game.caught) {
+  public start(options: { score?: number, caught?: TCaught, restart?: boolean } = {}) {
+    const { score = 0, caught = { ...caughtDefault }, restart } = options
     this.draw = new Draw(this.game.ctx!)
     this.fly = new FlyingValues(this.game.ctx!)
     this.events = new ControlEvents(this.game, this.prepareJumpStart, this.prepareJumpEnd, this.pause)
     this.tooltip = new Tooltip(this.showTooltip)
-    this.game.ctx!.font = '18px Arial'
+    this.game.ctx!.font = '16px Arial'
+
     this.game.score = score
     this.game.caught = caught
+    this.game.combo = 0
+    this.game.paused = false
+    this.game.action = null
     this.events.registerEvents()
     this.levelPrepare()
     this.tooltip.show('start')
+    if (restart) {
+      console.log('Game restarted')
+      this.showCombo(this.game.combo)
+      this.updateScore(this.game.score)
+      this.resetCaught()
+    }
   }
 
   public stop() {
@@ -391,7 +405,7 @@ export class Engine {
   public pause = (state: boolean) => {
     if (this.game.paused == state) return
     this.game.paused = state
-    console.log(`Game: ${this.game.paused ? 'Paused' : 'Continued'}`)
+    console.log(`Game ${this.game.paused ? 'paused' : 'continued'}`)
 
     if (this.game.paused) {
       this.events.unRegisterEvents()
@@ -414,6 +428,7 @@ export class Engine {
         Engine.__instance.showTooltip = handlers.showTooltip
         Engine.__instance.updateScore = handlers.updateScore
         Engine.__instance.updateCaught = handlers.updateCaught
+        Engine.__instance.resetCaught = handlers.resetCaught
       }
       return Engine.__instance
     }
