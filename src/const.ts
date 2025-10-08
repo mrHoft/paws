@@ -20,7 +20,6 @@ export const SpriteSize = {
 export const GAME = {
   version: 'alpha.0.2.10',
   scorePerLevel: 1000,
-  initialScore: 20, // Need to prevent 'Game over' after the first fail
   catchRange: 10, // A range where an animal can be caught
   meter: true, // Performance meter
   actionPositionVertical: Math.floor(CANVAS.height * 0.88),
@@ -45,14 +44,14 @@ export const GAME = {
 
 export type TAnimalName = 'butterfly' | 'grasshopper' | 'frog' | 'bird' | 'mouse'
 
-export type TTargetName = TAnimalName | 'cactus' | 'puddle' | 'flowerpot' | 'gnome' | 'none'
+export type TTargetName = TAnimalName | 'cactus' | 'puddle' | 'boulder' | 'flowerpot' | 'flowerpotEmpty' | 'gnome' | 'bucket' | 'none'
 
 export const ANIMAL_LIST: TTargetName[] = ['mouse', 'grasshopper', 'butterfly', 'bird']
 
-export const BARRIER_LIST: TTargetName[] = ['cactus', 'puddle', 'flowerpot', 'gnome']
+export const BARRIER_LIST: TTargetName[] = ['cactus', 'puddle', 'boulder', 'flowerpot', 'flowerpotEmpty', 'gnome', 'bucket']
 
 export const DIFFICULTY_PER_LEVEL: TTargetName[][] = [
-  ['mouse', 'grasshopper', 'butterfly', 'bird', 'cactus', 'puddle', 'flowerpot', 'gnome'], // Testing level 0
+  ['mouse', 'grasshopper', 'butterfly', 'bird', 'cactus', 'puddle', 'boulder', 'flowerpot', 'gnome', 'bucket'], // Testing level 0
   ['butterfly', 'puddle', 'flowerpot'],
   ['butterfly', 'grasshopper', 'puddle', 'flowerpot'],
   ['butterfly', 'grasshopper', 'puddle', 'flowerpot', 'gnome'],
@@ -70,7 +69,10 @@ export const TARGET_SCORE: Record<TTargetName, Record<'success' | 'fail', number
   mouse: { success: 10, fail: -10 },
 
   puddle: { success: 5, fail: -5 },
-  flowerpot: { success: 5, fail: -5 },
+  boulder: { success: 5, fail: -5 },
+  flowerpotEmpty: { success: 5, fail: -5 },
+  flowerpot: { success: 10, fail: -10 },
+  bucket: { success: 5, fail: -10 },
   gnome: { success: 5, fail: -10 },
   cactus: { success: 5, fail: -20 },
 }
@@ -82,3 +84,5 @@ export const TOOLTIP: Record<Tooltip, string> = {
   firstBarrier: 'Need to jump over the target',
   firstTimeout: 'The animal can run away',
 }
+
+export const LEVEL_NAMES = ['autumn', 'cliff', 'desert', 'forest', 'jungle', 'lake', 'mountains']

@@ -38,7 +38,7 @@ export class Engine {
     fullJump: true, // To know does current target need a full jump
     paused: false,
     combo: 0, // Combo multiplier for score
-    score: GAME.initialScore,
+    score: 0,
     caught: { ...caughtDefault }
   }
   private cat: TCat = {
@@ -115,7 +115,7 @@ export class Engine {
 
   private commitFail = (reason?: 'timeout') => {
     if (this.game.score + TARGET_SCORE[this.target.nameCurr].fail < 0) {
-      this.game.score = GAME.initialScore
+      this.game.score = 0
       this.game.paused = true
       this.game.action = null
       this.handleGameOver()

@@ -34,7 +34,7 @@ export class Weather {
 
   private createWeatherLeaf(): WeatherLeaf {
     const leaf = document.createElement('img') as WeatherLeaf;
-    leaf.src = '/images/leaf.svg';
+    leaf.src = '/images/leaf_brown.svg';
     leaf.className = styles.weather__leaf;
 
     leaf.animationData = {
