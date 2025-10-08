@@ -10,7 +10,6 @@ const assets: Record<string, string> = {
   boulder: 'sprites/boulder.png',
   gnome: 'sprites/garden-gnome.png',
   flowerpot: 'sprites/flowerpot.png',
-  flowerpotEmpty: 'sprites/flowerpot-empty.png',
   bucket: 'sprites/bucket.png',
   bird: 'sprites/bird-yellow.gif',
   butterfly: 'sprites/butterfly-orange.gif',
