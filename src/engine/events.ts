@@ -1,4 +1,5 @@
 import type { TGame } from './types'
+import { AdvancedShepardTone } from '~/utils/shepardTone'
 
 export class ControlEvents {
   private game: TGame
@@ -6,6 +7,7 @@ export class ControlEvents {
   private prepareJumpEnd: () => void
   private pause: (state: boolean) => void
   private static __instance: ControlEvents
+  private tone!: AdvancedShepardTone
 
   constructor(game: TGame, prepareJumpStart: () => void, prepareJumpEnd: () => void, pause: (state: boolean) => void) {
     this.game = game
@@ -13,6 +15,15 @@ export class ControlEvents {
     this.prepareJumpEnd = prepareJumpEnd
     this.pause = pause
     if (ControlEvents.__instance) return ControlEvents.__instance
+
+    this.tone = new AdvancedShepardTone({
+      baseFrequency: 220,
+      numOscillators: 2,
+      cycleDuration: 6.0,
+      oscillatorType: 'sine',
+      volume: 0.1,
+      direction: 'ascending'
+    });
   }
 
   private canJump = (): boolean => {
@@ -21,12 +32,14 @@ export class ControlEvents {
 
   private onkeydown = (event: KeyboardEvent) => {
     if (this.canJump() && event.code == 'Space') {
+      this.tone.start();
       this.prepareJumpStart()
     }
   }
 
   private onkeyup = (event: KeyboardEvent) => {
     if (this.game.definingTrajectory && event.code == 'Space') {
+      this.tone.stop();
       this.prepareJumpEnd()
     }
     if (event.code == 'Escape') {
@@ -38,12 +51,14 @@ export class ControlEvents {
     event.preventDefault()
     if (event.target && event.target instanceof HTMLDivElement && event.target.ariaLabel) return
     if (this.canJump()) {
+      this.tone.start();
       this.prepareJumpStart()
     }
   }
 
   private touchend = (/* event: MouseEvent | TouchEvent */) => {
     if (this.game.definingTrajectory) {
+      this.tone.stop();
       this.prepareJumpEnd()
     }
   }
