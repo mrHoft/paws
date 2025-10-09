@@ -43,21 +43,23 @@ export const GAME = {
 }
 
 export type TAnimalName = 'butterfly' | 'grasshopper' | 'frog' | 'bird' | 'mouse'
-
-export type TTargetName = TAnimalName | 'cactus' | 'puddle' | 'boulder' | 'flowerpot' | 'flowerpotEmpty' | 'gnome' | 'bucket' | 'none'
-
+export type TTargetName = TAnimalName | 'cactus1' | 'cactus2' | 'puddle' | 'boulder' | 'flowerpot' | 'gnome' | 'bucket' | 'none'
 export const ANIMAL_LIST: TTargetName[] = ['mouse', 'grasshopper', 'butterfly', 'bird']
+export const BARRIER_LIST: TTargetName[] = ['cactus1', 'cactus2', 'puddle', 'boulder', 'flowerpot', 'gnome', 'bucket']
 
-export const BARRIER_LIST: TTargetName[] = ['cactus', 'puddle', 'boulder', 'flowerpot', 'flowerpotEmpty', 'gnome', 'bucket']
+export type TLevelName = 'autumn' | 'cliff' | 'desert' | 'forest' | 'jungle' | 'lake' | 'mountains' | 'default'
+export const LEVEL_NAMES: TLevelName[] = ['autumn', 'cliff', 'desert', 'forest', 'jungle', 'lake', 'mountains']
 
-export const DIFFICULTY_PER_LEVEL: TTargetName[][] = [
-  ['mouse', 'grasshopper', 'butterfly', 'bird', 'cactus', 'puddle', 'boulder', 'flowerpot', 'gnome', 'bucket'], // Testing level 0
-  ['butterfly', 'puddle', 'flowerpot'],
-  ['butterfly', 'grasshopper', 'puddle', 'flowerpot'],
-  ['butterfly', 'grasshopper', 'puddle', 'flowerpot', 'gnome'],
-  ['grasshopper', 'mouse', 'puddle', 'flowerpot', 'gnome'],
-  ['grasshopper', 'mouse', 'bird', 'gnome', 'cactus'],
-]
+export const TARGETS_PER_LEVEL: Record<TLevelName, TTargetName[]> = {
+  autumn: ['mouse', 'grasshopper', 'puddle', 'flowerpot'],
+  cliff: ['butterfly', 'puddle', 'flowerpot'],
+  desert: ['butterfly', 'grasshopper', 'puddle', 'flowerpot'],
+  forest: ['butterfly', 'grasshopper', 'puddle', 'flowerpot', 'gnome'],
+  jungle: ['butterfly', 'grasshopper', 'puddle', 'flowerpot', 'gnome'],
+  lake: ['butterfly', 'grasshopper', 'puddle', 'flowerpot', 'gnome'],
+  mountains: ['mouse', 'grasshopper', 'puddle', 'flowerpot'],
+  default: [...ANIMAL_LIST, ...BARRIER_LIST], // Testing level
+}
 
 export const TARGET_SCORE: Record<TTargetName, Record<'success' | 'fail', number>> = {
   none: { success: 0, fail: 0 },
@@ -70,11 +72,11 @@ export const TARGET_SCORE: Record<TTargetName, Record<'success' | 'fail', number
 
   puddle: { success: 5, fail: -5 },
   boulder: { success: 5, fail: -5 },
-  flowerpotEmpty: { success: 5, fail: -5 },
   flowerpot: { success: 10, fail: -10 },
   bucket: { success: 5, fail: -10 },
   gnome: { success: 5, fail: -10 },
-  cactus: { success: 5, fail: -20 },
+  cactus1: { success: 5, fail: -20 },
+  cactus2: { success: 5, fail: -20 },
 }
 
 type Tooltip = 'newGame' | 'firstAnimal' | 'firstBarrier' | 'firstTimeout'
@@ -84,5 +86,3 @@ export const TOOLTIP: Record<Tooltip, string> = {
   firstBarrier: 'Need to jump over the target',
   firstTimeout: 'The animal can run away',
 }
-
-export const LEVEL_NAMES = ['autumn', 'cliff', 'desert', 'forest', 'jungle', 'lake', 'mountains']

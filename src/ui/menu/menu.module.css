@@ -1,0 +1,51 @@
+.menu_layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  z-index: 20;
+  padding: 1rem;
+  font-size: 20px;
+  background-repeat: no-repeat;
+  background-image: url(/images/cover.jpg);
+}
+
+.header {
+  display: flex;
+  justify-content: center;
+}
+
+.thumb {
+  position: absolute;
+  border-radius: 2rem;
+  border: 2px solid var(--color-orange30);
+  box-sizing: border-box;
+  transition: transform 0.25s ease-in;
+
+  &:hover {
+    z-index: 1;
+    transform: translateX(15%);
+  }
+}
+
+.scene {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background-color: #0004;
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+
+.scene>div {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 2rem;
+  border: 2px solid var(--color-orange30);
+  background-repeat: no-repeat;
+}

@@ -91,8 +91,6 @@ export class ShepardTone {
 
       this.createOscillators();
       this.schedule();
-
-      console.log('Shepard Tone started');
     } catch (error) {
       console.error('Failed to start Shepard Tone:', error);
       this._isPlaying = false;
@@ -123,8 +121,6 @@ export class ShepardTone {
       this.audioContext.close().catch(console.error);
       this.audioContext = null;
     }
-
-    console.log('Shepard Tone stopped');
   }
 
   public set cycleDuration(duration: number) {

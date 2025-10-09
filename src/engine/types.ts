@@ -1,4 +1,4 @@
-import type { TTargetName } from '~/const'
+import type { TTargetName, TLevelName } from '~/const'
 import type { GifObject } from '~/utils/gif'
 
 export type TAction = 'run' | 'stay' | 'jump' | 'path' | 'scene' | 'return' | null
@@ -27,6 +27,7 @@ export type TCaught = {
 }
 
 export type TGame = {
+  levelName: TLevelName
   SPEED: number
   successHeightModifier: number
   updateTime: number

@@ -24,13 +24,20 @@ export class Caught {
   }
   private slot: Partial<Record<TAnimalName, HTMLSpanElement>> = {}
 
-  constructor() {
+  constructor(count?: Record<TAnimalName, number>) {
+    if (count) {
+      this.count = { ...count }
+    }
     this.container = document.createElement('div')
     for (const name of slots) {
       const { slot, value } = this.createSlot(name)
       this.slot[name] = value
       this.container.append(slot)
     }
+  }
+
+  public setCount(value: Record<TAnimalName, number>) {
+    this.count = { ...value }
   }
 
   public handleUpdate = (name: string) => {

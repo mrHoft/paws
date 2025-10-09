@@ -1,4 +1,4 @@
-import { ANIMAL_LIST, BARRIER_LIST, CANVAS, DIFFICULTY_PER_LEVEL, GAME, TARGET_SCORE, type TAnimalName } from '../const'
+import { ANIMAL_LIST, BARRIER_LIST, CANVAS, TARGETS_PER_LEVEL, GAME, TARGET_SCORE, type TAnimalName, type TLevelName } from '~/const'
 import { Draw } from './draw'
 import { Resource } from './resource'
 import { Backdrop } from './backdrop'
@@ -21,7 +21,8 @@ const caughtDefault: TCaught = {
 export class Engine {
   private sound: Sound
   private game: TGame = {
-    SPEED: 0.5, // Game complexity refers to current level (Slow: 0.5 Max: 1)
+    levelName: 'default',
+    SPEED: 0.5, // Game complexity (normal: 0.5 fast: 1)
     successHeightModifier: 1.3, // Defines jump to target height ratio
     // Frame reit, actually no :). Updates automatically.
     get updateTime(): number {
@@ -69,7 +70,7 @@ export class Engine {
   private fly: FlyingValues
   private events: ControlEvents
   private tooltip: Tooltip
-  private bgMotion: Backdrop
+  private backdrop: Backdrop
   private meterStack = new Queue()
   private handlePause: (pause: boolean) => void
   private handleGameOver: () => void
@@ -97,7 +98,7 @@ export class Engine {
     this.game.successHeight = GAME.defaultTargetHeight * this.game.successHeightModifier
     this.draw = new Draw(this.game.ctx!)
     this.fly = new FlyingValues(this.game.ctx!)
-    this.bgMotion = new Backdrop({})
+    this.backdrop = new Backdrop({ ctx })
     this.events = new ControlEvents(this.game, this.prepareJumpStart, this.prepareJumpEnd, this.pause)
     this.tooltip = new Tooltip(this.showTooltip)
 
@@ -280,7 +281,9 @@ export class Engine {
     performance.mark('beginRenderProcess')
     this.game.ctx!.clearRect(0, 0, CANVAS.width, CANVAS.height)
     if (!this.target.atPosition && (this.game.action == 'return' || this.game.action == 'scene')) {
-      this.bgMotion.draw(this.cat.atPosition ? this.game.movementSpeed : Math.floor((this.game.movementSpeed / 2) * 3))
+      this.backdrop.move(this.cat.atPosition ? this.game.movementSpeed : Math.floor((this.game.movementSpeed / 2) * 3))
+    } else {
+      this.backdrop.draw()
     }
 
     this.draw.drawTarget(this.target.nameCurr, this.target.xCurr, this.target.yCurr, this.target.heightCurr)
@@ -338,14 +341,13 @@ export class Engine {
   }
 
   private levelPrepare = () => {
-    // Development time patch (React.StrictMode)
-    if (this.game.action == 'scene') return
-
     window.clearTimeout(this.game.timer)
+
     const level = Math.min(Math.floor(Math.max(this.game.score, 0) / GAME.scorePerLevel), 5)
     this.showLevel(level)
     this.game.SPEED = 0.5 + level * 0.1
-    const targets = DIFFICULTY_PER_LEVEL[0] // ToDo change to a level
+    const targets = TARGETS_PER_LEVEL[this.game.levelName]
+
     const rand = Math.floor(Math.random() * targets.length)
     this.target.nameLast = this.target.nameCurr
     this.target.heightLast = this.target.heightCurr
@@ -373,25 +375,29 @@ export class Engine {
     this.game.action = 'scene'
   }
 
-  public start(options: { score?: number, caught?: TCaught, restart?: boolean } = {}) {
-    const { score = 0, caught = { ...caughtDefault }, restart } = options
+  public start(options: { levelName?: TLevelName, restart?: boolean } = {}) {
+    const { levelName = this.game.levelName, restart } = options
     this.draw = new Draw(this.game.ctx!)
     this.fly = new FlyingValues(this.game.ctx!)
     this.events = new ControlEvents(this.game, this.prepareJumpStart, this.prepareJumpEnd, this.pause)
     this.tooltip = new Tooltip(this.showTooltip)
-    this.game.ctx!.font = '16px Arial'
+    this.backdrop.init(levelName)
 
-    this.game.score = score
-    this.game.caught = caught
-    this.game.combo = 0
+    this.game.ctx!.font = '16px Arial'
+    this.game.levelName = levelName
     this.game.paused = false
     this.game.action = null
     this.events.registerEvents()
     this.levelPrepare()
     this.tooltip.show('start')
+
+    this.game.combo = 0
+    this.showCombo(this.game.combo)
+
     if (restart) {
       console.log('Game restarted')
-      this.showCombo(this.game.combo)
+      this.game.score = 0
+      this.game.caught = { ...caughtDefault }
       this.updateScore(this.game.score)
       this.resetCaught()
     }

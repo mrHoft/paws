@@ -5,7 +5,8 @@ const PATH = ''
 
 const assets: Record<string, string> = {
   cat: 'sprites/cat-orange.gif',
-  cactus: 'sprites/cactus-green.png',
+  cactus1: 'sprites/cactus1.png',
+  cactus2: 'sprites/cactus2.png',
   puddle: 'sprites/water-puddle.png',
   boulder: 'sprites/boulder.png',
   gnome: 'sprites/garden-gnome.png',

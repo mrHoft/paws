@@ -1,18 +1,17 @@
 import { Resource } from './engine/resource'
-import { CANVAS } from './const'
+import { CANVAS, type TLevelName } from './const'
 import { Weather } from './ui/weather/weather'
 import { PauseModal } from './ui/pause/pause'
 import { Overlay } from './ui/overlay/overlay'
+import { Menu } from './ui/menu/menu'
 
-const autoStart = true
+const autoStart = false
 
-interface MenuItem { id: string, title: string, func: () => void }
 type TErrorSource = 'assets' | 'api'
 
 export class AppView {
   protected root: HTMLDivElement
   protected main!: HTMLElement
-  protected menu?: HTMLDivElement
   protected loader?: HTMLDivElement
   protected loaderBar?: HTMLDivElement
   protected loaderValue?: HTMLDivElement
@@ -25,23 +24,12 @@ export class AppView {
       this.root = root
       this.main = document.createElement('main')
       this.main.className = 'main'
+
+      this.main.setAttribute('style', `width: ${CANVAS.width}px; height: ${CANVAS.height}px;`)
       this.root.append(this.main)
     } else {
       throw new Error('Root element not found')
     }
-  }
-
-  protected menuInit(menuItems: MenuItem[]) {
-    this.menu = document.createElement('div')
-    this.menu.classList.add('menu')
-    for (const item of menuItems) {
-      const button = document.createElement('button')
-      button.innerText = item.title
-      button.onclick = item.func
-      this.menu.append(button)
-    }
-
-    this.main.append(this.menu)
   }
 
   protected loaderInit() {
@@ -81,6 +69,14 @@ export class App extends AppView {
   private pause?: PauseModal
   private overlay?: Overlay
   private weather?: Weather
+  private menu: Menu
+  private engineStart?: (levelName?: TLevelName) => void
+
+  constructor() {
+    super()
+    this.menu = new Menu({ start: this.startGame })
+    this.main.append(this.menu.element)
+  }
 
   public init = async (): Promise<void> => {
     this.loaderInit()
@@ -104,8 +100,9 @@ export class App extends AppView {
 
   private handleLoadComplete = () => {
     this.loaderRemove()
+
     if (autoStart) {
-      this.startGame()
+      this.initGame()
       return
     }
 
@@ -113,28 +110,15 @@ export class App extends AppView {
       return
     }
 
-    const menuItems = [
-      { id: 'start', title: 'Start', func: this.startGame },
-    ]
-    this.menuInit(menuItems)
+    this.menu.show()
   }
 
-  private startGame = async () => {
-    this.main.innerHTML = ''
-
-    const bgCanvas = document.createElement('canvas')
-    bgCanvas.width = CANVAS.width
-    bgCanvas.height = CANVAS.height
-    bgCanvas.setAttribute('style', 'z-index: 1')
-
-    const gameCanvas = document.createElement('canvas')
-    gameCanvas.width = CANVAS.width
-    gameCanvas.height = CANVAS.height
-    gameCanvas.className = 'game_layer'
-    gameCanvas.setAttribute('style', 'z-index: 2')
-
-    const { Backdrop } = await import('./engine/backdrop');
-    new Backdrop({ ctx: bgCanvas.getContext('2d')! })
+  private initGame = async (levelName: TLevelName = 'default') => {
+    const canvas = document.createElement('canvas')
+    canvas.width = CANVAS.width
+    canvas.height = CANVAS.height
+    canvas.className = 'game_layer'
+    canvas.setAttribute('style', 'z-index: 1')
 
     const { Engine } = await import('./engine/engine');
     const handlers = {
@@ -147,19 +131,31 @@ export class App extends AppView {
       resetCaught: () => this.overlay?.caught.handleReset(),
       showTooltip: (value: string) => this.overlay?.handleTooltip(value),
     }
-    const engine = Engine.get({ ctx: gameCanvas.getContext('2d')!, handlers })
+    const engine = Engine.get({ ctx: canvas.getContext('2d')!, handlers })
 
 
     this.overlay = new Overlay({ handlePause: engine.pause })
     this.weather = new Weather()
     this.pause = new PauseModal({
       pause: (state: boolean) => { engine.pause(state); this.weather?.pause(state) },
-      restart: () => { engine.start({ restart: true }); this.weather?.pause(false) }
+      restart: () => { engine.start({ restart: true }); this.weather?.pause(false) },
+      menu: () => { engine.stop(); this.menu.show() }
     })
 
-    this.main.append(bgCanvas, gameCanvas, this.overlay.element, this.weather.element, this.pause.element)
+    this.main.append(canvas, this.overlay.element, this.weather.element, this.pause.element)
 
-    engine.start()
+    this.engineStart = (levelName?: TLevelName) => engine.start({ levelName })
+    engine.start({ levelName })
+  }
+
+  private startGame = (levelName?: TLevelName) => {
+    this.menu.show(false)
+    this.weather?.pause(false)
+    if (this.engineStart) {
+      this.engineStart(levelName)
+    } else {
+      this.initGame(levelName)
+    }
   }
 
   private handlePause = (state: boolean) => {
