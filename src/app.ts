@@ -11,7 +11,7 @@ type TErrorSource = 'assets' | 'api'
 
 export class AppView {
   protected root: HTMLDivElement
-  protected main!: HTMLElement
+  protected game: HTMLElement
   protected loader?: HTMLDivElement
   protected loaderBar?: HTMLDivElement
   protected loaderValue?: HTMLDivElement
@@ -22,11 +22,15 @@ export class AppView {
     const root = document.querySelector<HTMLDivElement>('#app')
     if (root) {
       this.root = root
-      this.main = document.createElement('main')
-      this.main.className = 'main'
+      const main = document.createElement('main')
+      main.className = 'main'
+      main.setAttribute('style', `width: ${CANVAS.width}px; height: ${CANVAS.height}px;`)
 
-      this.main.setAttribute('style', `width: ${CANVAS.width}px; height: ${CANVAS.height}px;`)
-      this.root.append(this.main)
+      this.game = document.createElement('div')
+      this.game.className = 'game'
+      main.append(this.game)
+
+      this.root.append(main)
     } else {
       throw new Error('Root element not found')
     }
@@ -47,7 +51,7 @@ export class AppView {
     this.message = document.createElement('div')
     this.message.classList.add('loader__message')
 
-    this.main.append(this.loader, this.message)
+    this.game.append(this.loader, this.message)
   }
 
   protected loaderRemove() {
@@ -78,12 +82,12 @@ export class App extends AppView {
   constructor() {
     super()
     this.menu = new Menu({ start: this.startGame })
-    this.main.append(this.menu.element)
+    this.game.append(this.menu.element)
   }
 
   public init = async (): Promise<void> => {
     this.loaderInit()
-    this.main.addEventListener('contextmenu', (event) => {
+    this.game.addEventListener('contextmenu', (event) => {
       event.preventDefault()
       return false
     })
@@ -145,7 +149,7 @@ export class App extends AppView {
       menu: () => { engine.stop(); this.menu.show() }
     })
 
-    this.main.append(canvas, this.overlay.element, this.weather.element, this.pause.element)
+    this.game.append(canvas, this.overlay.element, this.weather.element, this.pause.element)
 
     this.engineStart = (levelName: TLevelName = 'default') => engine.start({ levelName })
   }

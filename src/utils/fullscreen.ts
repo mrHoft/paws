@@ -46,7 +46,7 @@ async function fullscreenDeactivate() {
   }
 }
 
-function isFullscreenActive(): boolean {
+export function isFullscreenActive(): boolean {
   const doc = document as FullscreenDocument;
   return !!(doc.fullscreenElement || doc.mozFullScreenElement || doc.webkitFullscreenElement);
 }

@@ -4,8 +4,6 @@
   font-weight: 400;
 
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -31,6 +29,9 @@
   --color-orange70: #e4640a;
   --color-orange80: #f9a765;
   --color-orange90: #fef3e8;
+
+  color: rgba(255, 255, 255, 0.87);
+  background: linear-gradient(var(--color-blue10), var(--color-blue20), var(--color-blue10));
 }
 
 body {
@@ -45,7 +46,14 @@ body {
 }
 
 .main {
+  display: flex;
+  align-items: center;
+}
+
+.game {
   position: relative;
+  width: 100%;
+  aspect-ratio: 80/36;
 }
 
 .loader_layer {
@@ -91,6 +99,7 @@ body {
 
 .game_layer {
   position: absolute;
-  left: 0px;
-  top: 0px;
+  left: 0;
+  top: 0;
+  width: 100%;
 }

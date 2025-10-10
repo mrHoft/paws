@@ -1,6 +1,7 @@
 import { GAME } from '~/const'
 import { Caught } from './caught'
 import { Sound } from '~/utils/sound'
+import { isFullscreenActive, fullscreenSwitch } from '~/utils/fullscreen'
 
 import styles from './overlay.module.css'
 
@@ -102,6 +103,11 @@ export class Overlay extends OverlayView {
     const version = document.createElement('div')
     version.innerText = GAME.version
     const fullscreen = this.createButton({ src: icons.fullscreen })
+    const fullscreenIconElement = fullscreen.children[0] as HTMLImageElement
+    fullscreen.addEventListener('mousedown', (event) => {
+      event.stopPropagation()
+      this.handleFullscreenToggle(fullscreenIconElement)
+    })
     botRight.append(version, fullscreen)
     this.bottom.append(pause, botRight)
   }
@@ -132,5 +138,14 @@ export class Overlay extends OverlayView {
     const muted = this.sound.muted
     this.sound.mute = !muted
     iconElement.src = muted ? icons.soundOff : icons.soundOn
+  }
+
+  private handleFullscreenToggle = (iconElement: HTMLImageElement) => {
+    const active = isFullscreenActive()
+    const element = document.querySelector('main')
+    if (element) {
+      fullscreenSwitch(!active, element)
+      iconElement.src = active ? icons.fullscreen : icons.fullscreenExit
+    }
   }
 }
