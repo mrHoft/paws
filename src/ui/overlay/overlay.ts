@@ -1,5 +1,6 @@
 import { GAME } from '~/const'
 import { Caught } from './caught'
+import { Sound } from '~/utils/sound'
 
 import styles from './overlay.module.css'
 
@@ -7,7 +8,9 @@ const icons = {
   settings: '/icons/settings.svg',
   fullscreen: '/icons/fullscreen.svg',
   fullscreenExit: '/icons/fullscreen-exit.svg',
-  pause: '/icons/pause.svg'
+  pause: '/icons/pause.svg',
+  soundOn: '/icons/sound-on.svg',
+  soundOff: '/icons/sound-off.svg'
 }
 
 class OverlayView {
@@ -35,8 +38,9 @@ class OverlayView {
     const button = document.createElement('div')
     const icon = document.createElement('img')
     icon.src = src
-    icon.width = icon.height = 32
+    icon.width = icon.height = 40
     button.append(icon)
+    button.className = styles.btn
     return button
   }
 
@@ -46,11 +50,13 @@ class OverlayView {
 }
 
 export class Overlay extends OverlayView {
+  private sound: Sound
   public readonly caught: Caught
   private player: { level: HTMLSpanElement, score: HTMLSpanElement, combo: HTMLSpanElement }
 
   constructor({ handlePause }: { handlePause: (_show: boolean) => void }) {
     super()
+    this.sound = new Sound()
     this.caught = new Caught()
 
     const level = document.createElement('div')
@@ -76,14 +82,20 @@ export class Overlay extends OverlayView {
     player.append(level, score, combo)
     this.player = { level: levelValue, score: scoreValue, combo: comboValue }
 
+
+    const sound = this.createButton({ src: this.sound.muted ? icons.soundOn : icons.soundOff })
+    const soundIconElement = sound.children[0] as HTMLImageElement
+    sound.addEventListener('mousedown', (event) => {
+      event.stopPropagation()
+      this.handleSoundToggle(soundIconElement)
+    })
+    this.upper.append(player, this.caught.element, sound)
+
     const pause = this.createButton({ src: icons.pause })
     pause.addEventListener('mousedown', (event) => {
       event.stopPropagation()
       handlePause(true)
     })
-    this.upper.append(player, this.caught.element, pause)
-
-    const settings = this.createButton({ src: icons.settings })
 
     const botRight = document.createElement('div')
     botRight.className = styles['bot-right']
@@ -91,7 +103,7 @@ export class Overlay extends OverlayView {
     version.innerText = GAME.version
     const fullscreen = this.createButton({ src: icons.fullscreen })
     botRight.append(version, fullscreen)
-    this.bottom.append(settings, botRight)
+    this.bottom.append(pause, botRight)
   }
 
   public handleLevel = (value: number) => {
@@ -114,5 +126,11 @@ export class Overlay extends OverlayView {
 
   public handleTooltip = (message: string) => {
     this.middle.innerText = message
+  }
+
+  private handleSoundToggle = (iconElement: HTMLImageElement) => {
+    const muted = this.sound.muted
+    this.sound.mute = !muted
+    iconElement.src = muted ? icons.soundOff : icons.soundOn
   }
 }

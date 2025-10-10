@@ -1,5 +1,5 @@
 import { CANVAS, LEVEL_NAMES, type TLevelName } from "~/const"
-import { Caught } from "~/ui/overlay/caught"
+// import { Caught } from "~/ui/overlay/caught"
 import { circleButton } from "~/ui/circleButton/button"
 
 import styles from './menu.module.css'
@@ -59,16 +59,17 @@ class MenuView {
 }
 
 export class Menu extends MenuView {
-  private caught: Caught
+  // private caught: Caught
 
   constructor({ start }: { start: (levelName: TLevelName) => void }) {
     super()
+    /*
     this.caught = new Caught
     const header = document.createElement('div')
     header.className = styles.header
     header.append(this.caught.element)
     this.container.append(header)
-
+    */
     this.thumbs.forEach(el => {
       el.img.addEventListener('click', this.handleSceneClick(el.name))
     })
@@ -88,7 +89,12 @@ export class Menu extends MenuView {
     })
   }
 
-  private handleSceneClick = (name: TLevelName) => () => {
+  private handleSceneClick = (name: TLevelName) => (event: PointerEvent) => {
+    const element = event.currentTarget as HTMLElement;
+    element.style.pointerEvents = 'none'
+    void element.offsetHeight
+    setTimeout(() => { element.style.pointerEvents = '' }, 0);
+
     this.scene.name = name
     this.scene.element.setAttribute('style', 'display: flex;')
     this.scene.inner.setAttribute('style', `width: ${400}px; height: ${300}px; background-image: url(${PATH}/${name}.jpg)`)

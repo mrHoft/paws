@@ -20,13 +20,13 @@ export const SpriteSize = {
 export const GAME = {
   version: 'alpha.0.2.11',
   scorePerLevel: 1000,
-  catchRange: 10, // A range where an animal can be caught
+  catchRange: 15, // A range where an animal can be caught
   meter: true, // Performance meter
   actionPositionVertical: Math.floor(CANVAS.height * 0.88),
   shadowsEnable: false,
   trajectoryStep: 2,
   jumpHeightMin: Math.floor(SpriteSize.cat.height / 1.5),
-  jumpHeightMax: SpriteSize.cat.height * 3,
+  jumpHeightMax: SpriteSize.cat.height * 2.25,
   defaultCatX: Math.floor(CANVAS.width / 3),
   get defaultCatY(): number {
     return this.actionPositionVertical + SpriteSize.cat.height * .05

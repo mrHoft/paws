@@ -39,25 +39,35 @@ export class PauseModal {
     const btns = document.createElement('div')
     btns.className = styles.pause__btns
     const resume = circleButton(icons.resume)
-    resume.addEventListener('click', this.handlePause)
+    resume.addEventListener('click', this.handleResume)
+    /*
     const settings = circleButton(icons.settings)
     settings.addEventListener('click', this.handleSettings)
+     */
     const restart = circleButton(icons.restart)
     restart.addEventListener('click', this.handleRestart)
     const menu = circleButton(icons.menu)
     menu.addEventListener('click', this.handleMenu)
-    btns.append(resume, restart, settings, menu)
+    btns.append(resume, restart, /* settings, */ menu)
 
     inner.append(h2, btns)
     this.container.append(inner)
+
+    this.container.addEventListener('click', event => {
+      const { target, currentTarget } = event;
+      if (target === currentTarget) {
+        event.preventDefault();
+        this.handleResume()
+      }
+    })
   }
 
-  private handlePause = () => {
+  private handleResume = () => {
     this.show(false)
     this.pause(false)
   }
 
-  private handleSettings = () => console.log('Handle settings')
+  // private handleSettings = () => console.log('Handle settings')
 
   private handleRestart = () => {
     this.show(false)

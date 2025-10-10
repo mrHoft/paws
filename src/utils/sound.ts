@@ -20,8 +20,8 @@ const countTotal = Object.keys(sounds).length + music.length * 2
 
 export class Sound {
   static _instance: Sound
-  private sound = { volume: 0.5, muted: false }
-  private music = { volume: 0.45, muted: true }
+  private _sound = { volume: 0.5, muted: false }
+  private _music = { volume: 0.45, muted: true }
   private sounds: Record<string, HTMLAudioElement[]> = {}
   private tracks: { name: string; audio: HTMLAudioElement; ready: boolean }[] = []
   private loaded = 0
@@ -50,18 +50,35 @@ export class Sound {
   }
 
   public set musicVolume(value: number) {
-    this.music.volume = value
+    this._music.volume = value
     if (this.playing) this.playing.audio.volume = value
   }
 
   public set musicMute(value: boolean) {
-    this.music.muted = value
+    this._music.muted = value
     if (this.playing) this.playing.audio.muted = value
     else this.play(0, true)
   }
 
+  public set mute(value: boolean) {
+    this._sound.muted = value
+    this.musicMute = value
+  }
+
+  public get muted() {
+    return this._sound.muted || this._music.muted
+  }
+
+  public get music() {
+    return this._music
+  }
+
+  public get sound() {
+    return this._sound
+  }
+
   public play(track: number, loop: boolean) {
-    if (this.music.muted || track === -1) return
+    if (this._music.muted || track === -1) return
 
     const music = this.tracks[track]
     if (!music || !music.ready) {
@@ -71,8 +88,8 @@ export class Sound {
     }
 
     const audio = this.tracks[track].audio
-    audio.volume = this.music.volume
-    audio.muted = this.music.muted
+    audio.volume = this._music.volume
+    audio.muted = this._music.muted
     audio
       .play()
       .then(() => {
@@ -89,7 +106,7 @@ export class Sound {
             this.play(this.pending, true);
           });
         } else {
-          this.music.muted = true
+          this._music.muted = true
           if (this.exceptionCallback) {
             this.exceptionCallback(error instanceof Error ? error.message : error.toString())
           }
@@ -97,8 +114,12 @@ export class Sound {
       })
   }
 
+  public pause = () => {
+    this.playing?.audio.pause()
+  }
+
   public use(name: string) {
-    if (this.sound.muted) return
+    if (this._sound.muted) return
     if (!Object.keys(sounds).includes(name)) {
       console.warn(`No sound: ${name}`)
       return
@@ -106,7 +127,7 @@ export class Sound {
     for (let i = 0; i < 10; i += 1) {
       const audio = this.sounds[name][i]
       if (audio.currentTime === 0 || audio.ended) {
-        audio.volume = this.sound.volume
+        audio.volume = this._sound.volume
         audio.play().catch(error => console.error(error))
         return
       }

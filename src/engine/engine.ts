@@ -9,6 +9,7 @@ import type { Target, TCat, TCaught, TGame } from './types'
 import type { GifObject } from '~/utils/gif'
 import { Queue } from '~/utils/queue'
 import { Sound } from '~/utils/sound'
+import { AdvancedShepardTone } from '~/utils/shepardTone'
 
 const caughtDefault: TCaught = {
   butterfly: 0,
@@ -67,13 +68,14 @@ export class Engine {
   }
   private resource: Resource
   private draw: Draw
+  private tone: AdvancedShepardTone
   private fly: FlyingValues
   private events: ControlEvents
   private tooltip: Tooltip
   private backdrop: Backdrop
   private meterStack = new Queue()
   private handlePause: (pause: boolean) => void
-  private handleGameOver: () => void
+  // private handleGameOver: () => void
   private showLevel: (value: number) => void
   private showCombo: (value: number) => void
   private showTooltip: (tooltip: string) => void
@@ -84,7 +86,7 @@ export class Engine {
 
   private constructor(ctx: CanvasRenderingContext2D, handlers: Record<string, (value?: any) => void>) {
     this.handlePause = handlers.handlePause
-    this.handleGameOver = handlers.handleGameOver
+    // this.handleGameOver = handlers.handleGameOver
     this.showLevel = handlers.setLevel
     this.showCombo = handlers.setCombo
     this.showTooltip = handlers.showTooltip
@@ -93,13 +95,21 @@ export class Engine {
     this.resetCaught = handlers.resetCaught
 
     this.sound = new Sound()
-    this.sound.play(0, true)
+    this.tone = new AdvancedShepardTone({
+      baseFrequency: 220,
+      numOscillators: 2,
+      cycleDuration: 6.0,
+      oscillatorType: 'sine',
+      volume: 0.1,
+      direction: 'ascending'
+    });
+
     this.game.ctx = ctx
     this.game.successHeight = GAME.defaultTargetHeight * this.game.successHeightModifier
     this.draw = new Draw(this.game.ctx!)
     this.fly = new FlyingValues(this.game.ctx!)
     this.backdrop = new Backdrop({ ctx })
-    this.events = new ControlEvents(this.game, this.prepareJumpStart, this.prepareJumpEnd, this.pause)
+    this.events = new ControlEvents({ game: this.game, prepareJumpStart: this.prepareJumpStart, prepareJumpEnd: this.prepareJumpEnd, pause: this.pause })
     this.tooltip = new Tooltip(this.showTooltip)
 
     this.resource = Resource.get()
@@ -109,19 +119,22 @@ export class Engine {
   private setScore = (value: number, multiplier = 1) => {
     const combo = Math.max(this.game.combo, 1)
     this.game.score += value * multiplier * combo
+    if (this.game.score < 0) this.game.score = 0
     this.updateScore(this.game.score)
     if (value != 0) this.fly.throw(value * combo, multiplier, this.cat.CatX)
     if (this.game.success) this.tooltip.hide()
   }
 
   private commitFail = (reason?: 'timeout') => {
-    if (this.game.score + TARGET_SCORE[this.target.nameCurr].fail < 0) {
-      this.game.score = 0
-      this.game.paused = true
-      this.game.action = null
-      this.handleGameOver()
-      return
-    }
+    /* Game over mechanics
+      if (this.game.score + TARGET_SCORE[this.target.nameCurr].fail < 0) {
+        this.game.score = 0
+        this.game.paused = true
+        this.game.action = null
+        this.handleGameOver()
+        return
+      }
+    */
     this.tooltip.show(reason || (this.target.isBarrier ? 'barrier' : 'animal'))
     if (this.target.isBarrier) this.sound.use('impact')
 
@@ -157,6 +170,10 @@ export class Engine {
   }
 
   private prepareJumpStart = () => {
+    if (!this.sound.sound.muted) {
+      this.tone.direction = 'ascending'
+      this.tone.start();
+    }
     this.cat.jumpHeight = GAME.jumpHeightMin
     this.cat.trajectoryDirection = 1
     this.game.definingTrajectory = true
@@ -166,6 +183,7 @@ export class Engine {
   }
 
   private prepareJumpEnd = () => {
+    this.tone.stop();
     this.game.definingTrajectory = false
     // Prevent accidental taps
     if (this.cat.jumpHeight > GAME.jumpHeightMin + GAME.trajectoryStep * 2) {
@@ -187,12 +205,17 @@ export class Engine {
 
   private defineTrajectory = () => {
     this.cat.jumpHeight += GAME.trajectoryStep * this.cat.trajectoryDirection
-    if (this.cat.jumpHeight >= GAME.jumpHeightMax) this.cat.trajectoryDirection = -1
+    if (this.cat.jumpHeight >= GAME.jumpHeightMax) {
+      this.cat.trajectoryDirection = -1
+      this.tone.direction = 'descending'
+    }
     if (this.cat.jumpHeight < GAME.jumpHeightMin) {
       // Stops jump request
       this.game.action = 'stay'
       this.game.definingTrajectory = false
       this.cat.jumpStage = -Math.PI
+      this.tone.stop();
+      return
     }
     this.draw.drawTrajectory(this.cat.CatX, this.cat.CatY, this.cat.jumpHeight, !this.target.isBarrier)
   }
@@ -378,11 +401,12 @@ export class Engine {
     const { levelName = this.game.levelName, restart } = options
     this.draw = new Draw(this.game.ctx!)
     this.fly = new FlyingValues(this.game.ctx!)
-    this.events = new ControlEvents(this.game, this.prepareJumpStart, this.prepareJumpEnd, this.pause)
+    this.events = new ControlEvents({ game: this.game, prepareJumpStart: this.prepareJumpStart, prepareJumpEnd: this.prepareJumpEnd, pause: this.pause })
     this.tooltip = new Tooltip(this.showTooltip)
     this.backdrop.init(levelName)
+    this.sound.play(0, true)  // TODO: level music
 
-    this.game.ctx!.font = '16px Arial'
+    this.game.ctx!.font = '20px Arial'
     this.game.levelName = levelName
     this.game.paused = false
     this.game.action = null
@@ -405,6 +429,7 @@ export class Engine {
   public stop() {
     this.events.unRegisterEvents()
     window.clearTimeout(this.game.timer)
+    this.sound.pause()
   }
 
   public pause = (state: boolean) => {
@@ -427,7 +452,7 @@ export class Engine {
       // Renew handlers
       if (handlers) {
         Engine.__instance.handlePause = handlers.handlePause
-        Engine.__instance.handleGameOver = handlers.handleGameOver
+        // Engine.__instance.handleGameOver = handlers.handleGameOver
         Engine.__instance.showLevel = handlers.setLevel
         Engine.__instance.showCombo = handlers.setCombo
         Engine.__instance.showTooltip = handlers.showTooltip

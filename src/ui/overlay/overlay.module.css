@@ -39,3 +39,12 @@
 .combo {
   color: yellow;
 }
+
+.btn {
+  transition: opacity 0.25s linear;
+  cursor: pointer;
+
+  &:hover {
+    opacity: 0.75;
+  }
+}
