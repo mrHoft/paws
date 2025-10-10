@@ -1,11 +1,11 @@
 import type { TAnimalName } from "~/const"
 
 const spoilSrc: Record<TAnimalName, string> = {
-  butterfly: '/spoil/butterfly.svg',
-  grasshopper: '/spoil/frog.svg',
-  frog: '/spoil/frog.svg',
-  mouse: '/spoil/mouse.svg',
-  bird: '/spoil/bird.svg',
+  butterfly: './spoil/butterfly.svg',
+  grasshopper: './spoil/frog.svg',
+  frog: './spoil/frog.svg',
+  mouse: './spoil/mouse.svg',
+  bird: './spoil/bird.svg',
 }
 
 const slots: Partial<TAnimalName>[] = ['butterfly', 'grasshopper', 'mouse', 'bird']

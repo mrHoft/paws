@@ -3,10 +3,10 @@ import { circleButton } from '../circleButton/button'
 import styles from './pause.module.css'
 
 const icons = {
-  resume: '/icons/play.svg',
-  restart: '/icons/restart.svg',
-  settings: '/icons/settings.svg',
-  menu: '/icons/menu.svg',
+  resume: './icons/play.svg',
+  restart: './icons/restart.svg',
+  settings: './icons/settings.svg',
+  menu: './icons/menu.svg',
 }
 
 export class PauseModal {

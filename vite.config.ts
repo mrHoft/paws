@@ -3,6 +3,7 @@ import { defineConfig } from 'vite'
 const cwd = process.cwd();
 
 export default defineConfig({
+  base: './',
   build: {
     assetsDir: './',
     rollupOptions: {

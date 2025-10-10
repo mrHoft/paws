@@ -3,16 +3,16 @@ type TSoundAssets = Record<string, { url: string, type: TSoundType }>
 interface MusicObj extends HTMLAudioElement { musicInfo: { name: string, track: number } }
 
 const sounds: TSoundAssets = {
-  catch: { url: '/audio/catch.ogg', type: 'single' },
-  combo: { url: '/audio/combo.ogg', type: 'single' },
-  impact: { url: '/audio/impact.ogg', type: 'single' },
-  jump: { url: '/audio/jump.ogg', type: 'single' },
+  catch: { url: './audio/catch.ogg', type: 'single' },
+  combo: { url: './audio/combo.ogg', type: 'single' },
+  impact: { url: './audio/impact.ogg', type: 'single' },
+  jump: { url: './audio/jump.ogg', type: 'single' },
 }
 
 const music = [
   {
     name: 'Mountains',
-    url: '/audio/mountains.mp3',
+    url: './audio/mountains.mp3',
   },
 ]
 

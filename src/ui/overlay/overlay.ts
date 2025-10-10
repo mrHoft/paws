@@ -6,12 +6,12 @@ import { isFullscreenActive, fullscreenSwitch } from '~/utils/fullscreen'
 import styles from './overlay.module.css'
 
 const icons = {
-  settings: '/icons/settings.svg',
-  fullscreen: '/icons/fullscreen.svg',
-  fullscreenExit: '/icons/fullscreen-exit.svg',
-  pause: '/icons/pause.svg',
-  soundOn: '/icons/sound-on.svg',
-  soundOff: '/icons/sound-off.svg'
+  settings: './icons/settings.svg',
+  fullscreen: './icons/fullscreen.svg',
+  fullscreenExit: './icons/fullscreen-exit.svg',
+  pause: './icons/pause.svg',
+  soundOn: './icons/sound-on.svg',
+  soundOff: './icons/sound-off.svg'
 }
 
 class OverlayView {

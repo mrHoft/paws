@@ -4,7 +4,11 @@ import { circleButton } from "~/ui/circleButton/button"
 
 import styles from './menu.module.css'
 
-const PATH = '/thumb'
+const icons = {
+  play: './icons/play.svg'
+}
+
+const PATH = './thumb'
 const imgHeight = 100
 const imgWidth = imgHeight * (4 / 3)
 const padding = 20
@@ -42,7 +46,7 @@ class MenuView {
     const scene = document.createElement('div')
     scene.className = styles.scene
     const inner = document.createElement('div')
-    const btn = circleButton('/icons/play.svg')
+    const btn = circleButton(icons.play)
     inner.append(btn)
     scene.append(inner)
     this.scene = { element: scene, inner, btn, name: 'default' }

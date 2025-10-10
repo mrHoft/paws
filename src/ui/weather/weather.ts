@@ -1,5 +1,7 @@
 import styles from './weather.module.css'
 
+const leafSrc = './images/leaf_brown.svg'
+
 interface LeafAnimationData {
   horizontalSpeed: number;
   rotationSpeed: number
@@ -34,7 +36,7 @@ export class Weather {
 
   private createWeatherLeaf(): WeatherLeaf {
     const leaf = document.createElement('img') as WeatherLeaf;
-    leaf.src = '/images/leaf_brown.svg';
+    leaf.src = leafSrc;
     leaf.className = styles.weather__leaf;
 
     leaf.animationData = {

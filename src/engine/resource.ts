@@ -1,7 +1,7 @@
-import { GifFactory, type GifObject } from '../utils/gif'
-import { setValue } from '../utils/data.js'
+import { GifFactory, type GifObject } from '~/utils/gif'
+import { setValue } from '~/utils/data.js'
 
-const PATH = ''
+const PATH = '.'
 
 const assets: Record<string, string> = {
   cat: 'sprites/cat-ginger.gif',
