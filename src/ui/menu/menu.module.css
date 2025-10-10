@@ -19,7 +19,7 @@
 .thumb {
   position: absolute;
   border-radius: 2rem;
-  border: 2px solid var(--color-orange30);
+  border: 2px solid var(--color-orange70);
   box-sizing: border-box;
   transition: transform 0.25s ease-in;
 
@@ -46,6 +46,6 @@
   justify-content: center;
   align-items: center;
   border-radius: 2rem;
-  border: 2px solid var(--color-orange30);
+  border: 2px solid var(--color-orange70);
   background-repeat: no-repeat;
 }

@@ -34,12 +34,15 @@ export class AppView {
 
   protected loaderInit() {
     this.loader = document.createElement('div')
-    this.loader.classList.add('loader')
+    this.loader.classList.add('loader_layer')
+    const container = document.createElement('div')
+    container.classList.add('loader')
     this.loaderBar = document.createElement('div')
     this.loaderBar.classList.add('loader__bar')
     this.loaderValue = document.createElement('div')
     this.loaderValue.classList.add('loader__value')
-    this.loader.append(this.loaderBar, this.loaderValue)
+    container.append(this.loaderBar, this.loaderValue)
+    this.loader.append(container)
 
     this.message = document.createElement('div')
     this.message.classList.add('loader__message')
@@ -102,7 +105,7 @@ export class App extends AppView {
     this.loaderRemove()
 
     if (autoStart) {
-      this.initGame()
+      this.initGame().then(() => this.engineStart!())
       return
     }
 
@@ -113,7 +116,7 @@ export class App extends AppView {
     this.menu.show()
   }
 
-  private initGame = async (levelName: TLevelName = 'default') => {
+  private initGame = async () => {
     const canvas = document.createElement('canvas')
     canvas.width = CANVAS.width
     canvas.height = CANVAS.height
@@ -144,8 +147,7 @@ export class App extends AppView {
 
     this.main.append(canvas, this.overlay.element, this.weather.element, this.pause.element)
 
-    this.engineStart = (levelName?: TLevelName) => engine.start({ levelName })
-    engine.start({ levelName })
+    this.engineStart = (levelName: TLevelName = 'default') => engine.start({ levelName })
   }
 
   private startGame = (levelName?: TLevelName) => {
@@ -154,7 +156,7 @@ export class App extends AppView {
     if (this.engineStart) {
       this.engineStart(levelName)
     } else {
-      this.initGame(levelName)
+      this.initGame().then(() => this.engineStart!(levelName))
     }
   }
 
