@@ -8,8 +8,8 @@ export const CANVAS = {
 
 export const SpriteSize = {
   cat: {
-    width: 100,
-    height: 74,
+    width: 158,
+    height: 90,
     get aspectRatio(): number {
       return this.height / this.width
     },
@@ -18,7 +18,7 @@ export const SpriteSize = {
 
 // Core game constants
 export const GAME = {
-  version: 'alpha.0.2.10',
+  version: 'alpha.0.2.11',
   scorePerLevel: 1000,
   catchRange: 10, // A range where an animal can be caught
   meter: true, // Performance meter
@@ -29,7 +29,7 @@ export const GAME = {
   jumpHeightMax: SpriteSize.cat.height * 3,
   defaultCatX: Math.floor(CANVAS.width / 3),
   get defaultCatY(): number {
-    return this.actionPositionVertical
+    return this.actionPositionVertical + SpriteSize.cat.height * .05
   },
   defaultTargetX: CANVAS.width / 2,
   animalPositionDelta: CANVAS.width / 8,

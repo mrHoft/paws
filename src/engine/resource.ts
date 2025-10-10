@@ -4,7 +4,7 @@ import { setValue } from '../utils/data.js'
 const PATH = ''
 
 const assets: Record<string, string> = {
-  cat: 'sprites/cat-orange.gif',
+  cat: 'sprites/cat-ginger.gif',
   cactus1: 'sprites/cactus1.png',
   cactus2: 'sprites/cactus2.png',
   puddle: 'sprites/water-puddle.png',

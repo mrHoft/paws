@@ -210,7 +210,7 @@ export class Engine {
     if (i < 0) {
       this.cat.CatX = Math.floor(GAME.defaultCatX + r + r * Math.cos(i))
       const y = this.cat.CatY + r * Math.sin(i) * modifier
-      const frameIndex = Math.floor(((i + Math.PI) / Math.PI) * 3)
+      const frameIndex = Math.floor(((i + Math.PI) / Math.PI) * 7)
       this.draw.drawCat(this.cat.source.frames[frameIndex].image, this.cat.CatX, y)
     } else {
       this.game.success ? this.commitSuccess() : this.commitFail()
@@ -292,7 +292,6 @@ export class Engine {
 
     switch (this.game.action) {
       case 'return':
-        // this.sceneReturn()
         this.sceneChange()
         this.draw.drawCat(this.cat.source.image!, this.cat.CatX, this.cat.CatY)
         break
@@ -307,7 +306,7 @@ export class Engine {
         this.defineJump()
         break
       default: // 'stay'
-        this.draw.drawCat(this.cat.source.frames[2].image, this.cat.CatX, this.cat.CatY)
+        this.draw.drawCat(this.cat.source.frames[0].image, this.cat.CatX, this.cat.CatY)
     }
     this.fly.render()
     if (this.game.definingTrajectory || this.updateIsNeeded()) setTimeout(this.update, this.game.updateTime)
