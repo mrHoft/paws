@@ -1,6 +1,6 @@
 export const CANVAS = {
-  width: 800,
-  height: 360,
+  width: 1280,
+  height: 576,
   get aspectRatio(): number {
     return this.height / this.width
   },
@@ -8,8 +8,8 @@ export const CANVAS = {
 
 export const SpriteSize = {
   cat: {
-    width: 158,
-    height: 90,
+    width: 252,
+    height: 144,
     get aspectRatio(): number {
       return this.height / this.width
     },
@@ -20,11 +20,11 @@ export const SpriteSize = {
 export const GAME = {
   version: 'alpha.0.2.11',
   scorePerLevel: 1000,
-  catchRange: 15, // A range where an animal can be caught
+  catchRange: 24, // A range where an animal can be caught
   meter: true, // Performance meter
   actionPositionVertical: Math.floor(CANVAS.height * 0.88),
   shadowsEnable: false,
-  trajectoryStep: 2,
+  trajectoryStep: 3,
   jumpHeightMin: Math.floor(SpriteSize.cat.height / 1.5),
   jumpHeightMax: SpriteSize.cat.height * 2.25,
   defaultCatX: Math.floor(CANVAS.width / 3),
@@ -36,10 +36,8 @@ export const GAME = {
   get defaultTargetY(): number {
     return this.actionPositionVertical
   },
-  defaultTargetHeight: 80,
-  stepTargetHeight: 10,
+  defaultTargetHeight: 128,
   defaultRunAwayDelay: 8000, // The time after which the target will escape
-  stepTargetDelay: 1000
 }
 
 export type TAnimalName = 'butterfly' | 'grasshopper' | 'frog' | 'bird' | 'mouse'
@@ -51,13 +49,13 @@ export type TLevelName = 'autumn' | 'cliff' | 'desert' | 'forest' | 'jungle' | '
 export const LEVEL_NAMES: TLevelName[] = ['autumn', 'cliff', 'desert', 'forest', 'jungle', 'lake', 'mountains']
 
 export const TARGETS_PER_LEVEL: Record<TLevelName, TTargetName[]> = {
-  autumn: ['mouse', 'grasshopper', 'puddle', 'flowerpot'],
-  cliff: ['butterfly', 'puddle', 'flowerpot'],
-  desert: ['butterfly', 'grasshopper', 'puddle', 'flowerpot'],
-  forest: ['butterfly', 'grasshopper', 'puddle', 'flowerpot', 'gnome'],
-  jungle: ['butterfly', 'grasshopper', 'puddle', 'flowerpot', 'gnome'],
-  lake: ['butterfly', 'grasshopper', 'puddle', 'flowerpot', 'gnome'],
-  mountains: ['mouse', 'grasshopper', 'puddle', 'flowerpot'],
+  autumn: ['mouse', 'bird', 'puddle', 'flowerpot', 'boulder'],
+  cliff: ['butterfly', 'grasshopper', 'flowerpot', 'boulder', 'gnome'],
+  desert: ['butterfly', 'mouse', 'cactus1', 'cactus2',],
+  forest: ['butterfly', 'grasshopper', 'bird', 'puddle', 'boulder'],
+  jungle: ['butterfly', 'grasshopper', 'bird', 'puddle', 'boulder', 'cactus1'],
+  lake: ['mouse', 'bird', 'puddle', 'flowerpot', 'gnome'],
+  mountains: ['mouse', 'grasshopper', 'puddle', 'flowerpot', 'gnome'],
   default: [...ANIMAL_LIST, ...BARRIER_LIST], // Testing level
 }
 

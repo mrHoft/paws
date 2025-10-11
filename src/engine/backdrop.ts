@@ -14,50 +14,49 @@ interface Layer {
 interface LayersData {
   src: string
   dx: number
-  isTop?: boolean
-  resize?: boolean
+  fromTop?: boolean
 }
 
 const layersData: Record<TLevelName, LayersData[]> = {
   default: [
-    { src: 'mountains.layer1', dx: 0, resize: true, isTop: true },
-    { src: 'mountains.layer2', dx: -0.25, resize: true },
-    { src: 'mountains.layer3', dx: -1, resize: true },
+    { src: 'mountains.layer1', dx: 0, fromTop: true },
+    { src: 'mountains.layer2', dx: -0.25 },
+    { src: 'mountains.layer3', dx: -1 },
   ],
   mountains: [
-    { src: 'mountains.layer1', dx: 0, resize: true, isTop: true },
-    { src: 'mountains.layer2', dx: -0.25, resize: true },
-    { src: 'mountains.layer3', dx: -1, resize: true },
+    { src: 'mountains.layer1', dx: 0, fromTop: true },
+    { src: 'mountains.layer2', dx: -0.25 },
+    { src: 'mountains.layer3', dx: -1 },
   ],
   cliff: [
-    { src: 'cliff.layer1', dx: -0.1, isTop: true },
-    { src: 'cliff.layer2', dx: -0.25 },
+    { src: 'cliff.layer1', dx: -0.1, fromTop: true },
+    { src: 'cliff.layer2', dx: -0.25, fromTop: true },
     { src: 'cliff.layer3', dx: -1 },
   ],
   autumn: [
-    { src: 'autumn.layer1', dx: 0, isTop: true },
-    { src: 'autumn.layer2', dx: -0.25 },
+    { src: 'autumn.layer1', dx: 0, fromTop: true },
+    { src: 'autumn.layer2', dx: -0.25, fromTop: true },
     { src: 'autumn.layer3', dx: -1 },
   ],
   desert: [
-    { src: 'desert.layer1', dx: 0, resize: true, isTop: true },
+    { src: 'desert.layer1', dx: 0, fromTop: true },
     { src: 'desert.layer2', dx: -0.15 },
     { src: 'desert.layer3', dx: -1 },
   ],
   lake: [
-    { src: 'lake.layer1', dx: 0, resize: true, isTop: true },
-    { src: 'lake.layer2', dx: -0.15, resize: true },
-    { src: 'lake.layer3', resize: true, dx: -1 },
+    { src: 'lake.layer1', dx: 0, fromTop: true },
+    { src: 'lake.layer2', dx: -0.15 },
+    { src: 'lake.layer3', dx: -1 },
   ],
   jungle: [
-    { src: 'jungle.layer1', dx: -0.1, resize: true, isTop: true },
-    { src: 'jungle.layer2', dx: -0.5, resize: true, isTop: true },
+    { src: 'jungle.layer1', dx: -0.1, fromTop: true },
+    { src: 'jungle.layer2', dx: -0.5, fromTop: true },
     { src: 'jungle.layer3', dx: -1 },
   ],
   forest: [
-    { src: 'forest.layer1', dx: -0.15, isTop: true },
+    { src: 'forest.layer1', dx: -0.15, fromTop: true },
     { src: 'forest.layer2', dx: -0.35 },
-    { src: 'forest.layer3', dx: -1, isTop: true },
+    { src: 'forest.layer3', dx: -1, fromTop: true },
   ]
 }
 
@@ -90,7 +89,7 @@ export class Backdrop {
     layersData[levelName].forEach(data => {
       const img = getValue(this.resource.sprite, data.src) as HTMLImageElement
       const aspectRatio = img.height / img.width
-      const width = data.resize ? CANVAS.width : img.width
+      const width = img.width < CANVAS.width ? CANVAS.width : img.width
       const height = width * aspectRatio
       const layer: Layer = {
         img,
@@ -98,7 +97,7 @@ export class Backdrop {
         width,
         height,
         x: 0,
-        y: data.isTop ? 0 : CANVAS.height - height
+        y: data.fromTop ? 0 : CANVAS.height - height
       }
       this.layersArr.push(layer)
     })

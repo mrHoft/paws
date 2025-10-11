@@ -24,7 +24,6 @@ export class AppView {
       this.root = root
       const main = document.createElement('main')
       main.className = 'main'
-      main.setAttribute('style', `width: ${CANVAS.width}px; height: ${CANVAS.height}px;`)
 
       this.game = document.createElement('div')
       this.game.className = 'game'

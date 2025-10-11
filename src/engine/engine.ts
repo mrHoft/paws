@@ -33,8 +33,8 @@ export class Engine {
     ctx: null,
     definingTrajectory: false, // Jump attempt state
     timer: 0, // setTimeout link
-    movementSpeed: 6,
-    runAwaySpeed: 6,
+    movementSpeed: 10,
+    runAwaySpeed: 10,
     successHeight: GAME.defaultTargetHeight,
     success: false,
     fullJump: true, // To know does current target need a full jump
@@ -221,9 +221,9 @@ export class Engine {
   }
 
   private defineJump = () => {
-    const modifier = this.target.isBarrier ? 1 : 0.5
+    const modifier = this.target.isBarrier ? 1 : 0.6
     const r = this.cat.jumpHeight // Circle radius
-    const points = r / 4 // Position count
+    const points = r / 5 // Position count
     const step = Math.PI / points / modifier
     this.cat.jumpStage += step
     const i = this.cat.jumpStage
@@ -239,6 +239,8 @@ export class Engine {
       this.game.success ? this.commitSuccess() : this.commitFail()
     }
   }
+
+  private scrollSpeed = () => this.cat.atPosition ? this.game.movementSpeed : Math.floor((this.game.movementSpeed / 2) * 3)
 
   private sceneChange = () => {
     // Move last target
@@ -256,7 +258,7 @@ export class Engine {
     }
 
     // Move current target
-    this.target.xCurr -= this.cat.atPosition ? this.game.movementSpeed : Math.floor((this.game.movementSpeed / 2) * 3)
+    this.target.xCurr -= this.scrollSpeed()
     if (this.target.xCurr < this.target.PositionX) {
       this.target.xCurr = this.target.PositionX
       this.target.atPosition = true
@@ -294,7 +296,7 @@ export class Engine {
       return
     }
 
-    this.target.xLast -= this.cat.atPosition ? this.game.movementSpeed : Math.floor((this.game.movementSpeed / 2) * 3)
+    this.target.xLast -= this.scrollSpeed()
     return
   }
 
@@ -304,7 +306,7 @@ export class Engine {
     performance.mark('beginRenderProcess')
     this.game.ctx!.clearRect(0, 0, CANVAS.width, CANVAS.height)
     if (!this.target.atPosition && (this.game.action == 'return' || this.game.action == 'scene')) {
-      this.backdrop.move(this.cat.atPosition ? this.game.movementSpeed : Math.floor((this.game.movementSpeed / 2) * 3))
+      this.backdrop.move(this.scrollSpeed())
     } else {
       this.backdrop.draw()
     }
@@ -341,7 +343,7 @@ export class Engine {
       if (duration > 0) this.meterStack.enqueue(duration)
       const fps = Math.floor(10000 / this.meterStack.average(10))
       this.game.ctx!.fillStyle = '#cedbf0'
-      this.game.ctx!.fillText(`fps: ${fps}`, 580, 18)
+      this.game.ctx!.fillText(`fps: ${fps}`, CANVAS.width * .75, 18)
     }
   }
 
@@ -383,11 +385,11 @@ export class Engine {
       ? GAME.defaultTargetX
       : GAME.defaultTargetX + Math.floor(Math.random() * GAME.animalPositionDelta)
     this.target.heightCurr = this.target.isBarrier
-      ? GAME.defaultTargetHeight + GAME.stepTargetHeight * level
+      ? GAME.defaultTargetHeight * (1 + 0.1 * level)
       : GAME.defaultTargetHeight
-    this.target.runAwayDelay = GAME.defaultRunAwayDelay - GAME.stepTargetDelay * level
+    this.target.runAwayDelay = GAME.defaultRunAwayDelay * (1 - 0.1 * level)
     this.game.paused = false
-    this.game.movementSpeed = 6
+    this.game.movementSpeed = 10
     this.game.fullJump = this.target.nameCurr == 'puddle' || ANIMAL_LIST.includes(this.target.nameCurr)
     this.cat.atPosition = false
     this.target.atPosition = false

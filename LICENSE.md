@@ -18,4 +18,4 @@ This software and associated documentation files (the "Software") are the propri
 
 Unauthorized reproduction, distribution, or use of this Software, in whole or in part, may result in severe civil and criminal penalties, and will be prosecuted to the maximum extent possible under the law.
 
-For licensing or partnership inquiries, please contact: mr.hoft@gmail.com
+For licensing or partnership inquiries, please contact: ru.hoft@gmail.com
