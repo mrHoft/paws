@@ -34,8 +34,14 @@
   background: linear-gradient(var(--color-blue10), var(--color-blue20), var(--color-blue10));
 }
 
+a,
+a:visited {
+  color: inherit;
+}
+
 body {
   margin: 0;
+  user-select: none;
 }
 
 #app {

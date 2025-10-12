@@ -390,7 +390,7 @@ export class Engine {
     this.target.runAwayDelay = GAME.defaultRunAwayDelay * (1 - 0.1 * level)
     this.game.paused = false
     this.game.movementSpeed = 10
-    this.game.fullJump = this.target.nameCurr == 'puddle' || ANIMAL_LIST.includes(this.target.nameCurr)
+    this.game.fullJump = this.target.nameCurr == 'puddle' || ANIMAL_LIST.includes(this.target.nameCurr as TAnimalName)
     this.cat.atPosition = false
     this.target.atPosition = false
     // console.log(`Level ${level}:`, {speed: this.game.SPEED, rand: `${rand}/${targets.length}`, target: this.target})

@@ -1,4 +1,3 @@
-import { GAME } from '~/const'
 import { Caught } from './caught'
 import { Sound } from '~/utils/sound'
 import { isFullscreenActive, fullscreenSwitch } from '~/utils/fullscreen'
@@ -97,19 +96,13 @@ export class Overlay extends OverlayView {
       event.stopPropagation()
       handlePause(true)
     })
-
-    const botRight = document.createElement('div')
-    botRight.className = styles['bot-right']
-    const version = document.createElement('div')
-    version.innerText = GAME.version
     const fullscreen = this.createButton({ src: icons.fullscreen })
     const fullscreenIconElement = fullscreen.children[0] as HTMLImageElement
     fullscreen.addEventListener('mousedown', (event) => {
       event.stopPropagation()
       this.handleFullscreenToggle(fullscreenIconElement)
     })
-    botRight.append(version, fullscreen)
-    this.bottom.append(pause, botRight)
+    this.bottom.append(pause, fullscreen)
   }
 
   public handleLevel = (value: number) => {

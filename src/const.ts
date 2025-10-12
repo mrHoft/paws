@@ -42,7 +42,7 @@ export const GAME = {
 
 export type TAnimalName = 'butterfly' | 'grasshopper' | 'frog' | 'bird' | 'mouse'
 export type TTargetName = TAnimalName | 'cactus1' | 'cactus2' | 'puddle' | 'boulder' | 'flowerpot' | 'gnome' | 'bucket' | 'none'
-export const ANIMAL_LIST: TTargetName[] = ['mouse', 'grasshopper', 'butterfly', 'bird']
+export const ANIMAL_LIST: TAnimalName[] = ['mouse', 'grasshopper', 'butterfly', 'bird']
 export const BARRIER_LIST: TTargetName[] = ['cactus1', 'cactus2', 'puddle', 'boulder', 'flowerpot', 'gnome', 'bucket']
 
 export type TLevelName = 'autumn' | 'cliff' | 'desert' | 'forest' | 'jungle' | 'lake' | 'mountains' | 'default'

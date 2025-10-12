@@ -1,6 +1,6 @@
 import type { TAnimalName } from "~/const"
 
-const spoilSrc: Record<TAnimalName, string> = {
+export const spoilSrc: Record<TAnimalName, string> = {
   butterfly: './spoil/butterfly.svg',
   grasshopper: './spoil/frog.svg',
   frog: './spoil/frog.svg',
