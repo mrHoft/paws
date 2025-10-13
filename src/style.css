@@ -59,6 +59,7 @@ body {
 }
 
 .game {
+  font-size: calc(min(2vw, 1.5rem));
   position: relative;
   width: 100%;
   aspect-ratio: 80/36;

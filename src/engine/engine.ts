@@ -343,7 +343,7 @@ export class Engine {
       if (duration > 0) this.meterStack.enqueue(duration)
       const fps = Math.floor(10000 / this.meterStack.average(10))
       this.game.ctx!.fillStyle = '#cedbf0'
-      this.game.ctx!.fillText(`fps: ${fps}`, CANVAS.width * .75, 18)
+      this.game.ctx!.fillText(`fps: ${fps}`, CANVAS.width * .75, 32)
     }
   }
 
@@ -408,7 +408,7 @@ export class Engine {
     this.backdrop.init(levelName)
     this.sound.play(0, true)  // TODO: level music
 
-    this.game.ctx!.font = '20px Arial'
+    this.game.ctx!.font = '32px Arial'
     this.game.levelName = levelName
     this.game.paused = false
     this.game.action = null

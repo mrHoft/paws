@@ -18,7 +18,7 @@ export const SpriteSize = {
 
 // Core game constants
 export const GAME = {
-  version: 'alpha.0.2.11',
+  version: 'alpha.0.2.12',
   scorePerLevel: 1000,
   catchRange: 24, // A range where an animal can be caught
   meter: true, // Performance meter

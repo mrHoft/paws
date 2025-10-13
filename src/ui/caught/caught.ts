@@ -1,12 +1,7 @@
 import type { TAnimalName } from "~/const"
+import { spoilSrc } from "../icons";
 
-export const spoilSrc: Record<TAnimalName, string> = {
-  butterfly: './spoil/butterfly.svg',
-  grasshopper: './spoil/frog.svg',
-  frog: './spoil/frog.svg',
-  mouse: './spoil/mouse.svg',
-  bird: './spoil/bird.svg',
-}
+import styles from './caught.module.css'
 
 const slots: Partial<TAnimalName>[] = ['butterfly', 'grasshopper', 'mouse', 'bird']
 
@@ -29,6 +24,7 @@ export class Caught {
       this.count = { ...count }
     }
     this.container = document.createElement('div')
+    this.container.className = styles.caught
     for (const name of slots) {
       const { slot, value } = this.createSlot(name)
       this.slot[name] = value
@@ -58,7 +54,7 @@ export class Caught {
     const slot = document.createDocumentFragment()
     const icon = document.createElement('img')
     icon.src = spoilSrc[name]
-    icon.width = icon.height = 20
+    icon.alt = name
     const value = document.createElement('span')
     value.innerText = this.count[name].toString()
     value.setAttribute('style', 'vertical-align: text-bottom; margin-left: 0.25rem; margin-right: 0.5rem;')

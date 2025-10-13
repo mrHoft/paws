@@ -1,17 +1,8 @@
-import { Caught } from './caught'
 import { Sound } from '~/utils/sound'
-import { isFullscreenActive, fullscreenSwitch } from '~/utils/fullscreen'
+import { iconSrc } from "~/ui/icons"
+import { buttonIcon } from '~/ui/button/icon'
 
 import styles from './overlay.module.css'
-
-const icons = {
-  settings: './icons/settings.svg',
-  fullscreen: './icons/fullscreen.svg',
-  fullscreenExit: './icons/fullscreen-exit.svg',
-  pause: './icons/pause.svg',
-  soundOn: './icons/sound-on.svg',
-  soundOff: './icons/sound-off.svg'
-}
 
 class OverlayView {
   protected container: HTMLDivElement
@@ -34,16 +25,6 @@ class OverlayView {
     this.container.append(this.upper, this.middle, blank, this.bottom)
   }
 
-  protected createButton = ({ src }: { src: string }) => {
-    const button = document.createElement('div')
-    const icon = document.createElement('img')
-    icon.src = src
-    icon.width = icon.height = 40
-    button.append(icon)
-    button.className = styles.btn
-    return button
-  }
-
   public get element() {
     return this.container
   }
@@ -51,13 +32,11 @@ class OverlayView {
 
 export class Overlay extends OverlayView {
   private sound: Sound
-  public readonly caught: Caught
   private player: { level: HTMLSpanElement, score: HTMLSpanElement, combo: HTMLSpanElement }
 
   constructor({ handlePause }: { handlePause: (_show: boolean) => void }) {
     super()
     this.sound = new Sound()
-    this.caught = new Caught()
 
     const level = document.createElement('div')
     const levelValue = document.createElement('span')
@@ -82,27 +61,20 @@ export class Overlay extends OverlayView {
     player.append(level, score, combo)
     this.player = { level: levelValue, score: scoreValue, combo: comboValue }
 
-
-    const sound = this.createButton({ src: this.sound.muted ? icons.soundOn : icons.soundOff })
+    const sound = buttonIcon({ src: this.sound.muted ? iconSrc.soundOn : iconSrc.soundOff })
     const soundIconElement = sound.children[0] as HTMLImageElement
     sound.addEventListener('mousedown', (event) => {
       event.stopPropagation()
       this.handleSoundToggle(soundIconElement)
     })
-    this.upper.append(player, this.caught.element, sound)
+    this.upper.append(player, sound)
 
-    const pause = this.createButton({ src: icons.pause })
+    const pause = buttonIcon({ src: iconSrc.pause })
     pause.addEventListener('mousedown', (event) => {
       event.stopPropagation()
       handlePause(true)
     })
-    const fullscreen = this.createButton({ src: icons.fullscreen })
-    const fullscreenIconElement = fullscreen.children[0] as HTMLImageElement
-    fullscreen.addEventListener('mousedown', (event) => {
-      event.stopPropagation()
-      this.handleFullscreenToggle(fullscreenIconElement)
-    })
-    this.bottom.append(pause, fullscreen)
+    this.bottom.append(pause)
   }
 
   public handleLevel = (value: number) => {
@@ -130,15 +102,6 @@ export class Overlay extends OverlayView {
   private handleSoundToggle = (iconElement: HTMLImageElement) => {
     const muted = this.sound.muted
     this.sound.mute = !muted
-    iconElement.src = muted ? icons.soundOff : icons.soundOn
-  }
-
-  private handleFullscreenToggle = (iconElement: HTMLImageElement) => {
-    const active = isFullscreenActive()
-    const element = document.querySelector('main')
-    if (element) {
-      fullscreenSwitch(!active, element)
-      iconElement.src = active ? icons.fullscreen : icons.fullscreenExit
-    }
+    iconElement.src = muted ? iconSrc.soundOff : iconSrc.soundOn
   }
 }

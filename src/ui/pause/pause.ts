@@ -1,13 +1,7 @@
-import { circleButton } from '../circleButton/button'
+import { buttonCircle } from '../button/circle'
+import { iconSrc } from "~/ui/icons"
 
 import styles from './pause.module.css'
-
-const icons = {
-  resume: './icons/play.svg',
-  restart: './icons/restart.svg',
-  settings: './icons/settings.svg',
-  menu: './icons/menu.svg',
-}
 
 export class PauseModal {
   private container: HTMLDivElement
@@ -38,15 +32,15 @@ export class PauseModal {
 
     const btns = document.createElement('div')
     btns.className = styles.pause__btns
-    const resume = circleButton(icons.resume)
+    const resume = buttonCircle(iconSrc.resume)
     resume.addEventListener('click', this.handleResume)
     /*
     const settings = circleButton(icons.settings)
     settings.addEventListener('click', this.handleSettings)
      */
-    const restart = circleButton(icons.restart)
+    const restart = buttonCircle(iconSrc.restart)
     restart.addEventListener('click', this.handleRestart)
-    const menu = circleButton(icons.menu)
+    const menu = buttonCircle(iconSrc.menu)
     menu.addEventListener('click', this.handleMenu)
     btns.append(resume, restart, /* settings, */ menu)
 

@@ -1,15 +1,11 @@
 import { GAME, LEVEL_NAMES, TARGETS_PER_LEVEL, ANIMAL_LIST, type TLevelName, type TAnimalName } from "~/const"
-import { /* Caught, */ spoilSrc } from "~/ui/overlay/caught"
-import { circleButton } from "~/ui/circleButton/button"
+// import { Caught } from "~/ui/overlay/caught"
+import { buttonCircle } from "~/ui/button/circle"
 import { about } from "~/ui/about/about"
+import { Settings } from "~/ui/settings/settings"
+import { iconSrc, spoilSrc } from "~/ui/icons"
 
 import styles from './menu.module.css'
-
-const icons = {
-  play: './icons/play.svg',
-  settings: './icons/settings.svg',
-  about: './icons/about.svg'
-}
 
 const PATH = './thumb'
 
@@ -19,6 +15,7 @@ class MenuView {
   protected container: HTMLDivElement
   protected menu: HTMLDivElement
   protected about: HTMLDivElement
+  protected settings: HTMLDivElement
   protected thumbs: { img: HTMLImageElement, name: TLevelName }[] = []
   protected scene: { element: HTMLDivElement, inner: HTMLDivElement, btn: HTMLDivElement, spoil: Partial<Record<TAnimalName, HTMLImageElement>>, name: TLevelName }
 
@@ -49,18 +46,41 @@ class MenuView {
 
     this.about = document.createElement('div')
     this.about.className = styles.about
+    const aHeader = document.createElement('h3')
+    aHeader.innerText = 'About'
     const aboutInner = document.createElement('div')
     aboutInner.className = styles.about__inner
-    aboutInner.append(...about())
+    const aboutClose = this.createCloseBtn()
+    aboutClose.addEventListener('click', () => {
+      this.about.setAttribute('style', 'display: none;')
+    })
+    aboutInner.append(aHeader, ...about(), aboutClose)
     this.about.append(aboutInner)
+
+    this.settings = document.createElement('div')
+    this.settings.className = styles.settings
+    const sHeader = document.createElement('h3')
+    sHeader.innerText = 'Settings'
+    const settingsInner = document.createElement('div')
+    const settingsClose = this.createCloseBtn()
+    settingsClose.addEventListener('click', () => {
+      this.settings.setAttribute('style', 'display: none;')
+    })
+    settingsInner.className = styles.settings__inner
+    settingsInner.append(sHeader, new Settings().element, settingsClose)
+    this.settings.append(settingsInner)
 
     const scene = document.createElement('div')
     scene.className = styles.scene
 
     const sceneInner = document.createElement('div')
     sceneInner.className = styles.scene__inner
+    const sceneClose = this.createCloseBtn()
+    sceneClose.addEventListener('click', () => {
+      this.scene.element.setAttribute('style', 'display: none;')
+    })
 
-    const btn = circleButton(icons.play)
+    const btn = buttonCircle(iconSrc.play)
 
     const spoil: Partial<Record<TAnimalName, HTMLImageElement>> = {}
     const spoilContainer = document.createElement('div')
@@ -74,7 +94,7 @@ class MenuView {
       spoil[key] = icon
     })
 
-    sceneInner.append(btn, spoilContainer)
+    sceneInner.append(btn, spoilContainer, sceneClose)
     scene.append(sceneInner)
     this.scene = { element: scene, inner: sceneInner, btn, spoil, name: 'default' }
 
@@ -85,7 +105,7 @@ class MenuView {
     this.menu = document.createElement('div')
     this.menu.className = styles.menu
 
-    this.container.append(level, this.menu, scene, this.about, version)
+    this.container.append(version, level, this.menu, scene, this.about, this.settings)
   }
 
   protected menuInit(menuItems: MenuItem[]) {
@@ -98,6 +118,16 @@ class MenuView {
       button.onclick = item.func
       this.menu.append(button)
     }
+  }
+
+  private createCloseBtn = () => {
+    const btn = document.createElement('div')
+    btn.className = styles.close
+    const img = document.createElement('img')
+    img.src = iconSrc.close
+    btn.append(img)
+
+    return btn
   }
 
   public show = (state = true) => {
@@ -132,11 +162,12 @@ export class Menu extends MenuView {
 
     this.scene.element.addEventListener('click', this.handleOutsideClick)
     this.about.addEventListener('click', this.handleOutsideClick)
+    this.settings.addEventListener('click', this.handleOutsideClick)
 
     const menuItems: MenuItem[] = [
-      { id: 'start', icon: icons.play, title: 'Start', func: this.handleStart },
-      // { id: 'settings', icon: icons.settings, title: 'Settings', func: () => console.log('settings') },
-      { id: 'about', icon: icons.about, title: 'About', func: this.handleAbout },
+      { id: 'start', icon: iconSrc.play, title: 'Start', func: this.handleStart },
+      { id: 'settings', icon: iconSrc.settings, title: 'Settings', func: this.handleSettings },
+      { id: 'about', icon: iconSrc.about, title: 'About', func: this.handleAbout },
     ]
     this.menuInit(menuItems)
   }
@@ -156,6 +187,10 @@ export class Menu extends MenuView {
 
   private handleAbout = () => {
     this.about.setAttribute('style', 'display: flex;')
+  }
+
+  private handleSettings = () => {
+    this.settings.setAttribute('style', 'display: flex;')
   }
 
   private handleSceneClick = (name: TLevelName) => (event?: PointerEvent) => {

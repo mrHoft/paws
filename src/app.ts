@@ -3,6 +3,7 @@ import { CANVAS, type TLevelName } from './const'
 import { Weather } from './ui/weather/weather'
 import { PauseModal } from './ui/pause/pause'
 import { Overlay } from './ui/overlay/overlay'
+import { GlobalUI } from './ui/global/global'
 import { Menu } from './ui/menu/menu'
 
 const autoStart = false
@@ -76,18 +77,20 @@ export class App extends AppView {
   private overlay?: Overlay
   private weather?: Weather
   private menu: Menu
+  private ui: GlobalUI
   private engineStart?: (levelName?: TLevelName) => void
 
   constructor() {
     super()
     this.menu = new Menu({ start: this.startGame })
-    this.game.append(this.menu.element)
+    this.ui = new GlobalUI()
+    this.game.append(this.menu.element, this.ui.element)
   }
 
   public init = async (): Promise<void> => {
     this.loaderInit()
     this.game.addEventListener('contextmenu', (event) => {
-      event.preventDefault()
+      // event.preventDefault()
       return false
     })
 
@@ -133,12 +136,11 @@ export class App extends AppView {
       setLevel: (value: number) => this.overlay?.handleLevel(value),
       setCombo: (value: number) => this.overlay?.handleCombo(value),
       updateScore: (value: number) => this.overlay?.handleScore(value),
-      updateCaught: (value: string) => this.overlay?.caught.handleUpdate(value),
-      resetCaught: () => this.overlay?.caught.handleReset(),
+      updateCaught: (value: string) => this.ui?.caught.handleUpdate(value),
+      resetCaught: () => this.ui?.caught.handleReset(),
       showTooltip: (value: string) => this.overlay?.handleTooltip(value),
     }
     const engine = Engine.get({ ctx: canvas.getContext('2d')!, handlers })
-
 
     this.overlay = new Overlay({ handlePause: engine.pause })
     this.weather = new Weather()
