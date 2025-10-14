@@ -1,10 +1,11 @@
-import { Resource } from './engine/resource'
-import { CANVAS, type TLevelName } from './const'
-import { Weather } from './ui/weather/weather'
-import { PauseModal } from './ui/pause/pause'
-import { Overlay } from './ui/overlay/overlay'
-import { GlobalUI } from './ui/global/global'
-import { Menu } from './ui/menu/menu'
+import { Resource } from '~/engine/resource'
+import { CANVAS, type TLevelName } from '~/const'
+import { Weather } from '~/ui/weather/weather'
+import { PauseModal } from '~/ui/pause/pause'
+import { Overlay } from '~/ui/overlay/overlay'
+import { GlobalUI } from '~/ui/global/global'
+import { Menu } from '~/ui/menu/menu'
+import { Storage } from '~/service/storage'
 
 const autoStart = false
 
@@ -78,6 +79,7 @@ export class App extends AppView {
   private weather?: Weather
   private menu: Menu
   private ui: GlobalUI
+  private storage: Storage
   private engineStart?: (levelName?: TLevelName) => void
 
   constructor() {
@@ -85,12 +87,14 @@ export class App extends AppView {
     this.menu = new Menu({ start: this.startGame })
     this.ui = new GlobalUI()
     this.game.append(this.menu.element, this.ui.element)
+    this.storage = new Storage()
+    console.log(this.storage.get())
   }
 
   public init = async (): Promise<void> => {
     this.loaderInit()
     this.game.addEventListener('contextmenu', (event) => {
-      // event.preventDefault()
+      event.preventDefault()
       return false
     })
 
@@ -135,7 +139,7 @@ export class App extends AppView {
       handleGameOver: () => console.log('Handle game over'),
       setLevel: (value: number) => this.overlay?.handleLevel(value),
       setCombo: (value: number) => this.overlay?.handleCombo(value),
-      updateScore: (value: number) => this.overlay?.handleScore(value),
+      updateScore: this.handleUpdateScore,
       updateCaught: (value: string) => this.ui?.caught.handleUpdate(value),
       resetCaught: () => this.ui?.caught.handleReset(),
       showTooltip: (value: string) => this.overlay?.handleTooltip(value),
@@ -168,6 +172,11 @@ export class App extends AppView {
   private handlePause = (state: boolean) => {
     this.pause?.show(state)
     this.weather?.pause(state)
+  }
+
+  private handleUpdateScore = (value: number) => {
+    this.overlay?.handleScore(value)
+    this.storage.set('data.score', value)
   }
 
   private onError = ({ source }: { source: TErrorSource }) => (message: string) => {

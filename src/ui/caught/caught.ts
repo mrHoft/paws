@@ -1,5 +1,6 @@
 import type { TAnimalName } from "~/const"
-import { spoilSrc } from "../icons";
+import { spoilSrc } from "~/ui/icons";
+import { Storage } from '~/service/storage'
 
 import styles from './caught.module.css'
 
@@ -9,6 +10,7 @@ const isAnimalName = (name: string): name is TAnimalName =>
   slots.includes(name as TAnimalName);
 
 export class Caught {
+  private storage: Storage
   private container: HTMLDivElement
   private count: Record<TAnimalName, number> = {
     butterfly: 0,
@@ -23,6 +25,7 @@ export class Caught {
     if (count) {
       this.count = { ...count }
     }
+    this.storage = new Storage()
     this.container = document.createElement('div')
     this.container.className = styles.caught
     for (const name of slots) {
@@ -40,6 +43,7 @@ export class Caught {
     if (isAnimalName(name)) {
       this.count[name] += 1
       this.slot[name]!.innerText = this.count[name].toString()
+      this.storage.set(`data.caught.${name}`, this.count[name])
     }
   }
 

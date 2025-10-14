@@ -8,8 +8,8 @@ import { Tooltip } from './tooltip'
 import type { Target, TCat, TCaught, TGame } from './types'
 import type { GifObject } from '~/utils/gif'
 import { Queue } from '~/utils/queue'
-import { Sound } from '~/utils/sound'
-import { AdvancedShepardTone } from '~/utils/shepardTone'
+import { Sound } from '~/service/sound'
+import { AdvancedShepardTone } from '~/service/shepardTone'
 
 const caughtDefault: TCaught = {
   butterfly: 0,

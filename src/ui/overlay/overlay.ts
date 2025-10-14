@@ -1,4 +1,4 @@
-import { Sound } from '~/utils/sound'
+import { Sound } from '~/service/sound'
 import { iconSrc } from "~/ui/icons"
 import { buttonIcon } from '~/ui/button/icon'
 
