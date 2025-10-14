@@ -33,6 +33,7 @@ export type TGame = {
   updateTime: number
   action: TAction
   ctx: CanvasRenderingContext2D | null
+  fps: boolean
   definingTrajectory: boolean
   timer: number
   movementSpeed: number

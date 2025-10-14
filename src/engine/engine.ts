@@ -31,6 +31,7 @@ export class Engine {
     },
     action: null,
     ctx: null,
+    fps: true,
     definingTrajectory: false, // Jump attempt state
     timer: 0, // setTimeout link
     movementSpeed: 10,
@@ -337,7 +338,7 @@ export class Engine {
     if (this.game.definingTrajectory || this.updateIsNeeded()) setTimeout(this.update, this.game.updateTime)
     // Performance meter
     performance.mark('endRenderProcess')
-    if (GAME.meter) {
+    if (this.game.fps) {
       const measure = performance.measure('measureRenderProcess', 'beginRenderProcess', 'endRenderProcess')
       const duration = Math.floor(measure.duration * 1000)
       if (duration > 0) this.meterStack.enqueue(duration)
@@ -399,8 +400,8 @@ export class Engine {
     this.game.action = 'scene'
   }
 
-  public start(options: { levelName?: TLevelName, restart?: boolean } = {}) {
-    const { levelName = this.game.levelName, restart } = options
+  public start(options: { levelName?: TLevelName, restart?: boolean, fps?: boolean } = {}) {
+    const { levelName = this.game.levelName, restart, fps } = options
     this.draw = new Draw(this.game.ctx!)
     this.fly = new FlyingValues(this.game.ctx!)
     this.events = new ControlEvents({ game: this.game, prepareJumpStart: this.prepareJumpStart, prepareJumpEnd: this.prepareJumpEnd, pause: this.pause })
@@ -426,6 +427,8 @@ export class Engine {
       this.updateScore(this.game.score)
       this.resetCaught()
     }
+
+    if (fps !== undefined) this.game.fps = fps
   }
 
   public stop() {
@@ -449,7 +452,7 @@ export class Engine {
     }
   }
 
-  public static get({ ctx, handlers }: { ctx?: CanvasRenderingContext2D, handlers?: Record<string, (value?: any) => void> }) {
+  public static get({ ctx, handlers, initialScore }: { ctx?: CanvasRenderingContext2D, handlers?: Record<string, (value?: any) => void>, initialScore?: number }) {
     if (Engine.__instance) {
       // Renew handlers
       if (handlers) {
@@ -466,6 +469,7 @@ export class Engine {
     }
     if (ctx && handlers) {
       Engine.__instance = new Engine(ctx, handlers)
+      if (initialScore) Engine.__instance.game.score = initialScore
     }
     return Engine.__instance
   }

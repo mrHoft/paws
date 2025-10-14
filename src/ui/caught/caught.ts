@@ -10,8 +10,9 @@ const isAnimalName = (name: string): name is TAnimalName =>
   slots.includes(name as TAnimalName);
 
 export class Caught {
-  private storage: Storage
-  private container: HTMLDivElement
+  private static _instance: Caught
+  private storage!: Storage
+  private container!: HTMLDivElement
   private count: Record<TAnimalName, number> = {
     butterfly: 0,
     grasshopper: 0,
@@ -21,11 +22,14 @@ export class Caught {
   }
   private slot: Partial<Record<TAnimalName, HTMLSpanElement>> = {}
 
-  constructor(count?: Record<TAnimalName, number>) {
-    if (count) {
-      this.count = { ...count }
-    }
+  constructor() {
+    if (Caught._instance) return Caught._instance
+    Caught._instance = this
+
     this.storage = new Storage()
+    const initialCaught = this.storage.get<Record<TAnimalName, number>>('data.caught')
+    if (initialCaught) this.count = { ...initialCaught }
+
     this.container = document.createElement('div')
     this.container.className = styles.caught
     for (const name of slots) {

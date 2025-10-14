@@ -58,11 +58,12 @@ export class Storage extends Crypt {
     }
   }
 
-  public get<T>(key?: string) {
-    if (!key) {
-      return this._state
-    }
-    return this.getValue(key) as T | undefined;
+  public getState() {
+    return this._state
+  }
+
+  public get<T>(key: string) {
+    return this.getValue(key) as T;
   }
 
   public set<T = Record<string, unknown>>(key: string, value: T extends () => void ? never : T | ((_prev: T | undefined) => T)) {
@@ -85,7 +86,7 @@ export class Storage extends Crypt {
   }
 
   private setValue = (path: string, value: unknown) => {
-    let obj: Record<string, unknown> = { ...this._state };
+    let obj = this._state as unknown as Record<string, unknown>;
     const arr = path.split('.');
     const last = arr.pop();
     arr.forEach(key => {

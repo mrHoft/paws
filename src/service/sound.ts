@@ -9,19 +9,19 @@ const sounds: TSoundAssets = {
   jump: { url: './audio/jump.ogg', type: 'single' },
 }
 
-const music = [
+const tracks = [
   {
     name: 'Mountains',
     url: './audio/mountains.mp3',
   },
 ]
 
-const countTotal = Object.keys(sounds).length + music.length * 2
+const countTotal = Object.keys(sounds).length + tracks.length * 2
 
 export class Sound {
   static _instance: Sound
   private _sound = { volume: 0.5, muted: false }
-  private _music = { volume: 0.45, muted: true }
+  private _music = { volume: 0.5, muted: true }
   private sounds: Record<string, HTMLAudioElement[]> = {}
   private tracks: { name: string; audio: HTMLAudioElement; ready: boolean }[] = []
   private loaded = 0
@@ -32,14 +32,17 @@ export class Sound {
   private exceptionCallback?: (_message?: string) => void
   private readyCallback?: (_percent: number, _name: string) => void
 
-  constructor() {
+  constructor(props: { sound?: { volume: number, muted: boolean }, music?: { volume: number, muted: boolean } } = {}) {
+    if (props.sound) this._sound = props.sound
+    if (props.music) this._music = props.music
     if (Sound._instance) return Sound._instance
     Sound._instance = this
+
     Object.keys(sounds).forEach(name => {
       const { url, type } = sounds[name as keyof typeof sounds]
       this.getSound(url, name, type)
     })
-    music.forEach(item => this.getSound(item.url, item.name, 'music'))
+    tracks.forEach(item => this.getSound(item.url, item.name, 'music'))
 
     this.handleCanplay = this.handleCanplay.bind(this)
     this.handleEnded = this.handleEnded.bind(this)
@@ -51,6 +54,7 @@ export class Sound {
 
   public set musicVolume(value: number) {
     this._music.volume = value
+    this._music.muted = value === 0
     if (this.playing) this.playing.audio.volume = value
   }
 
@@ -77,8 +81,13 @@ export class Sound {
     return this._sound
   }
 
-  public play(track: number, loop: boolean) {
+  public set soundVolume(value: number) {
+    this._sound.volume = value
+  }
+
+  public play(track: number, auto?: boolean) {
     if (this._music.muted || track === -1) return
+    if (track === this.playing?.track) return
 
     const music = this.tracks[track]
     if (!music || !music.ready) {
@@ -87,16 +96,16 @@ export class Sound {
       return
     }
 
-    const audio = this.tracks[track].audio
+    const audio = music.audio
     audio.volume = this._music.volume
     audio.muted = this._music.muted
     audio
       .play()
       .then(() => {
-        if (loop) audio.addEventListener('ended', this.handleEnded)
+        audio.addEventListener('ended', this.handleEnded(auto))
         this.playing = { track, audio }
         if (this.startPlayCallback) {
-          this.startPlayCallback(this.tracks[track].name)
+          this.startPlayCallback(music.name)
         }
       })
       .catch(error => {
@@ -192,12 +201,14 @@ export class Sound {
     }
   }
 
-  private handleEnded() {
+  private handleEnded = (auto?: boolean) => () => {
     if (!this.playing) return
     let next = (this.playing.track ?? 0) + 1
     if (next >= this.tracks.length) next = 0
     this.playing = null
-    this.play(next, true)
+    if (auto) {
+      this.play(next, true)
+    }
   }
 
   private waitForUserInteraction() {

@@ -34,7 +34,7 @@ export class Overlay extends OverlayView {
   private sound: Sound
   private player: { level: HTMLSpanElement, score: HTMLSpanElement, combo: HTMLSpanElement }
 
-  constructor({ handlePause }: { handlePause: (_show: boolean) => void }) {
+  constructor({ handlePause, initialScore }: { handlePause: (_show: boolean) => void, initialScore?: number }) {
     super()
     this.sound = new Sound()
 
@@ -47,7 +47,7 @@ export class Overlay extends OverlayView {
     const score = document.createElement('div')
     const scoreValue = document.createElement('span')
     score.className = styles.player
-    scoreValue.innerText = '0'
+    scoreValue.innerText = (initialScore || 0).toString()
     score.append('Score: ', scoreValue)
 
     const combo = document.createElement('div')

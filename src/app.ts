@@ -6,6 +6,7 @@ import { Overlay } from '~/ui/overlay/overlay'
 import { GlobalUI } from '~/ui/global/global'
 import { Menu } from '~/ui/menu/menu'
 import { Storage } from '~/service/storage'
+import { Sound } from '~/service/sound'
 
 const autoStart = false
 
@@ -80,15 +81,29 @@ export class App extends AppView {
   private menu: Menu
   private ui: GlobalUI
   private storage: Storage
-  private engineStart?: (levelName?: TLevelName) => void
+  private engineStart?: (levelName?: TLevelName, options?: { fps: boolean }) => void
 
   constructor() {
     super()
+
+    this.storage = new Storage()
+    console.log(this.storage.getState())
+
     this.menu = new Menu({ start: this.startGame })
     this.ui = new GlobalUI()
     this.game.append(this.menu.element, this.ui.element)
-    this.storage = new Storage()
-    console.log(this.storage.get())
+
+    const musicVolume = Math.max(0, Math.min(this.storage.get<number>('music'), 1))
+    const music = {
+      volume: musicVolume,
+      muted: musicVolume === 0
+    }
+    const soundVolume = Math.max(0, Math.min(this.storage.get<number>('music'), 1))
+    const sound = {
+      volume: soundVolume,
+      muted: soundVolume === 0
+    }
+    new Sound({ music, sound })
   }
 
   public init = async (): Promise<void> => {
@@ -144,9 +159,10 @@ export class App extends AppView {
       resetCaught: () => this.ui?.caught.handleReset(),
       showTooltip: (value: string) => this.overlay?.handleTooltip(value),
     }
-    const engine = Engine.get({ ctx: canvas.getContext('2d')!, handlers })
+    const initialScore = this.storage.get<number>('data.score')
+    const engine = Engine.get({ ctx: canvas.getContext('2d')!, handlers, initialScore })
 
-    this.overlay = new Overlay({ handlePause: engine.pause })
+    this.overlay = new Overlay({ handlePause: engine.pause, initialScore })
     this.weather = new Weather()
     this.pause = new PauseModal({
       pause: (state: boolean) => { engine.pause(state); this.weather?.pause(state) },
@@ -156,16 +172,19 @@ export class App extends AppView {
 
     this.game.append(canvas, this.overlay.element, this.weather.element, this.pause.element)
 
-    this.engineStart = (levelName: TLevelName = 'default') => engine.start({ levelName })
+    this.engineStart = (levelName: TLevelName = 'default', options?: { fps: boolean }) => engine.start({ levelName, fps: options?.fps })
   }
 
   private startGame = (levelName?: TLevelName) => {
     this.menu.show(false)
     this.weather?.pause(false)
+    const options = {
+      fps: this.storage.get<boolean>('fps')
+    }
     if (this.engineStart) {
-      this.engineStart(levelName)
+      this.engineStart(levelName, options)
     } else {
-      this.initGame().then(() => this.engineStart!(levelName))
+      this.initGame().then(() => this.engineStart!(levelName, options))
     }
   }
 
