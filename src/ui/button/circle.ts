@@ -1,6 +1,6 @@
 import styles from './button.module.css'
 
-export const buttonCircle = (iconSrc: string) => {
+export const buttonCircle = ({ src }: { src: string }) => {
   const button = document.createElement('div')
   button.className = styles.button
   const circle = document.createElement('div')
@@ -8,7 +8,7 @@ export const buttonCircle = (iconSrc: string) => {
   const inner = document.createElement('div')
   inner.className = styles.inner
   const img = document.createElement('img')
-  img.src = iconSrc
+  img.src = src
   inner.append(img)
   button.append(circle, inner)
 

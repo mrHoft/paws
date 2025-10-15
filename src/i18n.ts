@@ -12,6 +12,9 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     level: 'Level',
     score: 'Score',
     combo: 'Combo',
+    confirmation: 'Confirmation',
+    confirmationDefault: 'Are you sure?',
+    restartDesc: 'This will reset all your progress. Are you sure want to restart?',
     // tooltip
     newGame: 'Hold space/tap to jump',
     firstAnimal: 'Need to jump on target',
@@ -28,6 +31,9 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     level: 'Уровень',
     score: 'Счёт',
     combo: 'Комбо',
+    confirmation: 'Подтверждение',
+    confirmationDefault: 'Вы уверены?',
+    restartDesc: 'Это сбросит весь ваш прогресс. Вы точно хотите начать заново?',
     // tooltip
     newGame: 'Удерживайте пробел/тап для прыжка',
     firstAnimal: 'Для поимки нужно прыгать на цель',
@@ -44,6 +50,9 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     level: 'Seviye',
     score: 'Skor',
     combo: 'Kombo',
+    confirmation: 'Onay',
+    confirmationDefault: 'Emin misiniz?',
+    restartDesc: 'Bu, tüm ilerlemenizi sıfırlayacak. Yeniden başlatmak istediğinizden emin misiniz?',
     // tooltip
     newGame: 'Zıplamak için boşluk tuşunu basılı tutun/dokunun',
     firstAnimal: 'Hedefin üzerine zıplanmalı',
@@ -60,6 +69,9 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     level: 'Level',
     score: 'Punkte',
     combo: 'Combo',
+    confirmation: 'Bestätigung',
+    confirmationDefault: 'Sind Sie sicher?',
+    restartDesc: 'Dies wird Ihren gesamten Fortschritt zurücksetzen. Möchten Sie wirklich neu starten?',
     // tooltip
     newGame: 'Leertaste gedrückt halten/tippen zum Springen',
     firstAnimal: 'Muss auf das Ziel springen',
@@ -76,6 +88,9 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     level: 'Niveau',
     score: 'Score',
     combo: 'Combo',
+    confirmation: 'Confirmation',
+    confirmationDefault: 'Êtes-vous sûr?',
+    restartDesc: 'Cela réinitialisera toute votre progression. Êtes-vous sûr de vouloir recommencer?',
     // tooltip
     newGame: 'Maintenez espace/touchez pour sauter',
     firstAnimal: 'Doit sauter sur la cible',

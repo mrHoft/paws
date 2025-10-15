@@ -1,9 +1,10 @@
 import { GAME, SCENE_NAMES, SCENE_TARGETS, ANIMAL_LIST, type TSceneName, type TAnimalName } from "~/const"
-import { buttonCircle, buttonIcon } from "~/ui/button"
+import { buttonCircle, buttonIcon, buttonClose } from "~/ui/button"
 import { about } from "~/ui/about/about"
 import { Settings } from "~/ui/settings/settings"
 import { iconSrc, spoilSrc } from "~/ui/icons"
 import { Localization } from '~/service/localization'
+import { ConfirmationModal } from "../confirmation/confirm"
 
 import styles from './menu.module.css'
 
@@ -12,7 +13,7 @@ const PATH = './thumb'
 interface MenuItem { id: string, icon: string, func: () => void }
 
 class MenuView {
-  private loc: Localization
+  protected loc: Localization
   protected container: HTMLDivElement
   protected menu: HTMLDivElement
   protected about: HTMLDivElement
@@ -53,7 +54,7 @@ class MenuView {
     this.loc.register('about', aHeader)
     const aboutInner = document.createElement('div')
     aboutInner.className = styles.about__inner
-    const aboutClose = this.createCloseBtn()
+    const aboutClose = buttonClose()
     aboutClose.addEventListener('click', () => {
       this.about.setAttribute('style', 'display: none;')
     })
@@ -66,7 +67,7 @@ class MenuView {
     // sHeader.innerText = 'Settings'
     this.loc.register('settings', sHeader)
     const settingsInner = document.createElement('div')
-    const settingsClose = this.createCloseBtn()
+    const settingsClose = buttonClose()
     settingsClose.addEventListener('click', () => {
       this.settings.setAttribute('style', 'display: none;')
     })
@@ -79,12 +80,12 @@ class MenuView {
 
     const sceneInner = document.createElement('div')
     sceneInner.className = styles.scene__inner
-    const sceneClose = this.createCloseBtn()
+    const sceneClose = buttonClose()
     sceneClose.addEventListener('click', () => {
       this.scene.element.setAttribute('style', 'display: none;')
     })
 
-    const btn = buttonCircle(iconSrc.play)
+    const btn = buttonCircle({ src: iconSrc.play })
 
     const spoil: Partial<Record<TAnimalName, HTMLImageElement>> = {}
     const spoilContainer = document.createElement('div')
@@ -126,16 +127,6 @@ class MenuView {
     }
   }
 
-  private createCloseBtn = () => {
-    const btn = document.createElement('div')
-    btn.className = styles.close
-    const img = document.createElement('img')
-    img.src = iconSrc.close
-    btn.append(img)
-
-    return btn
-  }
-
   public show = (state = true) => {
     this.container.setAttribute('style', `display: ${state ? 'block' : 'none'};`)
   }
@@ -147,10 +138,12 @@ class MenuView {
 
 export class Menu extends MenuView {
   private startGame: (levelName: TSceneName, restart?: boolean) => void
+  private confirm: ConfirmationModal
 
-  constructor({ start }: { start: (levelName: TSceneName, restart?: boolean) => void }) {
+  constructor({ start, confirm }: { start: (levelName: TSceneName, restart?: boolean) => void, confirm: ConfirmationModal }) {
     super()
     this.startGame = start
+    this.confirm = confirm
     this.thumbs.forEach(el => {
       el.img.addEventListener('click', this.handleSceneClick(el.name))
     })
@@ -196,7 +189,7 @@ export class Menu extends MenuView {
   }
 
   private handleRestart = () => {
-    this.startGame(SCENE_NAMES[0], true)
+    this.confirm.show({ text: this.loc.get('restartDesc'), acceptCallback: () => this.startGame(SCENE_NAMES[0], true) })
   }
 
   private handleAbout = () => {

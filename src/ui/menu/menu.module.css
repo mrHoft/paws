@@ -147,30 +147,6 @@
   text-shadow: rgb(0, 0, 0) -1px -1px 0px, rgb(0, 0, 0) 1px -1px 0px, rgb(0, 0, 0) -1px 1px 0px, rgb(0, 0, 0) 1px 1px 0px;
 }
 
-.close {
-  position: absolute;
-  top: -0.5em;
-  right: -0.5em;
-  width: 3em;
-  height: 3em;
-  background-color: var(--color-orange70);
-  border-radius: 50%;
-  padding: 0.5em;
-  box-sizing: border-box;
-  cursor: pointer;
-
-  & img {
-    width: 2em;
-    height: 2em;
-    transform-origin: center;
-    transition: transform 0.25s linear;
-  }
-
-  &:hover img {
-    transform: scale(1.2);
-  }
-}
-
 .top-right {
   position: absolute;
   top: 1rem;

@@ -61,6 +61,7 @@ export class Caught {
       this.count[name] = 0
       this.slot[name]!.value.innerText = '0'
     }
+    this.storage.set(`data.caught`, this.count)
   }
 
   private createSlot = (name: TAnimalName) => {

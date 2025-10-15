@@ -2,6 +2,7 @@ import { Resource } from '~/engine/resource'
 import { CANVAS, type TSceneName } from '~/const'
 import { Weather } from '~/ui/weather/weather'
 import { PauseModal } from '~/ui/pause/pause'
+import { ConfirmationModal } from './ui/confirmation/confirm'
 import { Overlay } from '~/ui/overlay/overlay'
 import { GlobalUI } from '~/ui/global/global'
 import { Menu } from '~/ui/menu/menu'
@@ -77,6 +78,7 @@ export class AppView {
 export class App extends AppView {
   private loading = { start: 0 }
   private pause?: PauseModal
+  private confirm: ConfirmationModal
   private overlay?: Overlay
   private weather?: Weather
   private menu: Menu
@@ -86,7 +88,6 @@ export class App extends AppView {
 
   constructor() {
     super()
-
     this.storage = new Storage()
     new Localization(this.storage.get('language'))
 
@@ -102,9 +103,10 @@ export class App extends AppView {
     }
     new Sound({ music, sound })
 
-    this.menu = new Menu({ start: this.startGame })
+    this.confirm = new ConfirmationModal()
+    this.menu = new Menu({ start: this.startGame, confirm: this.confirm })
     this.ui = new GlobalUI()
-    this.game.append(this.menu.element, this.ui.element)
+    this.game.append(this.menu.element, this.ui.element, this.confirm.element)
   }
 
   public init = async (): Promise<void> => {
@@ -168,7 +170,8 @@ export class App extends AppView {
     this.pause = new PauseModal({
       pause: (state: boolean) => { engine.pause(state); this.weather?.pause(state) },
       restart: () => { engine.start({ restart: true }); this.weather?.pause(false) },
-      menu: () => { engine.stop(); this.menu.show() }
+      menu: () => { engine.stop(); this.menu.show() },
+      confirm: this.confirm
     })
 
     this.game.append(canvas, this.overlay.element, this.weather.element, this.pause.element)

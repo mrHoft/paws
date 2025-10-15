@@ -1,0 +1,56 @@
+.confirmation_layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  z-index: 23;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  background-color: #0004;
+}
+
+.confirmation__inner {
+  color: var(--color-blue10);
+  width: 40%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 0.75em;
+  border-radius: 1em;
+  border: 2px solid var(--color-orange70);
+  background: var(--color-orange80);
+  color: var(--color-blue10);
+  transform-origin: center;
+
+  & h3 {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+.btns {
+  display: flex;
+  gap: 1rem;
+}
+
+.bounce {
+  animation: bounce 0.3s ease-out;
+}
+
+@keyframes bounce {
+  0% {
+    transform: scale(0.25);
+  }
+
+  75% {
+    transform: scale(1.1);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}

@@ -1,34 +1,30 @@
 import { buttonCircle } from '~/ui/button/circle'
 import { iconSrc } from "~/ui/icons"
 import { Localization } from '~/service/localization'
+import { ConfirmationModal } from '../confirmation/confirm'
 
 import styles from './pause.module.css'
 
 export class PauseModal {
   private loc: Localization
+  private confirm: ConfirmationModal
   private container: HTMLDivElement
+  private inner: HTMLDivElement
   private pause: (_state: boolean) => void
   private restart: () => void
   private menu: () => void
 
-  constructor({ pause, restart, menu }: { pause: (_state: boolean) => void, restart: () => void, menu: () => void }) {
+  constructor({ pause, restart, menu, confirm }: { pause: (_state: boolean) => void, restart: () => void, menu: () => void, confirm: ConfirmationModal }) {
     this.loc = new Localization()
+    this.confirm = confirm
     this.container = document.createElement('div')
     this.container.className = styles.pause_layer
     this.pause = pause
     this.restart = restart
     this.menu = menu
 
-    this.init()
-  }
-
-  public show = (state: boolean) => {
-    this.container.setAttribute('style', state ? 'display: flex;' : 'display: none;')
-  }
-
-  private init = () => {
-    const inner = document.createElement('div')
-    inner.className = styles.pause__inner
+    this.inner = document.createElement('div')
+    this.inner.className = styles.pause__inner
     const h2 = document.createElement('h2')
     h2.className = styles.pause__header
     // h2.textContent = 'Pause'
@@ -36,20 +32,20 @@ export class PauseModal {
 
     const btns = document.createElement('div')
     btns.className = styles.pause__btns
-    const resume = buttonCircle(iconSrc.resume)
-    resume.addEventListener('click', this.handleResume)
+    const btnResume = buttonCircle({ src: iconSrc.resume })
+    btnResume.addEventListener('click', this.handleResume)
     /*
-    const settings = circleButton(icons.settings)
-    settings.addEventListener('click', this.handleSettings)
+    const btnSettings = buttonCircle({src: icons.settings})
+    btnSettings.addEventListener('click', this.handleSettings)
      */
-    const restart = buttonCircle(iconSrc.restart)
-    restart.addEventListener('click', this.handleRestart)
-    const menu = buttonCircle(iconSrc.menu)
-    menu.addEventListener('click', this.handleMenu)
-    btns.append(resume, restart, /* settings, */ menu)
+    const btnRestart = buttonCircle({ src: iconSrc.restart })
+    btnRestart.addEventListener('click', this.handleRestart)
+    const btnMenu = buttonCircle({ src: iconSrc.menu })
+    btnMenu.addEventListener('click', this.handleMenu)
+    btns.append(btnResume, btnRestart, /* btnSettings, */ btnMenu)
 
-    inner.append(h2, btns)
-    this.container.append(inner)
+    this.inner.append(h2, btns)
+    this.container.append(this.inner)
 
     this.container.addEventListener('click', event => {
       const { target, currentTarget } = event;
@@ -60,6 +56,11 @@ export class PauseModal {
     })
   }
 
+  public show = (state: boolean) => {
+    this.container.setAttribute('style', state ? 'display: flex;' : 'display: none;')
+    this.inner.classList.toggle(styles.bounce, state)
+  }
+
   private handleResume = () => {
     this.show(false)
     this.pause(false)
@@ -68,8 +69,12 @@ export class PauseModal {
   // private handleSettings = () => console.log('Handle settings')
 
   private handleRestart = () => {
-    this.show(false)
-    this.restart()
+    this.confirm.show({
+      text: this.loc.get('restartDesc'), acceptCallback: () => {
+        this.show(false)
+        this.restart()
+      }
+    })
   }
 
   private handleMenu = () => {

@@ -9,6 +9,7 @@ export const spoilSrc: Record<TAnimalName, string> = {
 }
 
 export const iconSrc: Record<string, string> = {
+  check: './icons/check.svg',
   close: './icons/close.svg',
   resume: './icons/play.svg',
   restart: './icons/restart.svg',
