@@ -108,7 +108,6 @@ export class App extends AppView {
     this.confirm = new ConfirmationModal()
     this.menu = new Menu({ start: this.startGame, confirm: this.confirm })
     this.ui = new GlobalUI()
-    this.game.append(this.menu.element, this.ui.element, this.confirm.element)
   }
 
   public init = async (): Promise<void> => {
@@ -133,6 +132,7 @@ export class App extends AppView {
 
   private handleLoadComplete = () => {
     this.loaderRemove()
+    this.game.append(this.menu.element, this.ui.element, this.confirm.element)
 
     if (autoStart) {
       this.initGame().then(() => this.engineStart!())
