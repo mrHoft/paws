@@ -45,10 +45,10 @@ export type TTargetName = TAnimalName | 'cactus1' | 'cactus2' | 'puddle' | 'boul
 export const ANIMAL_LIST: TAnimalName[] = ['mouse', 'grasshopper', 'butterfly', 'bird']
 export const BARRIER_LIST: TTargetName[] = ['cactus1', 'cactus2', 'puddle', 'boulder', 'flowerpot', 'gnome', 'bucket']
 
-export type TLevelName = 'autumn' | 'cliff' | 'desert' | 'forest' | 'jungle' | 'lake' | 'mountains' | 'default'
-export const LEVEL_NAMES: TLevelName[] = ['autumn', 'cliff', 'desert', 'forest', 'jungle', 'lake', 'mountains']
+export type TSceneName = 'autumn' | 'cliff' | 'desert' | 'forest' | 'jungle' | 'lake' | 'mountains' | 'default'
+export const SCENE_NAMES: TSceneName[] = ['autumn', 'cliff', 'desert', 'forest', 'jungle', 'lake', 'mountains']
 
-export const TARGETS_PER_LEVEL: Record<TLevelName, TTargetName[]> = {
+export const SCENE_TARGETS: Record<TSceneName, TTargetName[]> = {
   autumn: ['mouse', 'bird', 'puddle', 'flowerpot', 'boulder'],
   cliff: ['butterfly', 'grasshopper', 'flowerpot', 'boulder', 'gnome'],
   desert: ['butterfly', 'mouse', 'cactus1', 'cactus2',],

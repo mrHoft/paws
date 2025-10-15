@@ -1,4 +1,4 @@
-import { CANVAS, type TLevelName } from '~/const'
+import { CANVAS, type TSceneName } from '~/const'
 import { Resource } from './resource'
 import { getValue } from '~/utils/data'
 
@@ -17,7 +17,7 @@ interface LayersData {
   fromTop?: boolean
 }
 
-const layersData: Record<TLevelName, LayersData[]> = {
+const layersData: Record<TSceneName, LayersData[]> = {
   default: [
     { src: 'mountains.layer1', dx: 0, fromTop: true },
     { src: 'mountains.layer2', dx: -0.25 },
@@ -78,7 +78,7 @@ export class Backdrop {
     if (ctx) Backdrop.__instance.ctx = ctx
   }
 
-  public init = (levelName: TLevelName) => {
+  public init = (levelName: TSceneName) => {
     // TODO: Development time patch
     if (this.resource.progress < 100) {
       setTimeout(this.init, 500)

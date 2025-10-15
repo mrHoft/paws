@@ -1,5 +1,5 @@
 import { Resource } from '~/engine/resource'
-import { CANVAS, type TLevelName } from '~/const'
+import { CANVAS, type TSceneName } from '~/const'
 import { Weather } from '~/ui/weather/weather'
 import { PauseModal } from '~/ui/pause/pause'
 import { Overlay } from '~/ui/overlay/overlay'
@@ -82,7 +82,7 @@ export class App extends AppView {
   private menu: Menu
   private ui: GlobalUI
   private storage: Storage
-  private engineStart?: (levelName?: TLevelName, options?: { fps: boolean }) => void
+  private engineStart?: (levelName?: TSceneName, options?: { fps: boolean }) => void
 
   constructor() {
     super()
@@ -173,10 +173,10 @@ export class App extends AppView {
 
     this.game.append(canvas, this.overlay.element, this.weather.element, this.pause.element)
 
-    this.engineStart = (levelName: TLevelName = 'default', options?: { restart?: boolean, fps?: boolean }) => engine.start({ levelName, fps: options?.fps, restart: options?.restart })
+    this.engineStart = (sceneName: TSceneName = 'default', options?: { restart?: boolean, fps?: boolean }) => engine.start({ sceneName, fps: options?.fps, restart: options?.restart })
   }
 
-  private startGame = (levelName: TLevelName, restart?: boolean) => {
+  private startGame = (sceneName: TSceneName, restart?: boolean) => {
     this.menu.show(false)
     this.weather?.pause(false)
     const options = {
@@ -184,9 +184,9 @@ export class App extends AppView {
       restart
     }
     if (this.engineStart) {
-      this.engineStart(levelName, options)
+      this.engineStart(sceneName, options)
     } else {
-      this.initGame().then(() => this.engineStart!(levelName, options))
+      this.initGame().then(() => this.engineStart!(sceneName, options))
     }
   }
 

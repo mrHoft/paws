@@ -34,7 +34,7 @@ class OverlayView {
 export class Overlay extends OverlayView {
   private loc: Localization
   private sound: Sound
-  private player: { level: HTMLSpanElement, score: HTMLSpanElement, combo: HTMLSpanElement }
+  private player: Record<'level' | 'score' | 'combo', { el: HTMLDivElement, value: HTMLSpanElement }>
 
   constructor({ handlePause, initialScore }: { handlePause: (_show: boolean) => void, initialScore?: number }) {
     super()
@@ -45,7 +45,7 @@ export class Overlay extends OverlayView {
     const levelLabel = document.createElement('span')
     this.loc.register('level', levelLabel)
     const levelValue = document.createElement('span')
-    level.className = styles.player
+    level.className = styles.level
     levelValue.innerText = '1'
     level.append(levelLabel, ': ', levelValue)
 
@@ -53,7 +53,7 @@ export class Overlay extends OverlayView {
     const scoreLabel = document.createElement('span')
     this.loc.register('score', scoreLabel)
     const scoreValue = document.createElement('span')
-    score.className = styles.player
+    score.className = styles.score
     scoreValue.innerText = (initialScore || 0).toString()
     score.append(scoreLabel, ': ', scoreValue)
 
@@ -68,7 +68,7 @@ export class Overlay extends OverlayView {
 
     const player = document.createElement('div')
     player.append(level, score, combo)
-    this.player = { level: levelValue, score: scoreValue, combo: comboValue }
+    this.player = { level: { el: level, value: levelValue }, score: { el: score, value: scoreValue }, combo: { el: combo, value: comboValue } }
 
     const sound = buttonIcon({ src: this.sound.muted ? iconSrc.soundOn : iconSrc.soundOff })
     const soundIconElement = sound.children[0] as HTMLImageElement
@@ -87,20 +87,31 @@ export class Overlay extends OverlayView {
   }
 
   public handleLevel = (value: number) => {
-    this.player.level.innerText = (value + 1).toString()
+    this.player.level.value.innerText = (value + 1).toString()
+    this.player.level.el.classList.add(styles.bounce)
+    setTimeout(() => {
+      this.player.level.el.classList.remove(styles.bounce)
+    }, 325)
   }
 
   public handleScore = (value: number) => {
-    this.player.score.innerText = value.toString()
+    this.player.score.value.innerText = value.toString()
+    this.player.score.el.classList.add(styles.bounce)
+    setTimeout(() => {
+      this.player.score.el.classList.remove(styles.bounce)
+    }, 325)
   }
 
   public handleCombo = (value: number) => {
-    this.player.combo.innerText = `x${value}`
-    const parent = this.player.combo.parentElement
+    this.player.combo.value.innerText = `x${value}`
     if (value) {
-      parent?.setAttribute('style', 'display: block;')
+      this.player.combo.el.setAttribute('style', 'display: block;')
+      this.player.combo.el.classList.add(styles.bounce)
+      setTimeout(() => {
+        this.player.combo.el.classList.remove(styles.bounce)
+      }, 325)
     } else {
-      parent?.setAttribute('style', 'display: none;')
+      this.player.combo.el.setAttribute('style', 'display: none;')
     }
   }
 

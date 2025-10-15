@@ -1,4 +1,4 @@
-import { ANIMAL_LIST, BARRIER_LIST, CANVAS, TARGETS_PER_LEVEL, GAME, TARGET_SCORE, type TAnimalName, type TLevelName } from '~/const'
+import { ANIMAL_LIST, BARRIER_LIST, CANVAS, SCENE_TARGETS, GAME, TARGET_SCORE, type TAnimalName, type TSceneName } from '~/const'
 import { Draw } from './draw'
 import { Resource } from './resource'
 import { Backdrop } from './backdrop'
@@ -22,7 +22,8 @@ const caughtDefault: TCaught = {
 export class Engine {
   private sound: Sound
   private game: TGame = {
-    levelName: 'default',
+    sceneName: 'default',
+    level: 0, // Game complexity level
     SPEED: 0.5, // Game complexity (normal: 0.5 fast: 1)
     successHeightModifier: 1.3, // Defines jump to target height ratio
     // Frame reit, actually no :). Updates automatically.
@@ -369,10 +370,12 @@ export class Engine {
     window.clearTimeout(this.game.timer)
 
     const level = Math.min(Math.floor(Math.max(this.game.score, 0) / GAME.scorePerLevel), 5)
-    this.showLevel(level)
-    this.game.SPEED = 0.5 + level * 0.1
-    const targets = TARGETS_PER_LEVEL[this.game.levelName]
-
+    if (level !== this.game.level) {
+      this.game.level = level
+      this.game.SPEED = 0.5 + level * 0.1
+      this.showLevel(level)
+    }
+    const targets = SCENE_TARGETS[this.game.sceneName]
     const rand = Math.floor(Math.random() * targets.length)
     this.target.nameLast = this.target.nameCurr
     this.target.heightLast = this.target.heightCurr
@@ -400,18 +403,15 @@ export class Engine {
     this.game.action = 'scene'
   }
 
-  public start(options: { levelName?: TLevelName, restart?: boolean, fps?: boolean } = {}) {
-    const { levelName = this.game.levelName, restart, fps } = options
-    console.log(options)
-    this.draw = new Draw(this.game.ctx!)
-    this.fly = new FlyingValues(this.game.ctx!)
+  public start(options: { sceneName?: TSceneName, restart?: boolean, fps?: boolean } = {}) {
+    const { sceneName = this.game.sceneName, restart, fps } = options
     this.events = new ControlEvents({ game: this.game, prepareJumpStart: this.prepareJumpStart, prepareJumpEnd: this.prepareJumpEnd, pause: this.pause })
     this.tooltip = new Tooltip(this.showTooltip)
-    this.backdrop.init(levelName)
+    this.backdrop.init(sceneName)
     this.sound.play(0, true)  // TODO: level music
 
     this.game.ctx!.font = '32px Arial'
-    this.game.levelName = levelName
+    this.game.sceneName = sceneName
     this.game.paused = false
     this.game.action = null
     this.events.registerEvents()

@@ -1,4 +1,4 @@
-import { GAME, LEVEL_NAMES, TARGETS_PER_LEVEL, ANIMAL_LIST, type TLevelName, type TAnimalName } from "~/const"
+import { GAME, SCENE_NAMES, SCENE_TARGETS, ANIMAL_LIST, type TSceneName, type TAnimalName } from "~/const"
 import { buttonCircle, buttonIcon } from "~/ui/button"
 import { about } from "~/ui/about/about"
 import { Settings } from "~/ui/settings/settings"
@@ -17,8 +17,8 @@ class MenuView {
   protected menu: HTMLDivElement
   protected about: HTMLDivElement
   protected settings: HTMLDivElement
-  protected thumbs: { img: HTMLImageElement, name: TLevelName }[] = []
-  protected scene: { element: HTMLDivElement, inner: HTMLDivElement, btn: HTMLDivElement, spoil: Partial<Record<TAnimalName, HTMLImageElement>>, name: TLevelName }
+  protected thumbs: { img: HTMLImageElement, name: TSceneName }[] = []
+  protected scene: { element: HTMLDivElement, inner: HTMLDivElement, btn: HTMLDivElement, spoil: Partial<Record<TAnimalName, HTMLImageElement>>, name: TSceneName }
 
   constructor() {
     this.loc = new Localization()
@@ -28,12 +28,12 @@ class MenuView {
 
     const level = document.createElement('div')
     level.className = styles.level
-    const h = Math.floor(100 / (LEVEL_NAMES.length - 1) * 2)
+    const h = Math.floor(100 / (SCENE_NAMES.length - 1) * 2)
     level.setAttribute('style', `height: ${100 - h * .75}%;`)
 
-    const shift = Math.PI / 2 / (LEVEL_NAMES.length - 1)
-    for (let i = LEVEL_NAMES.length - 1; i >= 0; i -= 1) {
-      const name = LEVEL_NAMES[i]
+    const shift = Math.PI / 2 / (SCENE_NAMES.length - 1)
+    for (let i = SCENE_NAMES.length - 1; i >= 0; i -= 1) {
+      const name = SCENE_NAMES[i]
       const img = document.createElement('img')
       img.className = styles.level__thumb
       img.src = `${PATH}/${name}.jpg`
@@ -146,9 +146,9 @@ class MenuView {
 }
 
 export class Menu extends MenuView {
-  private startGame: (levelName: TLevelName, restart?: boolean) => void
+  private startGame: (levelName: TSceneName, restart?: boolean) => void
 
-  constructor({ start }: { start: (levelName: TLevelName, restart?: boolean) => void }) {
+  constructor({ start }: { start: (levelName: TSceneName, restart?: boolean) => void }) {
     super()
     this.startGame = start
     this.thumbs.forEach(el => {
@@ -182,28 +182,34 @@ export class Menu extends MenuView {
     const { target, currentTarget } = event;
     if (currentTarget && target === currentTarget) {
       event.preventDefault();
-      (currentTarget as HTMLDivElement).setAttribute('style', 'display: none;')
+      const element = currentTarget as HTMLDivElement
+      element.setAttribute('style', 'display: none;')
+      for (const child of element.children) {
+        child.classList.remove(styles.bounce)
+      }
     }
   }
 
   private handleStart = () => {
-    const name = LEVEL_NAMES[Math.floor(Math.random() * LEVEL_NAMES.length)]
+    const name = SCENE_NAMES[Math.floor(Math.random() * SCENE_NAMES.length)]
     this.handleSceneClick(name)()
   }
 
   private handleRestart = () => {
-    this.startGame(LEVEL_NAMES[0], true)
+    this.startGame(SCENE_NAMES[0], true)
   }
 
   private handleAbout = () => {
     this.about.setAttribute('style', 'display: flex;')
+    this.about.firstElementChild?.classList.add(styles.bounce)
   }
 
   private handleSettings = () => {
     this.settings.setAttribute('style', 'display: flex;')
+    this.settings.firstElementChild?.classList.add(styles.bounce)
   }
 
-  private handleSceneClick = (name: TLevelName) => (event?: PointerEvent) => {
+  private handleSceneClick = (name: TSceneName) => (event?: PointerEvent) => {
     if (event) {
       const element = event.currentTarget as HTMLElement;
       element.style.pointerEvents = 'none'
@@ -214,8 +220,9 @@ export class Menu extends MenuView {
     this.scene.name = name
     this.scene.element.setAttribute('style', 'display: flex;')
     this.scene.inner.setAttribute('style', `background-image: url(${PATH}/${name}.jpg)`)
+    this.scene.inner.classList.add(styles.bounce)
 
-    const spoil: TAnimalName[] = TARGETS_PER_LEVEL[name].filter((el): el is TAnimalName => ANIMAL_LIST.includes(el as TAnimalName))
+    const spoil: TAnimalName[] = SCENE_TARGETS[name].filter((el): el is TAnimalName => ANIMAL_LIST.includes(el as TAnimalName))
     for (const key of ANIMAL_LIST) {
       const el = this.scene.spoil[key]
       if (el) {
