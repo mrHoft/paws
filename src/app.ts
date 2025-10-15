@@ -9,6 +9,7 @@ import { Menu } from '~/ui/menu/menu'
 import { Storage } from '~/service/storage'
 import { Sound } from '~/service/sound'
 import { Localization } from '~/service/localization'
+import { FocusListener } from './service/focus'
 
 const autoStart = false
 
@@ -81,6 +82,7 @@ export class App extends AppView {
   private confirm: ConfirmationModal
   private overlay?: Overlay
   private weather?: Weather
+  private sound: Sound
   private menu: Menu
   private ui: GlobalUI
   private storage: Storage
@@ -101,7 +103,7 @@ export class App extends AppView {
       volume: soundVolume,
       muted: soundVolume === 0
     }
-    new Sound({ music, sound })
+    this.sound = new Sound({ music, sound })
 
     this.confirm = new ConfirmationModal()
     this.menu = new Menu({ start: this.startGame, confirm: this.confirm })
@@ -177,6 +179,11 @@ export class App extends AppView {
     this.game.append(canvas, this.overlay.element, this.weather.element, this.pause.element)
 
     this.engineStart = (sceneName: TSceneName = 'default', options?: { restart?: boolean, fps?: boolean }) => engine.start({ sceneName, fps: options?.fps, restart: options?.restart })
+
+    new FocusListener({
+      focusLoss: () => { engine.pause(true); this.weather?.pause(true); this.sound.mute = true },
+      focusGain: () => { this.pause?.show(false); engine.pause(false); this.weather?.pause(false); this.sound.mute = false }
+    })
   }
 
   private startGame = (sceneName: TSceneName, restart?: boolean) => {
