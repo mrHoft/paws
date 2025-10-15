@@ -1,6 +1,7 @@
-import { TOOLTIP } from '~/const'
+import { Localization } from '~/service/localization'
 
 export class Tooltip {
+  private loc!: Localization
   private tooltip = {
     shown: false,
     firstTip: true,
@@ -14,6 +15,8 @@ export class Tooltip {
   constructor(setTooltip: (tooltip: string) => void) {
     this.setTooltip = setTooltip
     if (Tooltip.__instance) return Tooltip.__instance
+    Tooltip.__instance = this
+    this.loc = new Localization()
   }
 
   private set(text?: string) {
@@ -23,7 +26,7 @@ export class Tooltip {
       this.tooltip.firstTip = false
       return
     }
-    if (typeof text == 'string') {
+    if (typeof text === 'string') {
       this.setTooltip(text)
       this.tooltip.shown = true
     }
@@ -38,25 +41,25 @@ export class Tooltip {
       case 'start':
         if (this.tooltip.firstTip) {
           this.tooltip.firstTip = false
-          this.set(TOOLTIP.newGame)
+          this.set(this.loc.get('newGame'))
         }
         break
       case 'barrier':
         if (this.tooltip.firstBarrier) {
           this.tooltip.firstBarrier = false
-          this.set(TOOLTIP.firstBarrier)
+          this.set(this.loc.get('firstBarrier'))
         }
         break
       case 'timeout':
         if (this.tooltip.firstTimeout) {
           this.tooltip.firstTimeout = false
-          this.set(TOOLTIP.firstTimeout)
+          this.set(this.loc.get('firstTimeout'))
         }
         break
       case 'animal':
         if (this.tooltip.firstAnimal) {
           this.tooltip.firstAnimal = false
-          this.set(TOOLTIP.firstAnimal)
+          this.set(this.loc.get('firstAnimal'))
         }
     }
   }

@@ -402,6 +402,7 @@ export class Engine {
 
   public start(options: { levelName?: TLevelName, restart?: boolean, fps?: boolean } = {}) {
     const { levelName = this.game.levelName, restart, fps } = options
+    console.log(options)
     this.draw = new Draw(this.game.ctx!)
     this.fly = new FlyingValues(this.game.ctx!)
     this.events = new ControlEvents({ game: this.game, prepareJumpStart: this.prepareJumpStart, prepareJumpEnd: this.prepareJumpEnd, pause: this.pause })

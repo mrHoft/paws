@@ -16,7 +16,7 @@ interface UserData {
 const defaultUserData: UserData & { data: GameData } = {
   music: 0.5,
   sound: 0.5,
-  fps: true,
+  fps: false,
   language: navigator.language || 'en',
   data: {
     score: 0,

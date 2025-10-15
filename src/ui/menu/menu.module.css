@@ -168,3 +168,9 @@
     transform: scale(1.2);
   }
 }
+
+.top-right {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+}

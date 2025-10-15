@@ -1,6 +1,7 @@
 import { Sound } from '~/service/sound'
 import { iconSrc } from "~/ui/icons"
 import { buttonIcon } from '~/ui/button/icon'
+import { Localization } from '~/service/localization'
 
 import styles from './overlay.module.css'
 
@@ -31,31 +32,39 @@ class OverlayView {
 }
 
 export class Overlay extends OverlayView {
+  private loc: Localization
   private sound: Sound
   private player: { level: HTMLSpanElement, score: HTMLSpanElement, combo: HTMLSpanElement }
 
   constructor({ handlePause, initialScore }: { handlePause: (_show: boolean) => void, initialScore?: number }) {
     super()
+    this.loc = new Localization()
     this.sound = new Sound()
 
     const level = document.createElement('div')
+    const levelLabel = document.createElement('span')
+    this.loc.register('level', levelLabel)
     const levelValue = document.createElement('span')
     level.className = styles.player
     levelValue.innerText = '1'
-    level.append('Level: ', levelValue)
+    level.append(levelLabel, ': ', levelValue)
 
     const score = document.createElement('div')
+    const scoreLabel = document.createElement('span')
+    this.loc.register('score', scoreLabel)
     const scoreValue = document.createElement('span')
     score.className = styles.player
     scoreValue.innerText = (initialScore || 0).toString()
-    score.append('Score: ', scoreValue)
+    score.append(scoreLabel, ': ', scoreValue)
 
     const combo = document.createElement('div')
     combo.className = styles.combo
     combo.setAttribute('style', 'display: none;')
+    const comboLabel = document.createElement('span')
+    this.loc.register('combo', comboLabel)
     const comboValue = document.createElement('span')
     comboValue.innerText = 'x0'
-    combo.append('Combo: ', comboValue)
+    combo.append(comboLabel, ': ', comboValue)
 
     const player = document.createElement('div')
     player.append(level, score, combo)

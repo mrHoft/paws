@@ -1,17 +1,18 @@
 import { GAME, LEVEL_NAMES, TARGETS_PER_LEVEL, ANIMAL_LIST, type TLevelName, type TAnimalName } from "~/const"
-// import { Caught } from "~/ui/overlay/caught"
-import { buttonCircle } from "~/ui/button/circle"
+import { buttonCircle, buttonIcon } from "~/ui/button"
 import { about } from "~/ui/about/about"
 import { Settings } from "~/ui/settings/settings"
 import { iconSrc, spoilSrc } from "~/ui/icons"
+import { Localization } from '~/service/localization'
 
 import styles from './menu.module.css'
 
 const PATH = './thumb'
 
-interface MenuItem { id: string, icon: string, title: string, func: () => void }
+interface MenuItem { id: string, icon: string, func: () => void }
 
 class MenuView {
+  private loc: Localization
   protected container: HTMLDivElement
   protected menu: HTMLDivElement
   protected about: HTMLDivElement
@@ -20,6 +21,7 @@ class MenuView {
   protected scene: { element: HTMLDivElement, inner: HTMLDivElement, btn: HTMLDivElement, spoil: Partial<Record<TAnimalName, HTMLImageElement>>, name: TLevelName }
 
   constructor() {
+    this.loc = new Localization()
     this.container = document.createElement('div')
     this.container.className = styles.menu_layer
     this.container.setAttribute('style', 'display: none;')
@@ -47,7 +49,8 @@ class MenuView {
     this.about = document.createElement('div')
     this.about.className = styles.about
     const aHeader = document.createElement('h3')
-    aHeader.innerText = 'About'
+    // aHeader.innerText = 'About'
+    this.loc.register('about', aHeader)
     const aboutInner = document.createElement('div')
     aboutInner.className = styles.about__inner
     const aboutClose = this.createCloseBtn()
@@ -60,7 +63,8 @@ class MenuView {
     this.settings = document.createElement('div')
     this.settings.className = styles.settings
     const sHeader = document.createElement('h3')
-    sHeader.innerText = 'Settings'
+    // sHeader.innerText = 'Settings'
+    this.loc.register('settings', sHeader)
     const settingsInner = document.createElement('div')
     const settingsClose = this.createCloseBtn()
     settingsClose.addEventListener('click', () => {
@@ -114,7 +118,9 @@ class MenuView {
       const icon = document.createElement('img')
       icon.src = item.icon
       icon.alt = item.id
-      button.append(icon, item.title)
+      const text = document.createElement('span')
+      this.loc.register(item.id, text)
+      button.append(icon, text)
       button.onclick = item.func
       this.menu.append(button)
     }
@@ -140,24 +146,18 @@ class MenuView {
 }
 
 export class Menu extends MenuView {
-  // private caught: Caught
+  private startGame: (levelName: TLevelName, restart?: boolean) => void
 
-  constructor({ start }: { start: (levelName: TLevelName) => void }) {
+  constructor({ start }: { start: (levelName: TLevelName, restart?: boolean) => void }) {
     super()
-    /*
-    this.caught = new Caught
-    const header = document.createElement('div')
-    header.className = styles.header
-    header.append(this.caught.element)
-    this.container.append(header)
-    */
+    this.startGame = start
     this.thumbs.forEach(el => {
       el.img.addEventListener('click', this.handleSceneClick(el.name))
     })
 
     this.scene.btn.addEventListener('click', () => {
       this.scene.element.setAttribute('style', 'display: none;')
-      start(this.scene.name)
+      this.startGame(this.scene.name)
     })
 
     this.scene.element.addEventListener('click', this.handleOutsideClick)
@@ -165,11 +165,17 @@ export class Menu extends MenuView {
     this.settings.addEventListener('click', this.handleOutsideClick)
 
     const menuItems: MenuItem[] = [
-      { id: 'start', icon: iconSrc.play, title: 'Start', func: this.handleStart },
-      { id: 'settings', icon: iconSrc.settings, title: 'Settings', func: this.handleSettings },
-      { id: 'about', icon: iconSrc.about, title: 'About', func: this.handleAbout },
+      { id: 'start', icon: iconSrc.play, func: this.handleStart },
+      { id: 'restart', icon: iconSrc.restart, func: this.handleRestart },
+      { id: 'settings', icon: iconSrc.settings, func: this.handleSettings },
+      // { id: 'about', icon: iconSrc.about, func: this.handleAbout },
     ]
     this.menuInit(menuItems)
+
+    const btnAbout = buttonIcon({ src: iconSrc.about })
+    btnAbout.classList.add(styles['top-right'])
+    btnAbout.addEventListener('click', this.handleAbout)
+    this.container.append(btnAbout)
   }
 
   private handleOutsideClick = (event: PointerEvent) => {
@@ -183,6 +189,10 @@ export class Menu extends MenuView {
   private handleStart = () => {
     const name = LEVEL_NAMES[Math.floor(Math.random() * LEVEL_NAMES.length)]
     this.handleSceneClick(name)()
+  }
+
+  private handleRestart = () => {
+    this.startGame(LEVEL_NAMES[0], true)
   }
 
   private handleAbout = () => {

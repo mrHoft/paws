@@ -1,15 +1,18 @@
-import { buttonCircle } from '../button/circle'
+import { buttonCircle } from '~/ui/button/circle'
 import { iconSrc } from "~/ui/icons"
+import { Localization } from '~/service/localization'
 
 import styles from './pause.module.css'
 
 export class PauseModal {
+  private loc: Localization
   private container: HTMLDivElement
   private pause: (_state: boolean) => void
   private restart: () => void
   private menu: () => void
 
   constructor({ pause, restart, menu }: { pause: (_state: boolean) => void, restart: () => void, menu: () => void }) {
+    this.loc = new Localization()
     this.container = document.createElement('div')
     this.container.className = styles.pause_layer
     this.pause = pause
@@ -28,7 +31,8 @@ export class PauseModal {
     inner.className = styles.pause__inner
     const h2 = document.createElement('h2')
     h2.className = styles.pause__header
-    h2.textContent = 'Pause'
+    // h2.textContent = 'Pause'
+    this.loc.register('pause', h2)
 
     const btns = document.createElement('div')
     btns.className = styles.pause__btns

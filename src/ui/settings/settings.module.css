@@ -10,7 +10,7 @@
 
 .list__element input[type="range"] {
   font-size: inherit;
-  width: 8em;
+  width: 10em;
 }
 
 .list__element label {

@@ -1,16 +1,18 @@
 import { Storage } from '~/service/storage'
 import { Sound } from '~/service/sound'
 import { iconSrc } from '~/ui/icons'
+import { LANGUAGES } from '~/i18n'
+import { Localization } from '~/service/localization'
 
 import styles from './settings.module.css'
 
 type TOption = 'music' | 'sound' | 'fps' | 'language'
 const OPTIONS: TOption[] = ['music', 'sound', 'fps', 'language']
-const LANGUAGES = ['en', 'ru', 'tr', 'de']
 
 export class Settings {
   private storage: Storage
   private sound: Sound
+  private loc: Localization
   private container: HTMLUListElement
   private opt: Record<string, { el: HTMLLIElement, label: HTMLLabelElement, icon: HTMLImageElement, input: HTMLInputElement }> = {}
   private flags: HTMLDivElement
@@ -18,6 +20,7 @@ export class Settings {
   constructor() {
     this.storage = new Storage()
     this.sound = new Sound()
+    this.loc = new Localization()
     this.container = document.createElement('ul')
     this.container.className = styles.list
 
@@ -125,6 +128,7 @@ export class Settings {
   private handleFlagClick = (lang: string) => () => {
     // console.log(lang)
     this.storage.set('language', lang)
+    this.loc.language = lang
     this.opt.language.input.value = lang
     const list = this.flags.children
     for (const flag of list) {

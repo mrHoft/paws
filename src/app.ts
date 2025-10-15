@@ -7,6 +7,7 @@ import { GlobalUI } from '~/ui/global/global'
 import { Menu } from '~/ui/menu/menu'
 import { Storage } from '~/service/storage'
 import { Sound } from '~/service/sound'
+import { Localization } from '~/service/localization'
 
 const autoStart = false
 
@@ -87,11 +88,7 @@ export class App extends AppView {
     super()
 
     this.storage = new Storage()
-    console.log(this.storage.getState())
-
-    this.menu = new Menu({ start: this.startGame })
-    this.ui = new GlobalUI()
-    this.game.append(this.menu.element, this.ui.element)
+    new Localization(this.storage.get('language'))
 
     const musicVolume = Math.max(0, Math.min(this.storage.get<number>('music'), 1))
     const music = {
@@ -104,6 +101,10 @@ export class App extends AppView {
       muted: soundVolume === 0
     }
     new Sound({ music, sound })
+
+    this.menu = new Menu({ start: this.startGame })
+    this.ui = new GlobalUI()
+    this.game.append(this.menu.element, this.ui.element)
   }
 
   public init = async (): Promise<void> => {
@@ -172,14 +173,15 @@ export class App extends AppView {
 
     this.game.append(canvas, this.overlay.element, this.weather.element, this.pause.element)
 
-    this.engineStart = (levelName: TLevelName = 'default', options?: { fps: boolean }) => engine.start({ levelName, fps: options?.fps })
+    this.engineStart = (levelName: TLevelName = 'default', options?: { restart?: boolean, fps?: boolean }) => engine.start({ levelName, fps: options?.fps, restart: options?.restart })
   }
 
-  private startGame = (levelName?: TLevelName) => {
+  private startGame = (levelName: TLevelName, restart?: boolean) => {
     this.menu.show(false)
     this.weather?.pause(false)
     const options = {
-      fps: this.storage.get<boolean>('fps')
+      fps: this.storage.get<boolean>('fps'),
+      restart
     }
     if (this.engineStart) {
       this.engineStart(levelName, options)

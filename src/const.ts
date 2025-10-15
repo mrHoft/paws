@@ -76,11 +76,3 @@ export const TARGET_SCORE: Record<TTargetName, Record<'success' | 'fail', number
   cactus1: { success: 5, fail: -20 },
   cactus2: { success: 5, fail: -20 },
 }
-
-type Tooltip = 'newGame' | 'firstAnimal' | 'firstBarrier' | 'firstTimeout'
-export const TOOLTIP: Record<Tooltip, string> = {
-  newGame: 'Hold space/tap to jump',
-  firstAnimal: 'Need to jump on target',
-  firstBarrier: 'Need to jump over the target',
-  firstTimeout: 'The animal can run away',
-}

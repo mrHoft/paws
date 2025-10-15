@@ -29,4 +29,5 @@ export const iconSrc: Record<string, string> = {
   ru: './flag/ru.svg',
   de: './flag/de.svg',
   tr: './flag/tr.svg',
+  fr: './flag/fr.svg',
 }

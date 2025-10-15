@@ -35,6 +35,7 @@ export class Sound {
   constructor(props: { sound?: { volume: number, muted: boolean }, music?: { volume: number, muted: boolean } } = {}) {
     if (props.sound) this._sound = props.sound
     if (props.music) this._music = props.music
+
     if (Sound._instance) return Sound._instance
     Sound._instance = this
 
@@ -82,12 +83,13 @@ export class Sound {
   }
 
   public set soundVolume(value: number) {
+    this._sound.muted = value === 0
     this._sound.volume = value
   }
 
   public play(track: number, auto?: boolean) {
     if (this._music.muted || track === -1) return
-    if (track === this.playing?.track) return
+    // if (track === this.playing?.track) return
 
     const music = this.tracks[track]
     if (!music || !music.ready) {
