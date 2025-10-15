@@ -61,7 +61,7 @@ export class Weather {
     const top = 90 - Math.pow(Math.random(), 2) * 85; // 5-90% from top
     leaf.style.top = `${top}%`;
     leaf.style.left = '0';
-    const size = 20 + Math.random() * 15;
+    const size = 30 + Math.random() * 15;
     leaf.style.width = leaf.style.height = `${size}px`;
   }
 
