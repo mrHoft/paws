@@ -86,6 +86,7 @@ export class App extends AppView {
   private menu: Menu
   private ui: GlobalUI
   private storage: Storage
+  private focus: FocusListener
   private engineStart?: (levelName?: TSceneName, options?: { fps: boolean }) => void
 
   constructor() {
@@ -105,6 +106,12 @@ export class App extends AppView {
     }
     this.sound = new Sound({ music, sound })
 
+    this.focus = new FocusListener()
+    this.focus.addCallbacks({
+      focusLoss: () => { this.sound.mute = true },
+      focusGain: () => { this.sound.mute = false }
+    })
+
     this.confirm = new ConfirmationModal()
     this.menu = new Menu({ start: this.startGame, confirm: this.confirm })
     this.ui = new GlobalUI()
@@ -112,7 +119,7 @@ export class App extends AppView {
 
   public init = async (): Promise<void> => {
     this.loaderInit()
-    this.game.addEventListener('contextmenu', (event) => {
+    this.root.addEventListener('contextmenu', (event) => {
       event.preventDefault()
       return false
     })
@@ -180,9 +187,9 @@ export class App extends AppView {
 
     this.engineStart = (sceneName: TSceneName = 'default', options?: { restart?: boolean, fps?: boolean }) => engine.start({ sceneName, fps: options?.fps, restart: options?.restart })
 
-    new FocusListener({
-      focusLoss: () => { engine.pause(true); this.weather?.pause(true); this.sound.mute = true },
-      focusGain: () => { this.pause?.show(false); engine.pause(false); this.weather?.pause(false); this.sound.mute = false }
+    this.focus.addCallbacks({
+      focusLoss: () => { engine.pause(true); this.weather?.pause(true); },
+      focusGain: () => { this.pause?.show(false); engine.pause(false); this.weather?.pause(false); }
     })
   }
 

@@ -41,6 +41,7 @@ export class Engine {
     success: false,
     fullJump: true, // To know does current target need a full jump
     paused: false,
+    stopped: true,
     combo: 0, // Combo multiplier for score
     score: 0,
     caught: { ...caughtDefault }
@@ -412,6 +413,7 @@ export class Engine {
 
     this.game.ctx!.font = '32px Arial'
     this.game.sceneName = sceneName
+    this.game.stopped = false
     this.game.paused = false
     this.game.action = null
     this.events.registerEvents()
@@ -436,10 +438,11 @@ export class Engine {
     this.events.unRegisterEvents()
     window.clearTimeout(this.game.timer)
     this.sound.pause()
+    this.game.stopped = true
   }
 
   public pause = (state: boolean) => {
-    if (this.game.paused == state) return
+    if (this.game.stopped || this.game.paused == state) return
     this.game.paused = state
     console.log(`Game ${this.game.paused ? 'paused' : 'continued'}`)
 

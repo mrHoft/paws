@@ -1,9 +1,17 @@
 export class FocusListener {
-  private callbacks: Record<'focusLoss' | 'focusGain', (() => void)>
+  private callbacks: Record<'focusLoss' | 'focusGain', (() => void)[]> = { focusLoss: [], focusGain: [] }
 
-  constructor({ focusLoss, focusGain }: { focusLoss: () => void, focusGain: () => void }) {
-    this.callbacks = { focusLoss, focusGain }
+  constructor() {
     this.setupListeners();
+  }
+
+  public addCallbacks = ({ focusLoss, focusGain }: { focusLoss?: () => void, focusGain?: () => void } = {}) => {
+    if (focusLoss) {
+      this.callbacks.focusLoss.push(focusLoss)
+    }
+    if (focusGain) {
+      this.callbacks.focusGain.push(focusGain)
+    }
   }
 
   private setupListeners() {
@@ -25,11 +33,11 @@ export class FocusListener {
   }
 
   private handleFocusLoss = () => {
-    this.callbacks.focusLoss()
+    this.callbacks.focusLoss.forEach(func => func())
   }
 
   private handleFocusGain = () => {
-    this.callbacks.focusGain()
+    this.callbacks.focusGain.forEach(func => func())
   }
 
   public dispose() {

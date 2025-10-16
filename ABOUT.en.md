@@ -1,5 +1,5 @@
 ## Fast Paws
-A cute cat on an endless adventure! Time your jumps to catch prey and avoid obstacles. Hold to charge your leap—the longer you hold, the bigger the jump! Climb the leaderboards, build combos, and unlock new locations in this charming and challenging arcade game.
+A cute cat on an endless adventure! Time your jumps to catch prey and avoid obstacles. Hold to charge your leap—the longer you hold, the bigger the jump! Unlock new locations, catch animals and build combos in this charming and challenging arcade game.
 
 ### Description
 Step into the paws of a clever cat in this endless arcade-platformer! Your goal is simple: catch prey and avoid obstacles by mastering the charge-jump mechanic. Press and hold to aim your leap—precision is key! Succeed, and you'll earn points and build a combo multiplier. Fail, and you'll be sent back with a score penalty.

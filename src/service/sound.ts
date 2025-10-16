@@ -1,12 +1,11 @@
-type TSoundType = 'single' | 'multiple' | 'music'
-type TSoundAssets = Record<string, { url: string, type: TSoundType }>
-interface MusicObj extends HTMLAudioElement { musicInfo: { name: string, track: number } }
+type TAudioType = 'sound' | 'music'
+type TSoundAssets = Record<string, { url: string, type: TAudioType }>
 
 const sounds: TSoundAssets = {
-  catch: { url: './audio/catch.ogg', type: 'single' },
-  combo: { url: './audio/combo.ogg', type: 'single' },
-  impact: { url: './audio/impact.ogg', type: 'single' },
-  jump: { url: './audio/jump.ogg', type: 'single' },
+  catch: { url: './audio/catch.ogg', type: 'sound' },
+  combo: { url: './audio/combo.ogg', type: 'sound' },
+  impact: { url: './audio/impact.ogg', type: 'sound' },
+  jump: { url: './audio/jump.ogg', type: 'sound' },
 }
 
 const tracks = [
@@ -18,19 +17,36 @@ const tracks = [
 
 const countTotal = Object.keys(sounds).length + tracks.length * 2
 
+interface SoundBufferInfo {
+  buffer: AudioBuffer;
+  name: string;
+  type: TAudioType;
+}
+
+interface MusicTrack {
+  name: string;
+  buffer: AudioBuffer;
+  ready: boolean;
+  track: number;
+}
+
 export class Sound {
   static _instance: Sound
   private _sound = { volume: 0.5, muted: false }
   private _music = { volume: 0.5, muted: true }
-  private sounds: Record<string, HTMLAudioElement[]> = {}
-  private tracks: { name: string; audio: HTMLAudioElement; ready: boolean }[] = []
+  private audioContext!: AudioContext
+  private soundBuffers: Record<string, SoundBufferInfo> = {}
+  private tracks: MusicTrack[] = []
   private loaded = 0
   private ready = 0
   private pending = -1
-  private playing: { track: number, audio: HTMLAudioElement } | null = null
+  private playing: { track: number, source: AudioBufferSourceNode, gainNode: GainNode } | null = null
   private startPlayCallback?: (_name?: string) => void
   private exceptionCallback?: (_message?: string) => void
   private readyCallback?: (_percent: number, _name: string) => void
+  private masterGain!: GainNode
+  private musicGain!: GainNode
+  private soundGain!: GainNode
 
   constructor(props: { sound?: { volume: number, muted: boolean }, music?: { volume: number, muted: boolean } } = {}) {
     if (props.sound) this._sound = props.sound
@@ -39,13 +55,22 @@ export class Sound {
     if (Sound._instance) return Sound._instance
     Sound._instance = this
 
+    this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+    this.masterGain = this.audioContext.createGain()
+    this.musicGain = this.audioContext.createGain()
+    this.soundGain = this.audioContext.createGain()
+    this.soundGain.connect(this.masterGain)
+    this.musicGain.connect(this.masterGain)
+    this.masterGain.connect(this.audioContext.destination)
+
+    this.updateVolumes()
+
     Object.keys(sounds).forEach(name => {
       const { url, type } = sounds[name as keyof typeof sounds]
-      this.getSound(url, name, type)
+      this.loadSound(url, name, type)
     })
-    tracks.forEach(item => this.getSound(item.url, item.name, 'music'))
+    tracks.forEach(item => this.loadSound(item.url, item.name, 'music'))
 
-    this.handleCanplay = this.handleCanplay.bind(this)
     this.handleEnded = this.handleEnded.bind(this)
 
     // this.startPlayCallback = (name?: string) => console.log('Start play:', name)
@@ -53,16 +78,20 @@ export class Sound {
     // this.readyCallback = (percent: number, name: string) => console.log(percent, name)
   }
 
+  private updateVolumes() {
+    this.musicGain.gain.value = this._music.muted ? 0 : this._music.volume
+    this.soundGain.gain.value = this._sound.muted ? 0 : this._sound.volume
+  }
+
   public set musicVolume(value: number) {
     this._music.volume = value
     this._music.muted = value === 0
-    if (this.playing) this.playing.audio.volume = value
+    this.updateVolumes()
   }
 
   public set musicMute(value: boolean) {
     this._music.muted = value
-    if (this.playing) this.playing.audio.muted = value
-    else this.play(0, true)
+    this.updateVolumes()
   }
 
   public set mute(value: boolean) {
@@ -85,152 +114,149 @@ export class Sound {
   public set soundVolume(value: number) {
     this._sound.muted = value === 0
     this._sound.volume = value
+    this.updateVolumes()
   }
 
   public play(track: number, auto?: boolean) {
     if (this._music.muted || track === -1) return
-    // if (track === this.playing?.track) return
 
     const music = this.tracks[track]
     if (!music || !music.ready) {
-      // console.log(`Pending music: ${track}. ${music ? music.name : ''}`)
       this.pending = track
       return
     }
 
-    const audio = music.audio
-    audio.volume = this._music.volume
-    audio.muted = this._music.muted
-    audio
-      .play()
-      .then(() => {
-        audio.addEventListener('ended', this.handleEnded(auto))
-        this.playing = { track, audio }
-        if (this.startPlayCallback) {
-          this.startPlayCallback(music.name)
-        }
-      })
-      .catch(error => {
-        if (error.name === 'NotAllowedError') {
-          this.pending = track
-          this.waitForUserInteraction().then(() => {
-            this.play(this.pending, true);
-          });
-        } else {
-          this._music.muted = true
-          if (this.exceptionCallback) {
-            this.exceptionCallback(error instanceof Error ? error.message : error.toString())
-          }
-        }
-      })
+    if (this.playing) {
+      this.playing.source.stop()
+      this.playing.source.disconnect()
+    }
+
+    try {
+      const source = this.audioContext.createBufferSource()
+      const gainNode = this.audioContext.createGain()
+
+      source.buffer = music.buffer
+      source.connect(gainNode)
+      gainNode.connect(this.musicGain)
+      gainNode.gain.value = this._music.muted ? 0 : this._music.volume
+
+      source.start(0)
+      source.onended = this.handleEnded(auto/* , track */)
+
+      this.playing = { track, source, gainNode }
+
+      if (this.startPlayCallback) {
+        this.startPlayCallback(music.name)
+      }
+    } catch (error) {
+      if (this.exceptionCallback) {
+        this.exceptionCallback(error instanceof Error ? error.message : String(error))
+      }
+    }
   }
 
   public pause = () => {
-    this.playing?.audio.pause()
+    if (this.playing) {
+      this.playing.source.stop()
+      this.playing.source.disconnect()
+      this.playing = null
+    }
   }
 
   public use(name: string) {
     if (this._sound.muted) return
-    if (!Object.keys(sounds).includes(name)) {
+    if (!this.soundBuffers[name]) {
       console.warn(`No sound: ${name}`)
       return
     }
-    for (let i = 0; i < 10; i += 1) {
-      const audio = this.sounds[name][i]
-      if (audio.currentTime === 0 || audio.ended) {
-        audio.volume = this._sound.volume
-        audio.play().catch(error => console.error(error))
-        return
+
+    const soundInfo = this.soundBuffers[name]
+    if (!soundInfo.buffer) return
+
+    try {
+      const source = this.audioContext.createBufferSource()
+      const gainNode = this.audioContext.createGain()
+
+      source.buffer = soundInfo.buffer
+      source.connect(gainNode)
+      gainNode.connect(this.soundGain)
+      gainNode.gain.value = this._sound.muted ? 0 : this._sound.volume
+
+      source.start(0)
+
+      source.onended = () => {
+        source.disconnect()
+        gainNode.disconnect()
       }
+    } catch (error) {
+      console.error('Error playing sound:', error)
     }
   }
 
-  private getSound(path: string, name: string, type?: string) {
-    const self = this
-    const requestObj = new Request(path, {
-      method: 'GET',
-      headers: {
-        'Accept-Ranges': '1000000000',
-      },
-      referrerPolicy: 'no-referrer',
-    })
+  private async loadSound(path: string, name: string, type?: TAudioType) {
+    try {
+      const response = await fetch(path)
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
 
-    fetch(requestObj)
-      .then(async function (outcome) {
-        const blob = await outcome.blob()
-        const url = window.URL.createObjectURL(blob)
+      const arrayBuffer = await response.arrayBuffer()
+      const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer)
 
-        self.loaded += 1
-        self.ready = ~~((self.loaded / countTotal) * 100)
-
-        if (type === 'music') {
-          const audio = new Audio() as MusicObj
-          audio.src = url
-          audio.musicInfo = { name, track: self.tracks.length }
-          audio.addEventListener('canplay', self.handleCanplay)
-          self.tracks.push({ name, audio, ready: false })
-        } else {
-          self.sounds[name] = Array.from({ length: type === 'multiple' ? 10 : 1 }, () => {
-            const audio = new Audio()
-            audio.src = url
-            return audio
-          })
-        }
-
-        if (self.readyCallback) {
-          self.readyCallback(self.ready, name)
-        }
-      })
-  }
-
-  private handleCanplay(event: Event) {
-    const target = event.target as MusicObj
-    if (target) {
-      target.removeEventListener('canplay', this.handleCanplay)
-      const { name, track } = target.musicInfo
       this.loaded += 1
       this.ready = ~~((this.loaded / countTotal) * 100)
-      this.tracks[track].ready = true
-      // console.log(`${track}. Can play '${name}'. Pending: ${this.pending}`)
 
-      if (this.pending === track) {
-        this.play(this.pending, true)
-        this.pending = -1
+      if (type === 'music') {
+        this.tracks.push({
+          name,
+          buffer: audioBuffer,
+          ready: true,
+          track: this.tracks.length
+        })
+
+        this.loaded += 1
+        this.ready = ~~((this.loaded / countTotal) * 100)
+
+        if (this.pending === this.tracks.length - 1) {
+          this.play(this.pending, true)
+          this.pending = -1
+        }
+      } else {
+        this.soundBuffers[name] = {
+          buffer: audioBuffer,
+          name,
+          type: type || 'sound'
+        }
       }
+
       if (this.readyCallback) {
         this.readyCallback(this.ready, name)
       }
+    } catch (error) {
+      console.error(`Error loading sound ${name}:`, error)
+      if (this.exceptionCallback) {
+        this.exceptionCallback(`Failed to load sound: ${name}`)
+      }
     }
   }
 
-  private handleEnded = (auto?: boolean) => () => {
-    if (!this.playing) return
-    let next = (this.playing.track ?? 0) + 1
-    if (next >= this.tracks.length) next = 0
-    this.playing = null
-    if (auto) {
-      this.play(next, true)
+  private handleEnded(auto?: boolean/* , track?: number */) {
+    return () => {
+      if (!this.playing) return
+      let next = (this.playing.track ?? 0) + 1
+      if (next >= this.tracks.length) next = 0
+      this.playing = null
+      if (auto) {
+        this.play(next, true)
+      }
     }
   }
 
-  private waitForUserInteraction() {
-    return new Promise<void>((resolve) => {
-      const events = ['click', 'keydown', 'touchstart'];
-      let resolved = false;
-
-      const handler = () => {
-        if (!resolved) {
-          resolved = true;
-          events.forEach(event => {
-            document.removeEventListener(event, handler);
-          });
-          resolve();
-        }
-      };
-
-      events.forEach(event => {
-        document.addEventListener(event, handler, { passive: true });
-      });
-    });
+  public destroy() {
+    if (this.playing) {
+      this.playing.source.stop()
+      this.playing.source.disconnect()
+    }
+    this.audioContext.close()
   }
 }

@@ -43,6 +43,7 @@ export type TGame = {
   success: boolean
   fullJump: boolean
   paused: boolean
+  stopped: boolean
   combo: number
   score: number
   caught: TCaught

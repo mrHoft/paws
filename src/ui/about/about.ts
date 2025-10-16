@@ -1,7 +1,7 @@
 export function about() {
   const link = document.createElement('a')
   link.innerText = 'mrHoft'
-  link.href = 'https://github.com/mrHoft'
+  link.href = 'mailto:mrhoft@yandex.ru'
 
   return [
     'Developed by\u00a0',
