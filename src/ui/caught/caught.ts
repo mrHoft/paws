@@ -4,30 +4,27 @@ import { Storage } from '~/service/storage'
 
 import styles from './caught.module.css'
 
-const slots: Partial<TAnimalName>[] = ['butterfly', 'grasshopper', 'mouse', 'bird']
-
-const isAnimalName = (name: string): name is TAnimalName =>
-  slots.includes(name as TAnimalName);
+const slots = ['butterfly', 'grasshopper', 'mouse', 'bird']
 
 export class Caught {
   private static _instance: Caught
   private storage!: Storage
   private container!: HTMLDivElement
-  private count: Record<TAnimalName, number> = {
+  private count: Record<string, number> = {
     butterfly: 0,
     grasshopper: 0,
     frog: 0,
     mouse: 0,
     bird: 0,
   }
-  private slot: Partial<Record<TAnimalName, { icon: HTMLImageElement, value: HTMLSpanElement }>> = {}
+  private slot: Partial<Record<string, { icon: HTMLImageElement, value: HTMLSpanElement }>> = {}
 
   constructor() {
     if (Caught._instance) return Caught._instance
     Caught._instance = this
 
     this.storage = new Storage()
-    const initialCaught = this.storage.get<Record<TAnimalName, number>>('data.caught')
+    const initialCaught = this.storage.get<Record<string, number>>('data.caught')
     if (initialCaught) this.count = { ...initialCaught }
 
     this.container = document.createElement('div')
@@ -44,14 +41,15 @@ export class Caught {
   }
 
   public handleUpdate = (name: string) => {
-    if (isAnimalName(name)) {
-      this.count[name] += 1
-      this.slot[name]!.value.innerText = this.count[name].toString()
-      this.storage.set(`data.caught.${name}`, this.count[name])
+    const n = name.replace(/\d/, '')
+    if (slots.includes(n)) {
+      this.count[n] += 1
+      this.slot[n]!.value.innerText = this.count[n].toString()
+      this.storage.set(`data.caught.${n}`, this.count[n])
 
-      this.slot[name]!.icon.classList.add(styles.bounce)
+      this.slot[n]!.icon.classList.add(styles.bounce)
       setTimeout(() => {
-        this.slot[name]!.icon.classList.remove(styles.bounce)
+        this.slot[n]!.icon.classList.remove(styles.bounce)
       }, 325)
     }
   }
@@ -64,7 +62,7 @@ export class Caught {
     this.storage.set(`data.caught`, this.count)
   }
 
-  private createSlot = (name: TAnimalName) => {
+  private createSlot = (name: string) => {
     const slot = document.createDocumentFragment()
     const spoil = document.createElement('span')
     spoil.className = styles.spoil

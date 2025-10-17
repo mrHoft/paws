@@ -83,7 +83,7 @@ export class Engine {
   private showCombo: (value: number) => void
   private showTooltip: (tooltip: string) => void
   private updateScore: (score: number) => void
-  private updateCaught: (id: keyof TCaught) => void
+  private updateCaught: (id: string) => void
   private resetCaught: () => void
   private static __instance: Engine
 
@@ -283,19 +283,20 @@ export class Engine {
   }
 
   private runAway = () => {
-    if (this.target.nameLast == 'butterfly' || this.target.nameLast == 'bird') {
-      this.target.xLast -= this.game.runAwaySpeed
-      this.target.yLast -= this.target.nameLast == 'butterfly' ? Math.random() * 6 : 4
+    const speed = this.game.runAwaySpeed
+    if (this.target.nameLast.startsWith('butterfly') || this.target.nameLast.startsWith('bird')) {
+      this.target.xLast -= speed * (this.target.nameLast.startsWith('bird') ? 2 : 1.5)
+      this.target.yLast -= this.target.nameLast.startsWith('butterfly') ? Math.random() * speed : speed
       return
     }
 
-    if (this.target.nameLast == 'grasshopper') {
-      this.target.xLast -= this.game.runAwaySpeed
+    if (this.target.nameLast.startsWith('grasshopper')) {
+      this.target.xLast -= speed * 1.5
       return
     }
 
-    if (this.target.nameLast == 'mouse') {
-      this.target.xLast += this.game.runAwaySpeed
+    if (this.target.nameLast.startsWith('mouse')) {
+      this.target.xLast += speed
       return
     }
 

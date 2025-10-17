@@ -19,7 +19,7 @@ class MenuView {
   protected about: HTMLDivElement
   protected settings: HTMLDivElement
   protected thumbs: { img: HTMLImageElement, name: TSceneName }[] = []
-  protected scene: { element: HTMLDivElement, inner: HTMLDivElement, btn: HTMLDivElement, spoil: Partial<Record<TAnimalName, HTMLImageElement>>, name: TSceneName }
+  protected scene: { element: HTMLDivElement, inner: HTMLDivElement, btn: HTMLDivElement, spoil: Record<string, HTMLImageElement>, name: TSceneName }
 
   constructor() {
     this.loc = new Localization()
@@ -87,16 +87,20 @@ class MenuView {
 
     const btn = buttonCircle({ src: iconSrc.play })
 
-    const spoil: Partial<Record<TAnimalName, HTMLImageElement>> = {}
+    const spoil: Record<string, HTMLImageElement> = {}
     const spoilContainer = document.createElement('div')
     spoilContainer.className = styles.scene__spoil
     ANIMAL_LIST.forEach(key => {
-      const icon = document.createElement('img')
-      icon.src = spoilSrc[key]
-      icon.alt = key
-      icon.width = icon.height = 40
-      spoilContainer.append(icon)
-      spoil[key] = icon
+      const n = key.replace(/\d/, '')
+      if (!spoil[n]) {
+        console.log(name, n)
+        const icon = document.createElement('img')
+        icon.src = spoilSrc[n]
+        icon.alt = key
+        icon.width = icon.height = 40
+        spoilContainer.append(icon)
+        spoil[n] = icon
+      }
     })
 
     sceneInner.append(btn, spoilContainer, sceneClose)
@@ -217,7 +221,8 @@ export class Menu extends MenuView {
 
     const spoil: TAnimalName[] = SCENE_TARGETS[name].filter((el): el is TAnimalName => ANIMAL_LIST.includes(el as TAnimalName))
     for (const key of ANIMAL_LIST) {
-      const el = this.scene.spoil[key]
+      const n = key.replace(/\d/, '')
+      const el = this.scene.spoil[n]
       if (el) {
         const visible = spoil.includes(el.alt as TAnimalName)
         el.setAttribute('style', `display: ${visible ? 'block' : 'none'}`)

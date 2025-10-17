@@ -40,9 +40,9 @@ export const GAME = {
   defaultRunAwayDelay: 8000, // The time after which the target will escape
 }
 
-export type TAnimalName = 'butterfly' | 'grasshopper' | 'frog' | 'bird' | 'mouse'
+export type TAnimalName = 'butterfly1' | 'butterfly2' | 'grasshopper' | 'frog' | 'bird' | 'mouse'
 export type TTargetName = TAnimalName | 'cactus1' | 'cactus2' | 'puddle' | 'boulder' | 'flowerpot' | 'gnome' | 'bucket' | 'none'
-export const ANIMAL_LIST: TAnimalName[] = ['mouse', 'grasshopper', 'butterfly', 'bird']
+export const ANIMAL_LIST: TAnimalName[] = ['mouse', 'grasshopper', 'butterfly1', 'butterfly2', 'bird']
 export const BARRIER_LIST: TTargetName[] = ['cactus1', 'cactus2', 'puddle', 'boulder', 'flowerpot', 'gnome', 'bucket']
 
 export type TSceneName = 'autumn' | 'cliff' | 'desert' | 'forest' | 'jungle' | 'lake' | 'mountains' | 'default'
@@ -50,10 +50,10 @@ export const SCENE_NAMES: TSceneName[] = ['autumn', 'cliff', 'desert', 'forest',
 
 export const SCENE_TARGETS: Record<TSceneName, TTargetName[]> = {
   autumn: ['mouse', 'bird', 'puddle', 'flowerpot', 'boulder'],
-  cliff: ['butterfly', 'grasshopper', 'flowerpot', 'boulder', 'gnome'],
-  desert: ['butterfly', 'mouse', 'cactus1', 'cactus2',],
-  forest: ['butterfly', 'grasshopper', 'bird', 'puddle', 'boulder'],
-  jungle: ['butterfly', 'grasshopper', 'bird', 'puddle', 'boulder', 'cactus1'],
+  cliff: ['butterfly1', 'grasshopper', 'flowerpot', 'boulder', 'gnome'],
+  desert: ['butterfly1', 'mouse', 'cactus1', 'cactus2',],
+  forest: ['butterfly1', 'butterfly2', 'grasshopper', 'bird', 'puddle', 'boulder'],
+  jungle: ['butterfly2', 'grasshopper', 'bird', 'puddle', 'boulder', 'cactus1'],
   lake: ['mouse', 'bird', 'puddle', 'flowerpot', 'gnome'],
   mountains: ['mouse', 'grasshopper', 'puddle', 'flowerpot', 'gnome'],
   default: [...ANIMAL_LIST, ...BARRIER_LIST], // Testing level
@@ -62,7 +62,8 @@ export const SCENE_TARGETS: Record<TSceneName, TTargetName[]> = {
 export const TARGET_SCORE: Record<TTargetName, Record<'success' | 'fail', number>> = {
   none: { success: 0, fail: 0 },
 
-  butterfly: { success: 10, fail: 0 },
+  butterfly1: { success: 10, fail: 0 },
+  butterfly2: { success: 10, fail: 0 },
   grasshopper: { success: 10, fail: 0 },
   frog: { success: 10, fail: -5 },
   bird: { success: 10, fail: -5 },
