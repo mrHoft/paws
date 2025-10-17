@@ -93,7 +93,6 @@ class MenuView {
     ANIMAL_LIST.forEach(key => {
       const n = key.replace(/\d/, '')
       if (!spoil[n]) {
-        console.log(name, n)
         const icon = document.createElement('img')
         icon.src = spoilSrc[n]
         icon.alt = key

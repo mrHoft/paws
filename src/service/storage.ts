@@ -1,9 +1,8 @@
 import { Crypt } from "~/utils/crypt"
-import type { TAnimalName } from "~/const"
 
 interface GameData {
   score: number
-  caught: Record<TAnimalName, number>
+  caught: Record<string, number>
 }
 
 interface UserData {
