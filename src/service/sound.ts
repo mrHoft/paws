@@ -127,8 +127,10 @@ export class Sound {
     }
 
     if (this.playing) {
+      this.playing.source.onended = null
       this.playing.source.stop()
       this.playing.source.disconnect()
+      this.playing = null
     }
 
     try {
@@ -140,8 +142,8 @@ export class Sound {
       gainNode.connect(this.musicGain)
       gainNode.gain.value = this._music.muted ? 0 : this._music.volume
 
+      source.onended = this.handleEnded(auto)
       source.start(0)
-      source.onended = this.handleEnded(auto/* , track */)
 
       this.playing = { track, source, gainNode }
 
@@ -240,14 +242,16 @@ export class Sound {
     }
   }
 
-  private handleEnded(auto?: boolean/* , track?: number */) {
+  private handleEnded(auto?: boolean) {
     return () => {
       if (!this.playing) return
       let next = (this.playing.track ?? 0) + 1
       if (next >= this.tracks.length) next = 0
-      this.playing = null
+
       if (auto) {
         this.play(next, true)
+      } else {
+        this.playing = null
       }
     }
   }
