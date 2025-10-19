@@ -1,4 +1,4 @@
-import { ANIMAL_LIST, BARRIER_LIST, CANVAS, SCENE_TARGETS, GAME, TARGET_SCORE, type TAnimalName, type TSceneName } from '~/const'
+import { ANIMALS, OBSTACLES, CANVAS, SCENE_TARGETS, GAME, TARGET_SCORE, type TAnimalName, type TSceneName } from '~/const'
 import { Draw } from './draw'
 import { Resource } from './resource'
 import { Backdrop } from './backdrop'
@@ -386,7 +386,7 @@ export class Engine {
     this.target.xCurr = Math.floor(Math.max(this.cat.CatX + CANVAS.width / 2, CANVAS.width))
     this.target.yCurr = GAME.defaultTargetY
     this.target.nameCurr = targets[rand]
-    this.target.isBarrier = BARRIER_LIST.includes(this.target.nameCurr)
+    this.target.isBarrier = OBSTACLES.includes(this.target.nameCurr)
     this.target.PositionX = this.target.isBarrier
       ? GAME.defaultTargetX
       : GAME.defaultTargetX + Math.floor(Math.random() * GAME.animalPositionDelta)
@@ -396,7 +396,7 @@ export class Engine {
     this.target.runAwayDelay = GAME.defaultRunAwayDelay * (1 - 0.1 * level)
     this.game.paused = false
     this.game.movementSpeed = 10
-    this.game.fullJump = this.target.nameCurr == 'puddle' || ANIMAL_LIST.includes(this.target.nameCurr as TAnimalName)
+    this.game.fullJump = this.target.nameCurr == 'puddle' || ANIMALS.includes(this.target.nameCurr as TAnimalName)
     this.cat.atPosition = false
     this.target.atPosition = false
     // console.log(`Level ${level}:`, {speed: this.game.SPEED, rand: `${rand}/${targets.length}`, target: this.target})

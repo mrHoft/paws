@@ -17,6 +17,8 @@ const assets: Record<string, string> = {
   butterfly2: 'sprites/butterfly-purple.gif',
   grasshopper: 'sprites/grasshopper.gif',
   mouse: 'sprites/mouse-brown.gif',
+  hedgehog: 'sprites/hedgehog.png',
+  dog: 'sprites/dog.png',
   'mountains.layer1': 'scene/mountains/layer1.png',
   'mountains.layer2': 'scene/mountains/layer2.png',
   'mountains.layer3': 'scene/mountains/layer3.png',

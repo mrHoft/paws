@@ -8,8 +8,8 @@ type Message = {
   minY: number
 }
 
-const delta = 30
-const dy = -2
+const delta = 40
+const dy = -1
 const numStartY = GAME.actionPositionVertical - SpriteSize.cat.height
 const txtStartY = numStartY - delta
 

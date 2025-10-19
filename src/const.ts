@@ -41,22 +41,23 @@ export const GAME = {
 }
 
 export type TAnimalName = 'butterfly1' | 'butterfly2' | 'grasshopper' | 'frog' | 'bird' | 'mouse'
-export type TTargetName = TAnimalName | 'cactus1' | 'cactus2' | 'puddle' | 'boulder' | 'flowerpot' | 'gnome' | 'bucket' | 'none'
-export const ANIMAL_LIST: TAnimalName[] = ['mouse', 'grasshopper', 'butterfly1', 'butterfly2', 'bird']
-export const BARRIER_LIST: TTargetName[] = ['cactus1', 'cactus2', 'puddle', 'boulder', 'flowerpot', 'gnome', 'bucket']
+export type TTargetName = TAnimalName | 'cactus1' | 'cactus2' | 'puddle' | 'boulder' | 'flowerpot' | 'gnome' | 'bucket' | 'hedgehog' | 'dog' | 'none'
+export const ANIMALS: TAnimalName[] = ['mouse', 'grasshopper', 'butterfly1', 'butterfly2', 'bird']
+export const OBSTACLES: TTargetName[] = ['cactus1', 'cactus2', 'puddle', 'boulder', 'flowerpot', 'gnome', 'bucket', 'hedgehog', 'dog']
 
 export type TSceneName = 'autumn' | 'cliff' | 'desert' | 'forest' | 'jungle' | 'lake' | 'mountains' | 'default'
 export const SCENE_NAMES: TSceneName[] = ['autumn', 'cliff', 'desert', 'forest', 'jungle', 'lake', 'mountains']
 
 export const SCENE_TARGETS: Record<TSceneName, TTargetName[]> = {
-  autumn: ['mouse', 'bird', 'puddle', 'flowerpot', 'boulder'],
-  cliff: ['butterfly1', 'grasshopper', 'flowerpot', 'boulder', 'gnome'],
+  autumn: ['dog', 'hedgehog'],
+  // autumn: ['mouse', 'bird', 'puddle', 'flowerpot', 'boulder', 'dog'],
+  cliff: ['butterfly1', 'grasshopper', 'flowerpot', 'boulder', 'gnome', 'hedgehog'],
   desert: ['butterfly1', 'mouse', 'cactus1', 'cactus2',],
-  forest: ['butterfly1', 'butterfly2', 'grasshopper', 'bird', 'puddle', 'boulder'],
-  jungle: ['butterfly2', 'grasshopper', 'bird', 'puddle', 'boulder', 'cactus1'],
-  lake: ['mouse', 'bird', 'puddle', 'flowerpot', 'gnome'],
+  forest: ['butterfly1', 'butterfly2', 'grasshopper', 'bird', 'puddle', 'boulder', 'hedgehog'],
+  jungle: ['butterfly2', 'grasshopper', 'bird', 'puddle', 'boulder', 'cactus1', 'hedgehog'],
+  lake: ['mouse', 'bird', 'puddle', 'flowerpot', 'gnome', 'dog'],
   mountains: ['mouse', 'grasshopper', 'puddle', 'flowerpot', 'gnome'],
-  default: [...ANIMAL_LIST, ...BARRIER_LIST], // Testing level
+  default: [...ANIMALS, ...OBSTACLES], // Testing level
 }
 
 export const TARGET_SCORE: Record<TTargetName, Record<'success' | 'fail', number>> = {
@@ -76,4 +77,6 @@ export const TARGET_SCORE: Record<TTargetName, Record<'success' | 'fail', number
   gnome: { success: 5, fail: -10 },
   cactus1: { success: 5, fail: -20 },
   cactus2: { success: 5, fail: -20 },
+  hedgehog: { success: 10, fail: -20 },
+  dog: { success: 10, fail: -20 },
 }

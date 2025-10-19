@@ -1,4 +1,4 @@
-import { GAME, SCENE_NAMES, SCENE_TARGETS, ANIMAL_LIST, type TSceneName, type TAnimalName } from "~/const"
+import { GAME, SCENE_NAMES, SCENE_TARGETS, ANIMALS, type TSceneName, type TAnimalName } from "~/const"
 import { buttonCircle, buttonIcon, buttonClose } from "~/ui/button"
 import { about } from "~/ui/about/about"
 import { Settings } from "~/ui/settings/settings"
@@ -90,7 +90,7 @@ class MenuView {
     const spoil: Record<string, HTMLImageElement> = {}
     const spoilContainer = document.createElement('div')
     spoilContainer.className = styles.scene__spoil
-    ANIMAL_LIST.forEach(key => {
+    ANIMALS.forEach(key => {
       const n = key.replace(/\d/, '')
       if (!spoil[n]) {
         const icon = document.createElement('img')
@@ -218,8 +218,8 @@ export class Menu extends MenuView {
     this.scene.inner.setAttribute('style', `background-image: url(${PATH}/${name}.jpg)`)
     this.scene.inner.classList.add(styles.bounce)
 
-    const spoil: TAnimalName[] = SCENE_TARGETS[name].filter((el): el is TAnimalName => ANIMAL_LIST.includes(el as TAnimalName))
-    for (const key of ANIMAL_LIST) {
+    const spoil: TAnimalName[] = SCENE_TARGETS[name].filter((el): el is TAnimalName => ANIMALS.includes(el as TAnimalName))
+    for (const key of ANIMALS) {
       const n = key.replace(/\d/, '')
       const el = this.scene.spoil[n]
       if (el) {
