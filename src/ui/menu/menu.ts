@@ -4,7 +4,8 @@ import { about } from "~/ui/about/about"
 import { Settings } from "~/ui/settings/settings"
 import { iconSrc, spoilSrc } from "~/ui/icons"
 import { Localization } from '~/service/localization'
-import { ConfirmationModal } from "../confirmation/confirm"
+import { ConfirmationModal } from "~/ui/confirmation/confirm"
+import { GamepadUI } from "~/ui/gamepad/gamepad"
 
 import styles from './menu.module.css'
 
@@ -143,7 +144,7 @@ export class Menu extends MenuView {
   private startGame: (levelName: TSceneName, restart?: boolean) => void
   private confirm: ConfirmationModal
 
-  constructor({ start, confirm }: { start: (levelName: TSceneName, restart?: boolean) => void, confirm: ConfirmationModal }) {
+  constructor({ start, confirm, gamepadUI }: { start: (levelName: TSceneName, restart?: boolean) => void, confirm: ConfirmationModal, gamepadUI: GamepadUI }) {
     super()
     this.startGame = start
     this.confirm = confirm
@@ -162,6 +163,7 @@ export class Menu extends MenuView {
 
     const menuItems: MenuItem[] = [
       { id: 'start', icon: iconSrc.play, func: this.handleStart },
+      { id: 'twoPlayers', icon: iconSrc.gamepad, func: () => { gamepadUI.show(true) } },
       { id: 'restart', icon: iconSrc.restart, func: this.handleRestart },
       { id: 'settings', icon: iconSrc.settings, func: this.handleSettings },
       // { id: 'about', icon: iconSrc.about, func: this.handleAbout },

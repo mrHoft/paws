@@ -31,8 +31,8 @@
 
 .menu button {
   pointer-events: all;
-  font-size: 1.5em;
-  margin-top: 1em;
+  font-size: 1.25em;
+  margin-top: 0.75em;
   padding: 0.25em 2em;
   background-color: var(--color-orange70);
   border-radius: 1em;

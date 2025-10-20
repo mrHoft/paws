@@ -10,6 +10,7 @@ import { Storage } from '~/service/storage'
 import { Sound } from '~/service/sound'
 import { Localization } from '~/service/localization'
 import { FocusListener } from './service/focus'
+import { GamepadUI } from './ui/gamepad/gamepad'
 
 const autoStart = false
 
@@ -79,12 +80,12 @@ export class AppView {
 export class App extends AppView {
   private loading = { start: 0 }
   private pause?: PauseModal
-  private confirm: ConfirmationModal
+  private confirm?: ConfirmationModal
   private overlay?: Overlay
   private weather?: Weather
   private sound: Sound
-  private menu: Menu
-  private ui: GlobalUI
+  private menu?: Menu
+  private ui?: GlobalUI
   private storage: Storage
   private focus: FocusListener
   private engineStart?: (levelName?: TSceneName, options?: { fps: boolean }) => void
@@ -111,10 +112,6 @@ export class App extends AppView {
       focusLoss: () => { this.sound.mute = true },
       focusGain: () => { this.sound.mute = false }
     })
-
-    this.confirm = new ConfirmationModal()
-    this.menu = new Menu({ start: this.startGame, confirm: this.confirm })
-    this.ui = new GlobalUI()
   }
 
   public init = async (): Promise<void> => {
@@ -139,7 +136,13 @@ export class App extends AppView {
 
   private handleLoadComplete = () => {
     this.loaderRemove()
-    this.game.append(this.menu.element, this.ui.element, this.confirm.element)
+    const gamepadUI = new GamepadUI({ start: this.startGame })
+
+    this.confirm = new ConfirmationModal()
+    this.menu = new Menu({ start: this.startGame, confirm: this.confirm, gamepadUI })
+    this.ui = new GlobalUI()
+
+    this.game.append(this.menu.element, this.ui.element, this.confirm.element, gamepadUI.element)
 
     if (autoStart) {
       this.initGame().then(() => this.engineStart!())
@@ -179,7 +182,7 @@ export class App extends AppView {
     this.pause = new PauseModal({
       pause: (state: boolean) => { engine.pause(state); this.weather?.pause(state) },
       restart: () => { engine.start({ restart: true }); this.weather?.pause(false) },
-      menu: () => { engine.stop(); this.menu.show() },
+      menu: () => { engine.stop(); this.menu?.show() },
       confirm: this.confirm
     })
 
@@ -194,7 +197,7 @@ export class App extends AppView {
   }
 
   private startGame = (sceneName: TSceneName, restart?: boolean) => {
-    this.menu.show(false)
+    this.menu?.show(false)
     this.weather?.pause(false)
     const options = {
       fps: this.storage.get<boolean>('fps'),

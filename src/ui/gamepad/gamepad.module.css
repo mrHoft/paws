@@ -1,0 +1,72 @@
+.gamepad_layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background-color: #0004;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 21;
+}
+
+.gamepad__inner {
+  width: 40%;
+  aspect-ratio: 4/3;
+  position: relative;
+  padding: 0.75em;
+  border-radius: 1em;
+  border: 2px solid var(--color-orange70);
+  background: var(--color-orange80);
+  color: var(--color-blue10);
+  transform-origin: center;
+
+  & h3 {
+    color: var(--color-blue10);
+    width: 100%;
+    text-align: center;
+  }
+}
+
+.gamepad__row {
+  display: flex;
+  column-gap: 2rem;
+  justify-content: space-around;
+}
+
+.gamepad__icon {
+  width: 2em;
+  height: 2em;
+  border-radius: 1em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: red;
+
+  &.active {
+    background-color: green;
+  }
+}
+
+.gamepad__icon.active {
+  background-color: green;
+}
+
+.bounce {
+  animation: bounce 0.3s ease-out;
+}
+
+@keyframes bounce {
+  0% {
+    transform: scale(0.25);
+  }
+
+  75% {
+    transform: scale(1.1);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}

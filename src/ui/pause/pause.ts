@@ -7,14 +7,14 @@ import styles from './pause.module.css'
 
 export class PauseModal {
   private loc: Localization
-  private confirm: ConfirmationModal
+  private confirm?: ConfirmationModal
   private container: HTMLDivElement
   private inner: HTMLDivElement
   private pause: (_state: boolean) => void
   private restart: () => void
   private menu: () => void
 
-  constructor({ pause, restart, menu, confirm }: { pause: (_state: boolean) => void, restart: () => void, menu: () => void, confirm: ConfirmationModal }) {
+  constructor({ pause, restart, menu, confirm }: { pause: (_state: boolean) => void, restart: () => void, menu: () => void, confirm?: ConfirmationModal }) {
     this.loc = new Localization()
     this.confirm = confirm
     this.container = document.createElement('div')
@@ -69,7 +69,7 @@ export class PauseModal {
   // private handleSettings = () => console.log('Handle settings')
 
   private handleRestart = () => {
-    this.confirm.show({
+    this.confirm?.show({
       text: this.loc.get('restartDesc'), acceptCallback: () => {
         this.show(false)
         this.restart()
