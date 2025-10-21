@@ -31,7 +31,6 @@ class GamepadView {
     for (let i = 0; i < 2; i += 1) {
       const gamepad = document.createElement('div')
       gamepad.className = styles.gamepad__icon
-      gamepad.innerText = '🎮'
       gamepads.append(gamepad)
       this.gamepads.push(gamepad)
     }
@@ -70,10 +69,8 @@ export class GamepadUI extends GamepadView {
     super()
     // this.startGame = start
     this.gamepadService = new GamepadService({
-      onGamepadConnected: () => {
-        const total = this.gamepadService.gamepadCount
-        this.setGamepadActive(Math.min(total, 2))
-      }
+      onGamepadConnected: this.handleGamepadConnected,
+      onGamepadDisconnected: this.handleGamepadConnected
     })
 
     this.container.addEventListener('click', event => {
@@ -83,5 +80,10 @@ export class GamepadUI extends GamepadView {
         this.show(false)
       }
     })
+  }
+
+  private handleGamepadConnected = () => {
+    const total = this.gamepadService.gamepadCount
+    this.setGamepadActive(Math.min(total, 2))
   }
 }

@@ -1,7 +1,8 @@
 interface GamepadServiceCallbacks {
   onGamepadConnected?: (_gamepad: Gamepad) => void,
   onGamepadDisconnected?: (_gamepad: Gamepad) => void
-  onButtonPressed?: (_gamepadIndex: number, _buttonIndex: number, _value: number) => void
+  onButtonDown?: (_gamepadIndex: number, _buttonIndex: number, _value: number) => void
+  onButtonUp?: (_gamepadIndex: number, _buttonIndex: number) => void
   onAxisMoved?: (_gamepadIndex: number, _axisIndex: number, _value: number) => void
 }
 
@@ -9,6 +10,7 @@ export class GamepadService {
   private _gamepads: Map<number, Gamepad> = new Map();
   private animationFrameId: number | null = null;
   private callbacks: GamepadServiceCallbacks = {}
+  private pressed = Array.from({ length: 4 }, () => Array.from({ length: 18 }, () => false))
 
   constructor(callbacks: GamepadServiceCallbacks = {}) {
     if (callbacks.onGamepadConnected) {
@@ -17,11 +19,18 @@ export class GamepadService {
     if (callbacks.onGamepadDisconnected) {
       this.callbacks.onGamepadDisconnected = callbacks.onGamepadDisconnected
     }
-    if (callbacks.onButtonPressed) {
-      this.callbacks.onButtonPressed = callbacks.onButtonPressed
+    if (callbacks.onButtonDown) {
+      this.callbacks.onButtonDown = callbacks.onButtonDown
     } else {
-      this.callbacks.onButtonPressed = (gamepadIndex: number, buttonIndex: number, value: number) => {
+      this.callbacks.onButtonDown = (gamepadIndex: number, buttonIndex: number, value: number) => {
         console.log(`Gamepad ${gamepadIndex} - Button ${buttonIndex} pressed: ${value}`);
+      }
+    }
+    if (callbacks.onButtonUp) {
+      this.callbacks.onButtonUp = callbacks.onButtonUp
+    } else {
+      this.callbacks.onButtonUp = (gamepadIndex: number, buttonIndex: number) => {
+        console.log(`Gamepad ${gamepadIndex} - Button ${buttonIndex} released`);
       }
     }
     if (callbacks.onAxisMoved) {
@@ -117,9 +126,19 @@ export class GamepadService {
   private processGamepadInput(gamepad: Gamepad) {
     let active = false
     gamepad.buttons.forEach((button, index) => {
-      if (button.pressed && this.callbacks.onButtonPressed) {
+      if (button.pressed) {
         active = true
-        this.callbacks.onButtonPressed(gamepad.index, index, button.value);
+        if (!this.pressed[gamepad.index][index] || button.value < 1) {
+          this.pressed[gamepad.index][index] = true
+          if (this.callbacks.onButtonDown) {
+            this.callbacks.onButtonDown(gamepad.index, index, button.value);
+          }
+        }
+      } else if (this.pressed[gamepad.index][index]) {
+        this.pressed[gamepad.index][index] = false
+        if (this.callbacks.onButtonUp) {
+          this.callbacks.onButtonUp(gamepad.index, index);
+        }
       }
     });
 

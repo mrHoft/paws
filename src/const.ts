@@ -1,6 +1,6 @@
 export const CANVAS = {
   width: 1280,
-  height: 576,
+  height: 720,
   get aspectRatio(): number {
     return this.height / this.width
   },
