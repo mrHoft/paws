@@ -29,10 +29,15 @@
   pointer-events: none;
 }
 
-.menu button {
+.menu__item {
+  margin-top: 0.75em;
+  display: flex;
+  align-items: center;
+}
+
+.menu__item button {
   pointer-events: all;
   font-size: 1.25em;
-  margin-top: 0.75em;
   padding: 0.25em 2em;
   background-color: var(--color-orange70);
   border-radius: 1em;
@@ -47,10 +52,24 @@
     width: 1em;
     height: 1em;
   }
+}
 
-  &:hover {
+.paw {
+  width: 1.75em;
+  height: 1.75em;
+  margin-right: 0.25em;
+  opacity: 0;
+  transition: opacity 0.25s linear;
+}
+
+.menu__item.hover {
+  & button {
     background-color: var(--color-orange60);
     border-color: var(--color-orange70);
+  }
+
+  & .paw {
+    opacity: 1;
   }
 }
 
@@ -144,13 +163,35 @@
   position: absolute;
   left: 1.5em;
   bottom: 0.75em;
-  text-shadow: rgb(0, 0, 0) -1px -1px 0px, rgb(0, 0, 0) 1px -1px 0px, rgb(0, 0, 0) -1px 1px 0px, rgb(0, 0, 0) 1px 1px 0px;
 }
 
 .top-right {
   position: absolute;
   top: 1rem;
   right: 1rem;
+}
+
+.gamepad_support {
+  position: absolute;
+  right: 6em;
+  bottom: 0.75em;
+  width: 4em;
+  height: 4em;
+  display: none;
+  background-image: url('./images/gamepad.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 4em;
+
+  & img {
+    width: 2.5em;
+    height: 2.5em;
+    margin: 1em 0 0 1.5em;
+  }
+
+  &.active {
+    display: block
+  }
 }
 
 .bounce {

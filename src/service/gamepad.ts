@@ -1,3 +1,5 @@
+import { Injectable } from "~/utils/inject";
+
 interface GamepadServiceCallbacks {
   onGamepadConnected?: (_gamepad: Gamepad) => void,
   onGamepadDisconnected?: (_gamepad: Gamepad) => void
@@ -5,40 +7,56 @@ interface GamepadServiceCallbacks {
   onButtonUp?: (_gamepadIndex: number, _buttonIndex: number) => void
   onAxisMoved?: (_gamepadIndex: number, _axisIndex: number, _value: number) => void
 }
+type CallbackArrays = {
+  [K in keyof GamepadServiceCallbacks]-?: Required<GamepadServiceCallbacks>[K][]
+}
 
+@Injectable
 export class GamepadService {
+  private static _instance: GamepadService
   private _gamepads: Map<number, Gamepad> = new Map();
   private animationFrameId: number | null = null;
-  private callbacks: GamepadServiceCallbacks = {}
   private pressed = Array.from({ length: 4 }, () => Array.from({ length: 18 }, () => false))
+  private callbacks: CallbackArrays = {
+    onGamepadConnected: [],
+    onGamepadDisconnected: [],
+    onButtonDown: [],
+    onButtonUp: [],
+    onAxisMoved: []
+  }
 
-  constructor(callbacks: GamepadServiceCallbacks = {}) {
-    if (callbacks.onGamepadConnected) {
-      this.callbacks.onGamepadConnected = callbacks.onGamepadConnected
+  constructor() {
+    if (!GamepadService._instance) {
+      GamepadService._instance = this
     }
-    if (callbacks.onGamepadDisconnected) {
-      this.callbacks.onGamepadDisconnected = callbacks.onGamepadDisconnected
-    }
-    if (callbacks.onButtonDown) {
-      this.callbacks.onButtonDown = callbacks.onButtonDown
-    } else {
-      this.callbacks.onButtonDown = (gamepadIndex: number, buttonIndex: number, value: number) => {
-        console.log(`Gamepad ${gamepadIndex} - Button ${buttonIndex} pressed: ${value}`);
-      }
-    }
-    if (callbacks.onButtonUp) {
-      this.callbacks.onButtonUp = callbacks.onButtonUp
-    } else {
-      this.callbacks.onButtonUp = (gamepadIndex: number, buttonIndex: number) => {
-        console.log(`Gamepad ${gamepadIndex} - Button ${buttonIndex} released`);
-      }
-    }
-    if (callbacks.onAxisMoved) {
-      this.callbacks.onAxisMoved = callbacks.onAxisMoved
-    }
-
     this.setupEventListeners();
     this.startPolling();
+  }
+
+  public registerCallbacks = (callbacks: GamepadServiceCallbacks = {}) => {
+    if (callbacks.onGamepadConnected) {
+      this.callbacks.onGamepadConnected.push(callbacks.onGamepadConnected)
+    }
+    if (callbacks.onGamepadDisconnected) {
+      this.callbacks.onGamepadDisconnected.push(callbacks.onGamepadDisconnected)
+    }
+    if (callbacks.onButtonDown) {
+      this.callbacks.onButtonDown.push(callbacks.onButtonDown)
+    } else {  // TODO: Remove
+      this.callbacks.onButtonDown.push((gamepadIndex: number, buttonIndex: number, value: number) => {
+        console.log(`Gamepad ${gamepadIndex} - Button ${buttonIndex} pressed: ${value}`);
+      })
+    }
+    if (callbacks.onButtonUp) {
+      this.callbacks.onButtonUp.push(callbacks.onButtonUp)
+    } else {  // TODO: Remove
+      this.callbacks.onButtonUp.push((gamepadIndex: number, buttonIndex: number) => {
+        console.log(`Gamepad ${gamepadIndex} - Button ${buttonIndex} released`);
+      })
+    }
+    if (callbacks.onAxisMoved) {
+      this.callbacks.onAxisMoved.push(callbacks.onAxisMoved)
+    }
   }
 
   private setupEventListeners(): void {
@@ -51,7 +69,15 @@ export class GamepadService {
     });
   }
 
-  private handleGamepadConnected(event: GamepadEvent): void {
+  private emitEvent = <K extends keyof GamepadServiceCallbacks>(
+    callbackName: K,
+    ...args: Parameters<Required<GamepadServiceCallbacks>[K]>
+  ) => {
+    const callbacks = this.callbacks[callbackName];
+    callbacks.forEach(callback => (callback as Function)(...args));
+  }
+
+  private handleGamepadConnected = (event: GamepadEvent) => {
     const gamepad = event.gamepad;
     this._gamepads.set(gamepad.index, gamepad);
 
@@ -70,21 +96,17 @@ export class GamepadService {
       }
     }
 
-    if (this.callbacks.onGamepadConnected) {
-      this.callbacks.onGamepadConnected(gamepad);
-    }
+    this.emitEvent('onGamepadConnected', gamepad)
   }
 
-  private handleGamepadDisconnected(event: GamepadEvent): void {
+  private handleGamepadDisconnected = (event: GamepadEvent) => {
     const gamepad = event.gamepad;
     this._gamepads.delete(gamepad.index);
 
     console.log(`Gamepad ${gamepad.index} disconnected: ${gamepad.id}`);
     console.log(`Total gamepads: ${this.gamepadCount}`);
 
-    if (this.callbacks.onGamepadDisconnected) {
-      this.callbacks.onGamepadDisconnected(gamepad);
-    }
+    this.emitEvent('onGamepadDisconnected', gamepad)
   }
 
   public get gamepadCount(): number {
@@ -100,7 +122,11 @@ export class GamepadService {
   }
 
 
-  private startPolling(): void {
+  private startPolling = () => {
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+    }
+
     const detectInput = () => {
       const gamepads = navigator.getGamepads();
 
@@ -110,9 +136,7 @@ export class GamepadService {
           if (active && !this._gamepads.get(gamepad.index)) {
             this._gamepads.set(gamepad.index, gamepad);
 
-            if (this.callbacks.onGamepadConnected) {
-              this.callbacks.onGamepadConnected(gamepad);
-            }
+            this.emitEvent('onGamepadConnected', gamepad)
           }
         }
       }
@@ -130,30 +154,24 @@ export class GamepadService {
         active = true
         if (!this.pressed[gamepad.index][index] || button.value < 1) {
           this.pressed[gamepad.index][index] = true
-          if (this.callbacks.onButtonDown) {
-            this.callbacks.onButtonDown(gamepad.index, index, button.value);
-          }
+          this.emitEvent('onButtonDown', gamepad.index, index, button.value)
         }
       } else if (this.pressed[gamepad.index][index]) {
         this.pressed[gamepad.index][index] = false
-        if (this.callbacks.onButtonUp) {
-          this.callbacks.onButtonUp(gamepad.index, index);
-        }
+        this.emitEvent('onButtonUp', gamepad.index, index)
       }
     });
 
-    if (this.callbacks.onAxisMoved) {
-      gamepad.axes.forEach((axis, index) => {
-        if (Math.abs(axis) > 0.1) {
-          active = true
-          this.callbacks.onAxisMoved!(gamepad.index, index, axis);
-        }
-      });
-    }
+    gamepad.axes.forEach((axis, index) => {
+      if (Math.abs(axis) > 0.1) {
+        active = true
+        this.emitEvent('onAxisMoved', gamepad.index, index, axis)
+      }
+    });
+
     return active
   }
 
-  // Clean up when done
   public dispose(): void {
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);

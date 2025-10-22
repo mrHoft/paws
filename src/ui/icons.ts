@@ -22,6 +22,7 @@ export const iconSrc: Record<string, string> = {
   soundOff: './icons/sound-off.svg',
   sound: './icons/sound.svg',
   music: './icons/music.svg',
+  paw: './icons/paw.svg',
   fps: './icons/fps.svg',
   globe: './icons/globe.svg',
   gamepad: './icons/gamepad.svg',

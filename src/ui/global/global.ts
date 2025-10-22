@@ -12,7 +12,7 @@ class OverlayView {
 
   constructor() {
     this.container = document.createElement('div')
-    this.container.className = styles.global_layer
+    this.container.className = `${styles.global_layer} text-shadow`
 
     this.upper = document.createElement('div')
     this.upper.className = styles.row_upper

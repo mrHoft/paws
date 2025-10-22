@@ -115,3 +115,12 @@ body {
   top: 0;
   width: 100%;
 }
+
+.text-shadow {
+  text-shadow: rgb(0, 0, 0) -1px -1px 0px, rgb(0, 0, 0) 1px -1px 0px, rgb(0, 0, 0) -1px 1px 0px, rgb(0, 0, 0) 1px 1px 0px;
+}
+
+.green {
+  filter:
+    brightness(0) saturate(100%) invert(42%) sepia(99%) saturate(2000%) hue-rotate(80deg);
+}

@@ -10,7 +10,7 @@ import { Storage } from '~/service/storage'
 import { Sound } from '~/service/sound'
 import { Localization } from '~/service/localization'
 import { FocusListener } from './service/focus'
-import { GamepadUI } from './ui/gamepad/gamepad'
+import { TwoPlayers } from './ui/twoPlayers/twoPlayers'
 
 const autoStart = false
 
@@ -136,10 +136,10 @@ export class App extends AppView {
 
   private handleLoadComplete = () => {
     this.loaderRemove()
-    const gamepadUI = new GamepadUI({ start: this.startGame })
+    const gamepadUI = new TwoPlayers({ start: this.startGame })
 
     this.confirm = new ConfirmationModal()
-    this.menu = new Menu({ start: this.startGame, confirm: this.confirm, gamepadUI })
+    this.menu = new Menu({ start: this.startGame, confirm: this.confirm, twoPlayers: gamepadUI })
     this.ui = new GlobalUI()
 
     this.game.append(this.menu.element, this.ui.element, this.confirm.element, gamepadUI.element)

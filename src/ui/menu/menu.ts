@@ -5,7 +5,9 @@ import { Settings } from "~/ui/settings/settings"
 import { iconSrc, spoilSrc } from "~/ui/icons"
 import { Localization } from '~/service/localization'
 import { ConfirmationModal } from "~/ui/confirmation/confirm"
-import { GamepadUI } from "~/ui/gamepad/gamepad"
+import { TwoPlayers } from "~/ui/twoPlayers/twoPlayers"
+import { GamepadService } from '~/service/gamepad'
+import { inject } from "~/utils/inject"
 
 import styles from './menu.module.css'
 
@@ -17,10 +19,12 @@ class MenuView {
   protected loc: Localization
   protected container: HTMLDivElement
   protected menu: HTMLDivElement
+  protected menuItems: { element: HTMLDivElement, props: MenuItem, index: number }[] = []
   protected about: HTMLDivElement
   protected settings: HTMLDivElement
   protected thumbs: { img: HTMLImageElement, name: TSceneName }[] = []
   protected scene: { element: HTMLDivElement, inner: HTMLDivElement, btn: HTMLDivElement, spoil: Record<string, HTMLImageElement>, name: TSceneName }
+  protected gamepadSupport: HTMLDivElement
 
   constructor() {
     this.loc = new Localization()
@@ -108,26 +112,44 @@ class MenuView {
     this.scene = { element: scene, inner: sceneInner, btn, spoil, name: 'default' }
 
     const version = document.createElement('div')
-    version.className = styles.version
+    version.className = `${styles.version} text-shadow`
     version.innerText = GAME.version
 
     this.menu = document.createElement('div')
     this.menu.className = styles.menu
 
-    this.container.append(version, level, this.menu, scene, this.about, this.settings)
+    this.gamepadSupport = document.createElement('div')
+    this.gamepadSupport.className = styles.gamepad_support
+    const check = document.createElement('img')
+    check.src = iconSrc.check
+    check.alt = 'check'
+    check.className = 'green'
+    this.gamepadSupport.append(check)
+
+    this.container.append(version, this.gamepadSupport, level, this.menu, scene, this.about, this.settings)
   }
 
   protected menuInit(menuItems: MenuItem[]) {
-    for (const item of menuItems) {
+    for (const props of menuItems) {
+      const container = document.createElement('div')
+      container.className = styles.menu__item
+
       const button = document.createElement('button')
       const icon = document.createElement('img')
-      icon.src = item.icon
-      icon.alt = item.id
+      icon.src = props.icon
+      icon.alt = props.id
       const text = document.createElement('span')
-      this.loc.register(item.id, text)
+      this.loc.register(props.id, text)
       button.append(icon, text)
-      button.onclick = item.func
-      this.menu.append(button)
+      button.onclick = props.func
+
+      const paw = document.createElement('img')
+      paw.src = iconSrc.paw
+      paw.className = styles.paw
+
+      container.append(paw, button)
+      this.menuItems.push({ element: container, props, index: this.menuItems.length })
+      this.menu.append(container)
     }
   }
 
@@ -143,11 +165,35 @@ class MenuView {
 export class Menu extends MenuView {
   private startGame: (levelName: TSceneName, restart?: boolean) => void
   private confirm: ConfirmationModal
+  private gamepadService?: GamepadService
+  private twoPlayers: TwoPlayers
+  private activeMenuItemIndex = 0
 
-  constructor({ start, confirm, gamepadUI }: { start: (levelName: TSceneName, restart?: boolean) => void, confirm: ConfirmationModal, gamepadUI: GamepadUI }) {
+  constructor({ start, confirm, twoPlayers }: { start: (levelName: TSceneName, restart?: boolean) => void, confirm: ConfirmationModal, twoPlayers: TwoPlayers }) {
     super()
     this.startGame = start
     this.confirm = confirm
+    this.twoPlayers = twoPlayers
+    this.gamepadService = inject(GamepadService)
+
+    this.menuInit([
+      { id: 'start', icon: iconSrc.play, func: this.handleStart },
+      { id: 'twoPlayers', icon: iconSrc.gamepad, func: () => { twoPlayers.show(true) } },
+      { id: 'restart', icon: iconSrc.restart, func: this.handleRestart },
+      { id: 'settings', icon: iconSrc.settings, func: this.handleSettings },
+      // { id: 'about', icon: iconSrc.about, func: this.handleAbout },
+    ])
+    this.menuItems[0].element.classList.add(styles.hover)
+
+    const btnAbout = buttonIcon({ src: iconSrc.about })
+    btnAbout.classList.add(styles['top-right'])
+    btnAbout.addEventListener('click', this.handleAbout)
+    this.container.append(btnAbout)
+
+    this.setupEventListeners();
+  }
+
+  private setupEventListeners = () => {
     this.thumbs.forEach(el => {
       el.img.addEventListener('click', this.handleSceneClick(el.name))
     })
@@ -161,19 +207,40 @@ export class Menu extends MenuView {
     this.about.addEventListener('click', this.handleOutsideClick)
     this.settings.addEventListener('click', this.handleOutsideClick)
 
-    const menuItems: MenuItem[] = [
-      { id: 'start', icon: iconSrc.play, func: this.handleStart },
-      { id: 'twoPlayers', icon: iconSrc.gamepad, func: () => { gamepadUI.show(true) } },
-      { id: 'restart', icon: iconSrc.restart, func: this.handleRestart },
-      { id: 'settings', icon: iconSrc.settings, func: this.handleSettings },
-      // { id: 'about', icon: iconSrc.about, func: this.handleAbout },
-    ]
-    this.menuInit(menuItems)
+    this.gamepadService?.registerCallbacks({ onButtonUp: this.handleGamepadButton, onGamepadConnected: this.handleGamepadConnected })
 
-    const btnAbout = buttonIcon({ src: iconSrc.about })
-    btnAbout.classList.add(styles['top-right'])
-    btnAbout.addEventListener('click', this.handleAbout)
-    this.container.append(btnAbout)
+    for (const item of this.menuItems) {
+      item.element.addEventListener('mouseenter', () => {
+        this.activeMenuItemIndex = item.index
+        this.menuItems.forEach(({ element }, i) => { element.classList.toggle(styles.hover, i === item.index) })
+      })
+    }
+  }
+
+  private handleGamepadConnected = () => {
+    this.gamepadSupport.classList.add(styles.active, styles.bounce)
+  }
+
+  private handleGamepadButton = (_gamepadIndex: number, buttonIndex: number) => {
+    if (buttonIndex === 12 || buttonIndex === 13) {
+      if (buttonIndex === 12) {
+        this.activeMenuItemIndex = this.activeMenuItemIndex > 0 ? this.activeMenuItemIndex - 1 : 0
+      }
+      if (buttonIndex === 13) {
+        this.activeMenuItemIndex = this.activeMenuItemIndex < this.menuItems.length - 1 ? this.activeMenuItemIndex + 1 : this.menuItems.length - 1
+      }
+      this.menuItems.forEach((item, i) => { item.element.classList.toggle(styles.hover, i === this.activeMenuItemIndex) })
+    }
+    if (buttonIndex === 1 || buttonIndex === 9) {
+      this.menuItems[this.activeMenuItemIndex].props.func()
+    }
+    if (buttonIndex === 0) {
+      this.scene.element.setAttribute('style', 'display: none;')
+      this.about.setAttribute('style', 'display: none;')
+      this.settings.setAttribute('style', 'display: none;')
+      this.confirm.hide()
+      this.twoPlayers.hide()
+    }
   }
 
   private handleOutsideClick = (event: PointerEvent) => {

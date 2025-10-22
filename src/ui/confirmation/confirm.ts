@@ -55,6 +55,10 @@ export class ConfirmationModal {
     this.inner.classList.add(styles.bounce)
   }
 
+  public hide = () => {
+    this.handleCancel()
+  }
+
   private handleAccept = () => {
     this.container.setAttribute('style', 'display: none;')
     this.inner.classList.remove(styles.bounce)
