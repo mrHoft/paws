@@ -1,4 +1,5 @@
 import { Localization } from '~/service/localization'
+import { inject } from '~/utils/inject'
 
 export class Tooltip {
   private loc!: Localization
@@ -16,7 +17,7 @@ export class Tooltip {
     this.setTooltip = setTooltip
     if (Tooltip.__instance) return Tooltip.__instance
     Tooltip.__instance = this
-    this.loc = new Localization()
+    this.loc = inject(Localization)
   }
 
   private set(text?: string) {

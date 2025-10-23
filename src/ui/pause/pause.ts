@@ -20,7 +20,7 @@ export class PauseModal {
 
   constructor({ pause, restart, menu, confirm }: { pause: (_state: boolean) => void, restart: () => void, menu: () => void, confirm?: ConfirmationModal }) {
     this.gamepadService = inject(GamepadService)
-    this.loc = new Localization()
+    this.loc = inject(Localization)
     this.confirm = confirm
     this.container = document.createElement('div')
     this.container.className = styles.pause_layer

@@ -56,16 +56,13 @@ body {
   display: flex;
   align-items: center;
   width: 100vw;
-  max-width: 1280px;
   height: 100dvh;
-  max-height: 720px;
 }
 
 .game {
   font-size: calc(min(2vw, 1.5rem));
   position: relative;
   width: 100%;
-  aspect-ratio: 16/9;
 }
 
 .loader_layer {

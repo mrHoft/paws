@@ -1,16 +1,14 @@
 import { i18n, LANGUAGES, type TLanguage } from "~/i18n";
+import { Injectable } from "~/utils/inject";
 
 const isLanguage = (lang: string): lang is TLanguage => LANGUAGES.includes(lang as TLanguage)
 
+@Injectable
 export class Localization {
-  private static _instance: Localization
   private lang: TLanguage = 'en'
   private field: Record<string, HTMLElement[]> = {}
 
   constructor(lang?: string) {
-    if (Localization._instance) return Localization._instance
-    Localization._instance = this
-
     if (lang && isLanguage(lang)) this.lang = lang
   }
 

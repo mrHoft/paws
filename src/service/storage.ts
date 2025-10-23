@@ -1,4 +1,5 @@
 import { Crypt } from "~/utils/crypt"
+import { Injectable } from "~/utils/inject"
 
 interface GameData {
   score: number
@@ -29,6 +30,7 @@ const defaultUserData: UserData & { data: GameData } = {
   }
 }
 
+@Injectable
 export class Storage extends Crypt {
   protected static _instance: Storage;
   protected static STORE_NAME = 'fastPaws';

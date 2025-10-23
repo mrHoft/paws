@@ -8,8 +8,9 @@ import { Tooltip } from './tooltip'
 import type { Target, TCat, TCaught, TGame } from './types'
 import type { GifObject } from '~/utils/gif'
 import { Queue } from '~/utils/queue'
-import { Sound } from '~/service/sound'
-import { AdvancedShepardTone } from '~/service/shepardTone'
+import { Audio } from '~/service/audio'
+import { ShepardTone } from '~/service/shepardTone'
+import { inject } from '~/utils/inject'
 
 const caughtDefault: TCaught = {
   butterfly: 0,
@@ -20,7 +21,7 @@ const caughtDefault: TCaught = {
 }
 
 export class Engine {
-  private sound: Sound
+  private audio: Audio
   private game: TGame = {
     sceneName: 'default',
     level: 0, // Game complexity level
@@ -71,7 +72,7 @@ export class Engine {
   }
   private resource: Resource
   private draw: Draw
-  private tone: AdvancedShepardTone
+  private tone: ShepardTone
   private fly: FlyingValues
   private events: ControlEvents
   private tooltip: Tooltip
@@ -97,15 +98,8 @@ export class Engine {
     this.updateCaught = handlers.updateCaught
     this.resetCaught = handlers.resetCaught
 
-    this.sound = new Sound()
-    this.tone = new AdvancedShepardTone({
-      baseFrequency: 220,
-      numOscillators: 2,
-      cycleDuration: 6.0,
-      oscillatorType: 'sine',
-      volume: 0.1,
-      direction: 'ascending'
-    });
+    this.audio = inject(Audio)
+    this.tone = inject(ShepardTone)
 
     this.game.ctx = ctx
     this.game.successHeight = GAME.defaultTargetHeight * this.game.successHeightModifier
@@ -139,7 +133,7 @@ export class Engine {
       }
     */
     this.tooltip.show(reason || (this.target.isBarrier ? 'barrier' : 'animal'))
-    if (this.target.isBarrier) this.sound.use('impact')
+    if (this.target.isBarrier) this.audio.use('impact')
 
     this.game.combo = 0
     this.showCombo(this.game.combo)
@@ -160,20 +154,20 @@ export class Engine {
         if (this.game.combo > 1) {
           this.showCombo(this.game.combo)
           this.fly.throw('Combo:', this.game.combo, this.cat.CatX)
-          this.sound.use('combo')
+          this.audio.use('combo')
         }
       }
       const name: TAnimalName = this.target.nameCurr as TAnimalName
 
       this.updateCaught(name)
-      this.sound.use('catch')
+      this.audio.use('catch')
       this.target.nameCurr = 'none'
     }
     this.levelPrepare()
   }
 
   private prepareJumpStart = () => {
-    if (!this.sound.sound.muted) {
+    if (!this.audio.sound.muted) {
       this.tone.direction = 'ascending'
       this.tone.start();
     }
@@ -190,7 +184,7 @@ export class Engine {
     this.game.definingTrajectory = false
     // Prevent accidental taps
     if (this.cat.jumpHeight > GAME.jumpHeightMin + GAME.trajectoryStep * 2) {
-      this.sound.use('jump')
+      this.audio.use('jump')
       this.game.action = 'jump'
       this.cat.atPosition = false
       this.cat.jumpStage = -Math.PI
@@ -290,7 +284,7 @@ export class Engine {
       return
     }
 
-    if (this.target.nameLast.startsWith('grasshopper')) {
+    if (this.target.nameLast.startsWith('grasshopper') || this.target.nameLast.startsWith('frog')) {
       this.target.xLast -= speed * 1.5
       return
     }
@@ -410,8 +404,8 @@ export class Engine {
     this.events = new ControlEvents({ game: this.game, prepareJumpStart: this.prepareJumpStart, prepareJumpEnd: this.prepareJumpEnd, pause: this.pause })
     this.tooltip = new Tooltip(this.showTooltip)
     this.backdrop.init(sceneName)
-    this.sound.musicMute = false
-    this.sound.play(0, true)  // TODO: level music
+    this.audio.musicMute = false
+    this.audio.play(0, true)  // TODO: level music
 
     this.game.ctx!.font = '32px Arial'
     this.game.sceneName = sceneName
@@ -439,7 +433,7 @@ export class Engine {
   public stop() {
     this.events.unRegisterEvents()
     window.clearTimeout(this.game.timer)
-    this.sound.pause()
+    this.audio.pause()
     this.game.stopped = true
   }
 
@@ -452,11 +446,11 @@ export class Engine {
       this.events.unRegisterEvents()
       this.handlePause(true)
       window.clearTimeout(this.game.timer)
-      this.sound.musicMute = true
+      this.audio.musicMute = true
     } else {
       this.events.registerEvents()
       requestAnimationFrame(this.update)
-      this.sound.musicMute = false
+      this.audio.musicMute = false
     }
   }
 

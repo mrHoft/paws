@@ -1,6 +1,7 @@
 import { Localization } from '~/service/localization'
 import { buttonClose, buttonCircle } from "~/ui//button"
-import { iconSrc } from '../icons'
+import { iconSrc } from '~/ui/icons'
+import { inject } from '~/utils/inject'
 
 import styles from './confirm.module.css'
 
@@ -12,7 +13,7 @@ export class ConfirmationModal {
   private acceptCallback?: () => void
 
   constructor() {
-    this.loc = new Localization()
+    this.loc = inject(Localization)
     this.container = document.createElement('div')
     this.container.className = styles.confirmation_layer
 

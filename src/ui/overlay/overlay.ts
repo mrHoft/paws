@@ -1,7 +1,8 @@
-import { Sound } from '~/service/sound'
+import { Audio } from '~/service/audio'
 import { iconSrc } from "~/ui/icons"
 import { buttonIcon } from '~/ui/button/icon'
 import { Localization } from '~/service/localization'
+import { inject } from '~/utils/inject'
 
 import styles from './overlay.module.css'
 
@@ -33,13 +34,13 @@ class OverlayView {
 
 export class Overlay extends OverlayView {
   private loc: Localization
-  private sound: Sound
+  private audio: Audio
   private player: Record<'level' | 'score' | 'combo', { el: HTMLDivElement, value: HTMLSpanElement }>
 
   constructor({ handlePause, initialScore }: { handlePause: (_show: boolean) => void, initialScore?: number }) {
     super()
-    this.loc = new Localization()
-    this.sound = new Sound()
+    this.loc = inject(Localization)
+    this.audio = inject(Audio)
 
     const level = document.createElement('div')
     const levelLabel = document.createElement('span')
@@ -70,7 +71,7 @@ export class Overlay extends OverlayView {
     player.append(level, score, combo)
     this.player = { level: { el: level, value: levelValue }, score: { el: score, value: scoreValue }, combo: { el: combo, value: comboValue } }
 
-    const sound = buttonIcon({ src: this.sound.muted ? iconSrc.soundOn : iconSrc.soundOff })
+    const sound = buttonIcon({ src: this.audio.muted ? iconSrc.soundOn : iconSrc.soundOff })
     const soundIconElement = sound.children[0] as HTMLImageElement
     sound.addEventListener('mousedown', (event) => {
       event.stopPropagation()
@@ -120,8 +121,8 @@ export class Overlay extends OverlayView {
   }
 
   private handleSoundToggle = (iconElement: HTMLImageElement) => {
-    const muted = this.sound.muted
-    this.sound.mute = !muted
+    const muted = this.audio.muted
+    this.audio.mute = !muted
     iconElement.src = muted ? iconSrc.soundOff : iconSrc.soundOn
   }
 }

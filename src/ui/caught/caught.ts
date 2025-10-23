@@ -1,10 +1,11 @@
 import type { TAnimalName } from "~/const"
 import { spoilSrc } from "~/ui/icons";
 import { Storage } from '~/service/storage'
+import { inject } from "~/utils/inject";
 
 import styles from './caught.module.css'
 
-const slots = ['butterfly', 'grasshopper', 'mouse', 'bird']
+const slots = ['butterfly', 'mouse', 'bird', 'frog']
 
 export class Caught {
   private static _instance: Caught
@@ -23,7 +24,7 @@ export class Caught {
     if (Caught._instance) return Caught._instance
     Caught._instance = this
 
-    this.storage = new Storage()
+    this.storage = inject(Storage)
     const initialCaught = this.storage.get<Record<string, number>>('data.caught')
     if (initialCaught) this.count = { ...initialCaught }
 
@@ -41,7 +42,8 @@ export class Caught {
   }
 
   public handleUpdate = (name: string) => {
-    const n = name.replace(/\d/, '')
+    let n = name.replace(/\d/, '')
+    if (n === 'grasshopper') n = 'butterfly'
     if (slots.includes(n)) {
       this.count[n] += 1
       this.slot[n]!.value.innerText = this.count[n].toString()

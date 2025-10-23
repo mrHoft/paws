@@ -1,5 +1,6 @@
 import { Storage } from '~/service/storage'
-import { Sound } from '~/service/sound'
+import { Audio } from '~/service/audio'
+import { ShepardTone } from '~/service/shepardTone'
 import { iconSrc } from '~/ui/icons'
 import { LANGUAGES, type TLanguage } from '~/i18n'
 import { Localization } from '~/service/localization'
@@ -13,7 +14,8 @@ const OPTIONS: TOption[] = ['music', 'sound', 'fps', 'language']
 
 export class Settings {
   private storage: Storage
-  private sound: Sound
+  private audio: Audio
+  private tone: ShepardTone
   private loc: Localization
   private container: HTMLUListElement
   private opt: Record<string, { element: HTMLLIElement, label: HTMLLabelElement, icon: HTMLImageElement, input: HTMLInputElement }> = {}
@@ -25,9 +27,10 @@ export class Settings {
 
   constructor() {
     this.gamepadService = inject(GamepadService)
-    this.storage = new Storage()
-    this.sound = new Sound()
-    this.loc = new Localization()
+    this.storage = inject(Storage)
+    this.audio = inject(Audio)
+    this.tone = inject(ShepardTone)
+    this.loc = inject(Localization)
     this.container = document.createElement('ul')
     this.container.className = styles.list
 
@@ -47,7 +50,6 @@ export class Settings {
       this.opt[id].element.append(this.opt[id].label)
 
       this.opt[id].element.addEventListener('mouseenter', () => {
-        console.log(index, id)
         this.selectedOptionIndex = index
         this.handleOptionSelect()
       })
@@ -213,16 +215,17 @@ export class Settings {
   private handleMusicVolumeChange = (value: number) => {
     value = Math.round(value * 10) / 10
     this.storage.set('music', value)
-    this.sound.musicVolume = value
-    this.sound.play(0)
+    this.audio.musicVolume = value
+    this.audio.play(0)
     this.opt.music.input.value = value.toString()
   }
 
   private handleSoundVolumeChange = (value: number) => {
     value = Math.round(value * 10) / 10
     this.storage.set('sound', value)
-    this.sound.soundVolume = value
-    this.sound.use('catch')
+    this.audio.soundVolume = value
+    this.audio.use('catch')
+    this.tone.volume = value
     this.opt.sound.input.value = value.toString()
   }
 

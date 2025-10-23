@@ -1,3 +1,5 @@
+import { Injectable } from "~/utils/inject"
+
 type TAudioType = 'sound' | 'music'
 type TSoundAssets = Record<string, { url: string, type: TAudioType }>
 
@@ -30,8 +32,9 @@ interface MusicTrack {
   track: number;
 }
 
-export class Sound {
-  static _instance: Sound
+@Injectable
+export class Audio {
+  static _instance: Audio
   private _sound = { volume: 0.5, muted: false }
   private _music = { volume: 0.5, muted: true }
   private audioContext!: AudioContext
@@ -51,10 +54,6 @@ export class Sound {
   constructor(props: { sound?: { volume: number, muted: boolean }, music?: { volume: number, muted: boolean } } = {}) {
     if (props.sound) this._sound = props.sound
     if (props.music) this._music = props.music
-
-    if (Sound._instance) return Sound._instance
-    Sound._instance = this
-
     this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
     this.masterGain = this.audioContext.createGain()
     this.musicGain = this.audioContext.createGain()

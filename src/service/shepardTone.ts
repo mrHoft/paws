@@ -1,13 +1,6 @@
 // Shepard tone usage example:
 /*
-const basicTone = new ShepardTone({
-  baseFrequency: 110,
-  cycleDuration: 3.0,
-  volume: 0.2
-});
-
-// Advanced usage with direction control
-const advancedTone = new AdvancedShepardTone({
+const shepardTone = new ShepardTone({
   baseFrequency: 220,
   numOscillators: 5,
   cycleDuration: 4.0,
@@ -16,26 +9,24 @@ const advancedTone = new AdvancedShepardTone({
   direction: 'ascending'
 });
 
-// Start the tones
-basicTone.start();
-advancedTone.start();
+shepardTone.start();
 
 // Change properties dynamically
 setTimeout(() => {
-  advancedTone.direction = 'descending';
-  advancedTone.cycleDuration = 2.0;
+  shepardTone.direction = 'descending';
+  shepardTone.cycleDuration = 2.0;
 }, 5000);
 
 // Stop after 10 seconds
 setTimeout(() => {
-  basicTone.stop();
-  advancedTone.stop();
+  shepardTone.stop();
 }, 10000);
- */
+*/
+import { Injectable } from "~/utils/inject";
 
 export type OscillatorType = 'sine' | 'square' | 'sawtooth' | 'triangle';
 
-export interface ShepardToneConfig {
+interface ShepardToneBasicConfig {
   baseFrequency?: number;
   numOscillators?: number;
   cycleDuration?: number;
@@ -43,11 +34,13 @@ export interface ShepardToneConfig {
   volume?: number;
 }
 
+const volumeModifier = 0.3
+
 const getAudioContextConstructor = (): typeof AudioContext | null => {
   return (window as any).AudioContext || (window as any).webkitAudioContext || null;
 };
 
-export class ShepardTone {
+class ShepardToneBasic {
   protected audioContext: AudioContext | null = null;
   protected oscillators: OscillatorNode[] = [];
   protected gainNodes: GainNode[] = [];
@@ -62,12 +55,12 @@ export class ShepardTone {
   protected oscillatorType: OscillatorType;
   protected _volume: number;
 
-  constructor(config: ShepardToneConfig = {}) {
+  constructor(config: ShepardToneBasicConfig = {}) {
     this.baseFrequency = config.baseFrequency ?? 220;
     this.numOscillators = config.numOscillators ?? 4;
     this._cycleDuration = Math.max(0.1, config.cycleDuration ?? 2.0);
     this.oscillatorType = config.oscillatorType ?? 'sine';
-    this._volume = Math.max(0, Math.min(1, config.volume ?? 0.3));
+    this._volume = Math.max(0, Math.min(1, config.volume ?? 0.3)) * volumeModifier;
   }
 
   public async start(): Promise<void> {
@@ -128,7 +121,7 @@ export class ShepardTone {
   }
 
   public set volume(value: number) {
-    this._volume = Math.max(0, Math.min(1, value));
+    this._volume = Math.max(0, Math.min(1, value)) * volumeModifier;
     if (this._isPlaying && this.audioContext) {
       const now = this.audioContext.currentTime;
       this.gainNodes.forEach(gain => {
@@ -215,16 +208,15 @@ export class ShepardTone {
   }
 }
 
-/* --- Advanced Shepard Tone (with direction) --- */
-
-export interface AdvancedShepardToneConfig extends ShepardToneConfig {
+export interface ShepardToneConfig extends ShepardToneBasicConfig {
   direction?: 'ascending' | 'descending';
 }
 
-export class AdvancedShepardTone extends ShepardTone {
+@Injectable
+export class ShepardTone extends ShepardToneBasic {
   private _direction: 'ascending' | 'descending' = 'ascending';
 
-  constructor(config: AdvancedShepardToneConfig = {}) {
+  constructor(config: ShepardToneConfig = {}) {
     super(config);
     this._direction = config.direction ?? 'ascending';
   }

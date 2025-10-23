@@ -1,6 +1,5 @@
 export const spoilSrc: Record<string, string> = {
   butterfly: './spoil/butterfly.svg',
-  grasshopper: './spoil/frog.svg',
   frog: './spoil/frog.svg',
   mouse: './spoil/mouse.svg',
   bird: './spoil/bird.svg',

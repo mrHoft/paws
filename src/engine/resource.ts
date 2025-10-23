@@ -5,6 +5,14 @@ const PATH = '.'
 
 const assets: Record<string, string> = {
   cat: 'sprites/cat-ginger.gif',
+  // Animal
+  bird: 'sprites/bird-yellow.gif',
+  butterfly1: 'sprites/butterfly-orange.gif',
+  butterfly2: 'sprites/butterfly-purple.gif',
+  grasshopper: 'sprites/grasshopper.gif',
+  mouse: 'sprites/mouse-brown.gif',
+  frog: 'sprites/frog.gif',
+  // Obstacle
   cactus1: 'sprites/cactus1.png',
   cactus2: 'sprites/cactus2.png',
   puddle: 'sprites/water-puddle.png',
@@ -12,13 +20,9 @@ const assets: Record<string, string> = {
   gnome: 'sprites/garden-gnome.png',
   flowerpot: 'sprites/flowerpot.png',
   bucket: 'sprites/bucket.png',
-  bird: 'sprites/bird-yellow.gif',
-  butterfly1: 'sprites/butterfly-orange.gif',
-  butterfly2: 'sprites/butterfly-purple.gif',
-  grasshopper: 'sprites/grasshopper.gif',
-  mouse: 'sprites/mouse-brown.gif',
   hedgehog: 'sprites/hedgehog.png',
   dog: 'sprites/dog.png',
+  // Scene
   'mountains.layer1': 'scene/mountains/layer1.png',
   'mountains.layer2': 'scene/mountains/layer2.png',
   'mountains.layer3': 'scene/mountains/layer3.png',

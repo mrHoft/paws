@@ -2,7 +2,7 @@ export const CANVAS = {
   width: 1280,
   height: 720,
   get aspectRatio(): number {
-    return this.height / this.width
+    return Math.round(this.width / this.height * 100) / 100
   },
 }
 
@@ -36,26 +36,25 @@ export const GAME = {
   get defaultTargetY(): number {
     return this.actionPositionVertical
   },
-  defaultTargetHeight: 128,
+  defaultTargetHeight: 160,
   defaultRunAwayDelay: 8000, // The time after which the target will escape
 }
 
 export type TAnimalName = 'butterfly1' | 'butterfly2' | 'grasshopper' | 'frog' | 'bird' | 'mouse'
 export type TTargetName = TAnimalName | 'cactus1' | 'cactus2' | 'puddle' | 'boulder' | 'flowerpot' | 'gnome' | 'bucket' | 'hedgehog' | 'dog' | 'none'
-export const ANIMALS: TAnimalName[] = ['mouse', 'grasshopper', 'butterfly1', 'butterfly2', 'bird']
+export const ANIMALS: TAnimalName[] = ['mouse', 'grasshopper', 'butterfly1', 'butterfly2', 'bird', 'frog']
 export const OBSTACLES: TTargetName[] = ['cactus1', 'cactus2', 'puddle', 'boulder', 'flowerpot', 'gnome', 'bucket', 'hedgehog', 'dog']
 
 export type TSceneName = 'autumn' | 'cliff' | 'desert' | 'forest' | 'jungle' | 'lake' | 'mountains' | 'default'
 export const SCENE_NAMES: TSceneName[] = ['autumn', 'cliff', 'desert', 'forest', 'jungle', 'lake', 'mountains']
 
 export const SCENE_TARGETS: Record<TSceneName, TTargetName[]> = {
-  autumn: ['dog', 'hedgehog'],
-  // autumn: ['mouse', 'bird', 'puddle', 'flowerpot', 'boulder', 'dog'],
-  cliff: ['butterfly1', 'grasshopper', 'flowerpot', 'boulder', 'gnome', 'hedgehog'],
+  autumn: ['mouse', 'bird', 'frog', 'puddle', 'flowerpot', 'boulder', 'dog'],
+  cliff: ['butterfly1', 'grasshopper', 'bird', 'flowerpot', 'boulder', 'hedgehog'],
   desert: ['butterfly1', 'mouse', 'cactus1', 'cactus2',],
   forest: ['butterfly1', 'butterfly2', 'grasshopper', 'bird', 'puddle', 'boulder', 'hedgehog'],
   jungle: ['butterfly2', 'grasshopper', 'bird', 'puddle', 'boulder', 'cactus1', 'hedgehog'],
-  lake: ['mouse', 'bird', 'puddle', 'flowerpot', 'gnome', 'dog'],
+  lake: ['mouse', 'bird', 'frog', 'puddle', 'flowerpot', 'gnome', 'dog'],
   mountains: ['mouse', 'grasshopper', 'puddle', 'flowerpot', 'gnome'],
   default: [...ANIMALS, ...OBSTACLES], // Testing level
 }

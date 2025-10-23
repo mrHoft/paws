@@ -15,28 +15,29 @@ interface LayersData {
   src: string
   dx: number
   fromTop?: boolean
+  scale?: number
 }
 
 const layersData: Record<TSceneName, LayersData[]> = {
   default: [
-    { src: 'mountains.layer1', dx: 0, fromTop: true },
-    { src: 'mountains.layer2', dx: -0.25 },
-    { src: 'mountains.layer3', dx: -1 },
+    { src: 'mountains.layer1', dx: 0, scale: 0.81, fromTop: true },
+    { src: 'mountains.layer2', dx: -0.25, scale: 0.718 },
+    { src: 'mountains.layer3', dx: -1, scale: 0.37 },
   ],
   mountains: [
-    { src: 'mountains.layer1', dx: 0, fromTop: true },
-    { src: 'mountains.layer2', dx: -0.25 },
-    { src: 'mountains.layer3', dx: -1 },
+    { src: 'mountains.layer1', dx: 0, scale: 0.81, fromTop: true },
+    { src: 'mountains.layer2', dx: -0.25, scale: 0.718 },
+    { src: 'mountains.layer3', dx: -1, scale: 0.37 },
   ],
   cliff: [
-    { src: 'cliff.layer1', dx: -0.1, fromTop: true },
-    { src: 'cliff.layer2', dx: -0.25, fromTop: true },
-    { src: 'cliff.layer3', dx: -1 },
+    { src: 'cliff.layer1', dx: -0.1, scale: 0.86, fromTop: true },
+    { src: 'cliff.layer2', dx: -0.25, scale: 0.91, fromTop: true },
+    { src: 'cliff.layer3', dx: -1, scale: 0.125 },
   ],
   autumn: [
-    { src: 'autumn.layer1', dx: 0, fromTop: true },
-    { src: 'autumn.layer2', dx: -0.25, fromTop: true },
-    { src: 'autumn.layer3', dx: -1 },
+    { src: 'autumn.layer1', dx: 0, scale: 0.9, fromTop: true },
+    { src: 'autumn.layer2', dx: -0.25, scale: 1, fromTop: true },
+    { src: 'autumn.layer3', dx: -1, scale: 0.299 },
   ],
   desert: [
     { src: 'desert.layer1', dx: 0, fromTop: true },
@@ -88,9 +89,9 @@ export class Backdrop {
     this.layersArr = []
     layersData[levelName].forEach(data => {
       const img = getValue(this.resource.sprite, data.src) as HTMLImageElement
-      const aspectRatio = img.height / img.width
-      const width = img.width < CANVAS.width ? CANVAS.width : img.width
-      const height = width * aspectRatio
+      const aspectRatio = img.width / img.height
+      const height = CANVAS.height * (data.scale || 1)
+      const width = (height * aspectRatio) > CANVAS.width ? height * aspectRatio : CANVAS.width
       const layer: Layer = {
         img,
         dx: data.dx,

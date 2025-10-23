@@ -28,7 +28,7 @@ class MenuView {
   protected menuActive = false
 
   constructor() {
-    this.loc = new Localization()
+    this.loc = inject(Localization)
     this.container = document.createElement('div')
     this.container.className = styles.menu_layer
     this.container.setAttribute('style', 'display: none;')
@@ -96,11 +96,12 @@ class MenuView {
     const spoilContainer = document.createElement('div')
     spoilContainer.className = styles.scene__spoil
     ANIMALS.forEach(key => {
-      const n = key.replace(/\d/, '')
+      let n = key.replace(/\d/, '')
+      if (n === 'grasshopper') n = 'butterfly'
       if (!spoil[n]) {
         const icon = document.createElement('img')
         icon.src = spoilSrc[n]
-        icon.alt = key
+        icon.alt = n
         icon.width = icon.height = 40
         spoilContainer.append(icon)
         spoil[n] = icon
@@ -346,12 +347,19 @@ export class Menu extends MenuView {
     this.scene.inner.setAttribute('style', `background-image: url(${PATH}/${name}.jpg)`)
     this.scene.inner.classList.add(styles.bounce)
 
-    const spoil: TAnimalName[] = SCENE_TARGETS[name].filter((el): el is TAnimalName => ANIMALS.includes(el as TAnimalName))
+    const spoil: string[] = SCENE_TARGETS[name]
+      .filter(el => ANIMALS.includes(el as TAnimalName))
+      .map(name => {
+        let n = name.replace(/\d/, '')
+        if (n === 'grasshopper') n = 'butterfly'
+        return n
+      })
+
     for (const key of ANIMALS) {
-      const n = key.replace(/\d/, '')
+      let n = key.replace(/\d/, '')
       const el = this.scene.spoil[n]
       if (el) {
-        const visible = spoil.includes(el.alt as TAnimalName)
+        const visible = spoil.includes(el.alt)
         el.setAttribute('style', `display: ${visible ? 'block' : 'none'}`)
       }
     }

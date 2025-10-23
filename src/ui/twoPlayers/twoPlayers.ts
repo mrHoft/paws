@@ -13,7 +13,7 @@ class TwoPlayersView {
   protected gamepads: HTMLDivElement[] = []
 
   constructor() {
-    this.loc = new Localization()
+    this.loc = inject(Localization)
     this.container = document.createElement('div')
     this.container.className = styles.two_players_layer
     this.container.setAttribute('style', 'display: none;')

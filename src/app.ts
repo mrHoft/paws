@@ -7,12 +7,14 @@ import { Overlay } from '~/ui/overlay/overlay'
 import { GlobalUI } from '~/ui/global/global'
 import { Menu } from '~/ui/menu/menu'
 import { Storage } from '~/service/storage'
-import { Sound } from '~/service/sound'
+import { Audio } from '~/service/audio'
+import { ShepardTone, type ShepardToneConfig } from './service/shepardTone'
 import { Localization } from '~/service/localization'
-import { FocusListener } from './service/focus'
-import { TwoPlayers } from './ui/twoPlayers/twoPlayers'
+import { FocusListener } from '~/service/focus'
+import { TwoPlayers } from '~/ui/twoPlayers/twoPlayers'
+import { injector, inject } from '~/utils/inject'
 
-const autoStart = false
+const autoStartScene: TSceneName | null = null  //'autumn'
 
 type TErrorSource = 'assets' | 'api'
 
@@ -31,9 +33,11 @@ export class AppView {
       this.root = root
       const main = document.createElement('main')
       main.className = 'main'
+      main.setAttribute('style', `max-width: ${CANVAS.width}px; max-height: ${CANVAS.height}px;`)
 
       this.game = document.createElement('div')
       this.game.className = 'game'
+      this.game.setAttribute('style', `aspect-ratio: ${CANVAS.aspectRatio};`)
       main.append(this.game)
 
       this.root.append(main)
@@ -83,7 +87,7 @@ export class App extends AppView {
   private confirm?: ConfirmationModal
   private overlay?: Overlay
   private weather?: Weather
-  private sound: Sound
+  private audio: Audio
   private menu?: Menu
   private ui?: GlobalUI
   private storage: Storage
@@ -92,25 +96,35 @@ export class App extends AppView {
 
   constructor() {
     super()
-    this.storage = new Storage()
-    new Localization(this.storage.get('language'))
+    this.storage = inject(Storage)
+    injector.createInstance(Localization, this.storage.get('language'))
 
     const musicVolume = Math.max(0, Math.min(this.storage.get<number>('music'), 1))
     const music = {
       volume: musicVolume,
       muted: musicVolume === 0
     }
-    const soundVolume = Math.max(0, Math.min(this.storage.get<number>('music'), 1))
+    const soundVolume = Math.max(0, Math.min(this.storage.get<number>('sound'), 1))
     const sound = {
       volume: soundVolume,
       muted: soundVolume === 0
     }
-    this.sound = new Sound({ music, sound })
+    this.audio = injector.createInstance(Audio, { music, sound })
+
+    const config: ShepardToneConfig = {
+      baseFrequency: 220,
+      numOscillators: 2,
+      cycleDuration: 6.0,
+      oscillatorType: 'sine',
+      volume: soundVolume,
+      direction: 'ascending'
+    }
+    injector.createInstance(ShepardTone, config)
 
     this.focus = new FocusListener()
     this.focus.addCallbacks({
-      focusLoss: () => { this.sound.mute = true },
-      focusGain: () => { this.sound.mute = false }
+      focusLoss: () => { this.audio.mute = true },
+      focusGain: () => { this.audio.mute = false }
     })
   }
 
@@ -144,8 +158,8 @@ export class App extends AppView {
 
     this.game.append(this.menu.element, this.ui.element, this.confirm.element, gamepadUI.element)
 
-    if (autoStart) {
-      this.initGame().then(() => this.engineStart!())
+    if (autoStartScene) {
+      this.initGame().then(() => this.engineStart!(autoStartScene))
       return
     }
 
