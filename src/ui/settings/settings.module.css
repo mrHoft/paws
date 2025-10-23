@@ -6,6 +6,9 @@
 
 .list__element {
   margin: 0.375em 0;
+  display: flex;
+  align-items: center;
+  column-gap: 0.5em;
 }
 
 .list__element input[type="range"] {
@@ -20,7 +23,6 @@
   &>img {
     width: 1.5em;
     height: 1.5em;
-    margin-right: 0.5em;
   }
 }
 
@@ -44,5 +46,24 @@
 
   &:hover {
     transform: translateY(-5%);
+  }
+}
+
+.paw {
+  width: 1.75em;
+  height: 1.75em;
+  margin-right: 0.25em;
+  opacity: 0;
+  transition: opacity 0.25s linear;
+}
+
+.list__element.hover {
+  & button {
+    background-color: var(--color-orange60);
+    border-color: var(--color-orange70);
+  }
+
+  & .paw {
+    opacity: 1;
   }
 }

@@ -71,7 +71,7 @@ export class PauseModal {
   private onGamepadButtonUp = (_gamepadIndex: number, buttonIndex: number) => {
     if (!this.pauseActive) return
 
-    if (buttonIndex === 9) {  // Menu button
+    if (buttonIndex === 9) {  // Start button
       this.handleMenu()
     }
     if (buttonIndex === 0 || buttonIndex === 1 || buttonIndex === 8) {  // Accept / Cancel button

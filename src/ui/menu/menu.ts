@@ -21,7 +21,7 @@ class MenuView {
   protected menu: HTMLDivElement
   protected menuItems: { element: HTMLDivElement, props: MenuItem, index: number }[] = []
   protected about: HTMLDivElement
-  protected settings: HTMLDivElement
+  protected settings: { element: HTMLDivElement, inner: HTMLDivElement, close: HTMLDivElement, control: Settings }
   protected thumbs: { img: HTMLImageElement, name: TSceneName }[] = []
   protected scene: { element: HTMLDivElement, inner: HTMLDivElement, btn: HTMLDivElement, spoil: Record<string, HTMLImageElement>, name: TSceneName }
   protected gamepadSupport: HTMLDivElement
@@ -67,19 +67,18 @@ class MenuView {
     aboutInner.append(aHeader, ...about(), aboutClose)
     this.about.append(aboutInner)
 
-    this.settings = document.createElement('div')
-    this.settings.className = styles.settings
+    const settingsContainer = document.createElement('div')
+    settingsContainer.className = styles.settings
     const sHeader = document.createElement('h3')
     // sHeader.innerText = 'Settings'
     this.loc.register('settings', sHeader)
     const settingsInner = document.createElement('div')
     const settingsClose = buttonClose()
-    settingsClose.addEventListener('click', () => {
-      this.settings.setAttribute('style', 'display: none;')
-    })
     settingsInner.className = styles.settings__inner
-    settingsInner.append(sHeader, new Settings().element, settingsClose)
-    this.settings.append(settingsInner)
+    const settings = new Settings()
+    settingsInner.append(sHeader, settings.element, settingsClose)
+    settingsContainer.append(settingsInner)
+    this.settings = { element: settingsContainer, inner: settingsInner, close: settingsClose, control: settings }
 
     const scene = document.createElement('div')
     scene.className = styles.scene
@@ -127,7 +126,7 @@ class MenuView {
     check.className = 'green'
     this.gamepadSupport.append(check)
 
-    this.container.append(version, this.gamepadSupport, level, this.menu, scene, this.about, this.settings)
+    this.container.append(version, this.gamepadSupport, level, this.menu, scene, this.about, this.settings.element)
   }
 
   protected menuInit(menuItems: MenuItem[]) {
@@ -183,7 +182,7 @@ export class Menu extends MenuView {
       { id: 'start', icon: iconSrc.play, func: () => { this.activeMenuItemId = 'start'; this.handleStart() } },
       { id: 'twoPlayers', icon: iconSrc.gamepad, func: () => { this.activeMenuItemId = 'twoPlayers'; twoPlayers.show(true) } },
       { id: 'restart', icon: iconSrc.restart, func: () => { this.activeMenuItemId = 'restart'; this.handleRestart() } },
-      { id: 'settings', icon: iconSrc.settings, func: () => { this.activeMenuItemId = 'settings'; this.handleSettings() } },
+      { id: 'settings', icon: iconSrc.settings, func: () => { this.activeMenuItemId = 'settings'; this.handleSettings(true) } },
       // { id: 'about', icon: iconSrc.about, func: this.handleAbout },
     ])
     this.menuItems[0].element.classList.add(styles.hover)
@@ -205,7 +204,8 @@ export class Menu extends MenuView {
 
     this.scene.element.addEventListener('click', this.handleOutsideClick)
     this.about.addEventListener('click', this.handleOutsideClick)
-    this.settings.addEventListener('click', this.handleOutsideClick)
+    this.settings.element.addEventListener('click', this.handleOutsideClick)
+    this.settings.close.addEventListener('click', () => this.handleSettings(false))
 
     this.gamepadService?.registerCallbacks({ onButtonUp: this.handleGamepadButton, onGamepadConnected: this.handleGamepadConnected })
 
@@ -222,6 +222,10 @@ export class Menu extends MenuView {
   }
 
   private handleGamepadButton = (_gamepadIndex: number, buttonIndex: number) => {
+    if (this.activeMenuItemId === 'settings' && buttonIndex === 0) {
+      this.handleSettings(false)
+    }
+
     if (!this.menuActive) return
 
     if (buttonIndex === 12 || buttonIndex === 13) {
@@ -269,7 +273,7 @@ export class Menu extends MenuView {
           break
         }
         case ('settings'): {
-          this.settings.setAttribute('style', 'display: none;')
+          this.handleSettings(false)
           break
         }
         case ('restart'): {
@@ -315,9 +319,18 @@ export class Menu extends MenuView {
     this.about.firstElementChild?.classList.add(styles.bounce)
   }
 
-  private handleSettings = () => {
-    this.settings.setAttribute('style', 'display: flex;')
-    this.settings.firstElementChild?.classList.add(styles.bounce)
+  private handleSettings = (show: boolean) => {
+    if (show) {
+      this.settings.element.setAttribute('style', 'display: flex;')
+      this.settings.inner.classList.add(styles.bounce)
+      this.settings.control.show(true)
+      this.menuActive = false
+    } else {
+      this.settings.element.setAttribute('style', 'display: none;')
+      this.settings.inner.classList.remove(styles.bounce)
+      this.settings.control.show(false)
+      this.menuActive = true
+    }
   }
 
   private handleSceneClick = (name: TSceneName) => (event?: PointerEvent) => {
