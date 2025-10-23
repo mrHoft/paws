@@ -410,6 +410,7 @@ export class Engine {
     this.events = new ControlEvents({ game: this.game, prepareJumpStart: this.prepareJumpStart, prepareJumpEnd: this.prepareJumpEnd, pause: this.pause })
     this.tooltip = new Tooltip(this.showTooltip)
     this.backdrop.init(sceneName)
+    this.sound.musicMute = false
     this.sound.play(0, true)  // TODO: level music
 
     this.game.ctx!.font = '32px Arial'
@@ -451,9 +452,11 @@ export class Engine {
       this.events.unRegisterEvents()
       this.handlePause(true)
       window.clearTimeout(this.game.timer)
+      this.sound.musicMute = true
     } else {
       this.events.registerEvents()
       requestAnimationFrame(this.update)
+      this.sound.musicMute = false
     }
   }
 

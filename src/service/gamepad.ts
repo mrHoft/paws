@@ -31,6 +31,11 @@ export class GamepadService {
     }
     this.setupEventListeners();
     this.startPolling();
+
+    // TODO: Remove
+    this.callbacks.onButtonUp.push((gamepadIndex: number, buttonIndex: number) => {
+      console.log(`Gamepad ${gamepadIndex} - Button ${buttonIndex} released`);
+    })
   }
 
   public registerCallbacks = (callbacks: GamepadServiceCallbacks = {}) => {
@@ -42,20 +47,26 @@ export class GamepadService {
     }
     if (callbacks.onButtonDown) {
       this.callbacks.onButtonDown.push(callbacks.onButtonDown)
-    } else {  // TODO: Remove
-      this.callbacks.onButtonDown.push((gamepadIndex: number, buttonIndex: number, value: number) => {
-        console.log(`Gamepad ${gamepadIndex} - Button ${buttonIndex} pressed: ${value}`);
-      })
     }
     if (callbacks.onButtonUp) {
       this.callbacks.onButtonUp.push(callbacks.onButtonUp)
-    } else {  // TODO: Remove
-      this.callbacks.onButtonUp.push((gamepadIndex: number, buttonIndex: number) => {
-        console.log(`Gamepad ${gamepadIndex} - Button ${buttonIndex} released`);
-      })
     }
     if (callbacks.onAxisMoved) {
       this.callbacks.onAxisMoved.push(callbacks.onAxisMoved)
+    }
+  }
+
+  public unRegisterCallbacks = (callbacks: GamepadServiceCallbacks = {}) => {
+    const keys = Object.keys(callbacks) as (keyof GamepadServiceCallbacks)[]
+    for (const key of keys) {
+      const callback = callbacks[key]
+      if (callback) {
+        const callbackArray = this.callbacks[key]
+        const index = callbackArray.findIndex(item => item === callback)
+        if (index !== -1) {
+          callbackArray.splice(index, 1)
+        }
+      }
     }
   }
 

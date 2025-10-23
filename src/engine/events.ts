@@ -1,4 +1,6 @@
 import type { TGame } from './types'
+import { GamepadService } from '~/service/gamepad'
+import { inject } from '~/utils/inject'
 
 interface ControlEventsProps { game: TGame, prepareJumpStart: () => void, prepareJumpEnd: () => void, pause: (state: boolean) => void }
 
@@ -8,13 +10,18 @@ export class ControlEvents {
   private prepareJumpEnd: () => void
   private pause: (state: boolean) => void
   private static __instance: ControlEvents
+  private gamepadService!: GamepadService
 
   constructor({ game, prepareJumpStart, prepareJumpEnd, pause }: ControlEventsProps) {
     this.game = game
     this.prepareJumpStart = prepareJumpStart
     this.prepareJumpEnd = prepareJumpEnd
     this.pause = pause
+
     if (ControlEvents.__instance) return ControlEvents.__instance
+    ControlEvents.__instance = this
+
+    this.gamepadService = inject(GamepadService)
   }
 
   private canJump = (): boolean => {
@@ -50,6 +57,24 @@ export class ControlEvents {
     }
   }
 
+  private onGamepadButtonDown = (_gamepadIndex: number, buttonIndex: number, _value: number) => {
+    if (buttonIndex === 9) {
+      return
+    }
+    if (this.canJump()) {
+      this.prepareJumpStart()
+    }
+  }
+
+  private onGamepadButtonUp = (_gamepadIndex: number, buttonIndex: number) => {
+    if (buttonIndex === 9) {
+      this.pause(true)
+    }
+    if (this.game.definingTrajectory) {
+      this.prepareJumpEnd()
+    }
+  }
+
   public registerEvents = () => {
     window.addEventListener('keydown', this.onkeydown)
     window.addEventListener('keyup', this.onkeyup)
@@ -57,6 +82,7 @@ export class ControlEvents {
     window.addEventListener('touchend', this.touchend)
     window.addEventListener('mousedown', this.touchstart)
     window.addEventListener('mouseup', this.touchend)
+    this.gamepadService.registerCallbacks({ onButtonDown: this.onGamepadButtonDown, onButtonUp: this.onGamepadButtonUp })
   }
 
   public unRegisterEvents = () => {
@@ -66,5 +92,6 @@ export class ControlEvents {
     window.removeEventListener('touchend', this.touchend)
     window.removeEventListener('mousedown', this.touchstart)
     window.removeEventListener('mouseup', this.touchend)
+    this.gamepadService.unRegisterCallbacks({ onButtonDown: this.onGamepadButtonDown, onButtonUp: this.onGamepadButtonUp })
   }
 }

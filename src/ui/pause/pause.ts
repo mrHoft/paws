@@ -2,6 +2,8 @@ import { buttonCircle } from '~/ui/button/circle'
 import { iconSrc } from "~/ui/icons"
 import { Localization } from '~/service/localization'
 import { ConfirmationModal } from '../confirmation/confirm'
+import { GamepadService } from '~/service/gamepad'
+import { inject } from '~/utils/inject'
 
 import styles from './pause.module.css'
 
@@ -13,8 +15,11 @@ export class PauseModal {
   private pause: (_state: boolean) => void
   private restart: () => void
   private menu: () => void
+  private gamepadService!: GamepadService
+  private pauseActive = false
 
   constructor({ pause, restart, menu, confirm }: { pause: (_state: boolean) => void, restart: () => void, menu: () => void, confirm?: ConfirmationModal }) {
+    this.gamepadService = inject(GamepadService)
     this.loc = new Localization()
     this.confirm = confirm
     this.container = document.createElement('div')
@@ -54,11 +59,24 @@ export class PauseModal {
         this.handleResume()
       }
     })
+    this.gamepadService.registerCallbacks({ onButtonUp: this.onGamepadButtonUp })
   }
 
   public show = (state: boolean) => {
     this.container.setAttribute('style', state ? 'display: flex;' : 'display: none;')
     this.inner.classList.toggle(styles.bounce, state)
+    this.pauseActive = state
+  }
+
+  private onGamepadButtonUp = (_gamepadIndex: number, buttonIndex: number) => {
+    if (!this.pauseActive) return
+
+    if (buttonIndex === 9) {  // Menu button
+      this.handleMenu()
+    }
+    if (buttonIndex === 0 || buttonIndex === 1 || buttonIndex === 8) {  // Accept / Cancel button
+      this.handleResume()
+    }
   }
 
   private handleResume = () => {

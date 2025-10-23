@@ -25,6 +25,7 @@ class MenuView {
   protected thumbs: { img: HTMLImageElement, name: TSceneName }[] = []
   protected scene: { element: HTMLDivElement, inner: HTMLDivElement, btn: HTMLDivElement, spoil: Record<string, HTMLImageElement>, name: TSceneName }
   protected gamepadSupport: HTMLDivElement
+  protected menuActive = false
 
   constructor() {
     this.loc = new Localization()
@@ -155,6 +156,7 @@ class MenuView {
 
   public show = (state = true) => {
     this.container.setAttribute('style', `display: ${state ? 'block' : 'none'};`)
+    this.menuActive = state
   }
 
   public get element() {
@@ -167,7 +169,8 @@ export class Menu extends MenuView {
   private confirm: ConfirmationModal
   private gamepadService?: GamepadService
   private twoPlayers: TwoPlayers
-  private activeMenuItemIndex = 0
+  private selectedMenuItemIndex = 0
+  private activeMenuItemId: string | null = null
 
   constructor({ start, confirm, twoPlayers }: { start: (levelName: TSceneName, restart?: boolean) => void, confirm: ConfirmationModal, twoPlayers: TwoPlayers }) {
     super()
@@ -177,10 +180,10 @@ export class Menu extends MenuView {
     this.gamepadService = inject(GamepadService)
 
     this.menuInit([
-      { id: 'start', icon: iconSrc.play, func: this.handleStart },
-      { id: 'twoPlayers', icon: iconSrc.gamepad, func: () => { twoPlayers.show(true) } },
-      { id: 'restart', icon: iconSrc.restart, func: this.handleRestart },
-      { id: 'settings', icon: iconSrc.settings, func: this.handleSettings },
+      { id: 'start', icon: iconSrc.play, func: () => { this.activeMenuItemId = 'start'; this.handleStart() } },
+      { id: 'twoPlayers', icon: iconSrc.gamepad, func: () => { this.activeMenuItemId = 'twoPlayers'; twoPlayers.show(true) } },
+      { id: 'restart', icon: iconSrc.restart, func: () => { this.activeMenuItemId = 'restart'; this.handleRestart() } },
+      { id: 'settings', icon: iconSrc.settings, func: () => { this.activeMenuItemId = 'settings'; this.handleSettings() } },
       // { id: 'about', icon: iconSrc.about, func: this.handleAbout },
     ])
     this.menuItems[0].element.classList.add(styles.hover)
@@ -198,10 +201,7 @@ export class Menu extends MenuView {
       el.img.addEventListener('click', this.handleSceneClick(el.name))
     })
 
-    this.scene.btn.addEventListener('click', () => {
-      this.scene.element.setAttribute('style', 'display: none;')
-      this.startGame(this.scene.name)
-    })
+    this.scene.btn.addEventListener('click', this.handleSceneStart)
 
     this.scene.element.addEventListener('click', this.handleOutsideClick)
     this.about.addEventListener('click', this.handleOutsideClick)
@@ -211,7 +211,7 @@ export class Menu extends MenuView {
 
     for (const item of this.menuItems) {
       item.element.addEventListener('mouseenter', () => {
-        this.activeMenuItemIndex = item.index
+        this.selectedMenuItemIndex = item.index
         this.menuItems.forEach(({ element }, i) => { element.classList.toggle(styles.hover, i === item.index) })
       })
     }
@@ -222,24 +222,69 @@ export class Menu extends MenuView {
   }
 
   private handleGamepadButton = (_gamepadIndex: number, buttonIndex: number) => {
+    if (!this.menuActive) return
+
     if (buttonIndex === 12 || buttonIndex === 13) {
       if (buttonIndex === 12) {
-        this.activeMenuItemIndex = this.activeMenuItemIndex > 0 ? this.activeMenuItemIndex - 1 : 0
+        this.selectedMenuItemIndex = this.selectedMenuItemIndex > 0 ? this.selectedMenuItemIndex - 1 : 0
       }
       if (buttonIndex === 13) {
-        this.activeMenuItemIndex = this.activeMenuItemIndex < this.menuItems.length - 1 ? this.activeMenuItemIndex + 1 : this.menuItems.length - 1
+        this.selectedMenuItemIndex = this.selectedMenuItemIndex < this.menuItems.length - 1 ? this.selectedMenuItemIndex + 1 : this.menuItems.length - 1
       }
-      this.menuItems.forEach((item, i) => { item.element.classList.toggle(styles.hover, i === this.activeMenuItemIndex) })
+      this.menuItems.forEach((item, i) => { item.element.classList.toggle(styles.hover, i === this.selectedMenuItemIndex) })
     }
-    if (buttonIndex === 1 || buttonIndex === 9) {
-      this.menuItems[this.activeMenuItemIndex].props.func()
+    if (buttonIndex === 1 || buttonIndex === 8) { // Accept
+      if (!this.activeMenuItemId) {
+        this.menuItems[this.selectedMenuItemIndex].props.func()
+      } else {
+        switch (this.activeMenuItemId) {
+          case ('start'): {
+            this.handleSceneStart()
+            break
+          }
+          case ('restart'): {
+            this.handleStart()
+            break
+          }
+          case ('confirmation'): {
+            this.confirm.hide()
+            this.startGame(SCENE_NAMES[0], true)
+            break
+          }
+          default: {
+            console.log(this.activeMenuItemId)
+          }
+        }
+        this.activeMenuItemId = null
+      }
     }
-    if (buttonIndex === 0) {
-      this.scene.element.setAttribute('style', 'display: none;')
-      this.about.setAttribute('style', 'display: none;')
-      this.settings.setAttribute('style', 'display: none;')
-      this.confirm.hide()
-      this.twoPlayers.hide()
+    if (buttonIndex === 0) {  // Cancel
+      switch (this.activeMenuItemId) {
+        case ('start'): {
+          this.scene.element.setAttribute('style', 'display: none;')
+          break
+        }
+        case ('twoPlayers'): {
+          this.twoPlayers.hide()
+          break
+        }
+        case ('settings'): {
+          this.settings.setAttribute('style', 'display: none;')
+          break
+        }
+        case ('restart'): {
+          this.confirm.hide()
+          break
+        }
+        case ('confirmation'): {
+          this.confirm.hide()
+          break
+        }
+        default: {
+          this.about.setAttribute('style', 'display: none;')
+        }
+      }
+      this.activeMenuItemId = null
     }
   }
 
@@ -261,6 +306,7 @@ export class Menu extends MenuView {
   }
 
   private handleRestart = () => {
+    this.activeMenuItemId = 'confirmation'
     this.confirm.show({ text: this.loc.get('restartDesc'), acceptCallback: () => this.startGame(SCENE_NAMES[0], true) })
   }
 
@@ -296,5 +342,11 @@ export class Menu extends MenuView {
         el.setAttribute('style', `display: ${visible ? 'block' : 'none'}`)
       }
     }
+  }
+
+  private handleSceneStart = () => {
+    this.show(false)
+    this.scene.element.setAttribute('style', 'display: none;')
+    this.startGame(this.scene.name)
   }
 }

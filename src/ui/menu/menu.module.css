@@ -177,19 +177,19 @@
   bottom: 0.75em;
   width: 4em;
   height: 4em;
-  display: none;
   background-image: url('./images/gamepad.png');
   background-repeat: no-repeat;
   background-position: center;
   background-size: 4em;
 
   & img {
+    display: none;
     width: 2.5em;
     height: 2.5em;
     margin: 1em 0 0 1.5em;
   }
 
-  &.active {
+  &.active img {
     display: block
   }
 }
