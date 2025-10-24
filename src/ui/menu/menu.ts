@@ -1,7 +1,7 @@
 import { GAME, SCENE_NAMES, SCENE_TARGETS, ANIMALS, type TSceneName, type TAnimalName } from "~/const"
 import { buttonCircle, buttonIcon, buttonClose } from "~/ui/button"
-import { about } from "~/ui/about/about"
 import { Settings } from "~/ui/settings/settings"
+import { About } from "~/ui/about/about"
 import { iconSrc, spoilSrc } from "~/ui/icons"
 import { Localization } from '~/service/localization'
 import { ConfirmationModal } from "~/ui/confirmation/confirm"
@@ -10,6 +10,8 @@ import { GamepadService } from '~/service/gamepad'
 import { inject } from "~/utils/inject"
 
 import styles from './menu.module.css'
+import modal from '~/ui/modal.module.css'
+import layer from '~/ui/layers.module.css'
 
 const PATH = './thumb'
 
@@ -20,18 +22,16 @@ class MenuView {
   protected container: HTMLDivElement
   protected menu: HTMLDivElement
   protected menuItems: { element: HTMLDivElement, props: MenuItem, index: number }[] = []
-  protected about: HTMLDivElement
-  protected settings: { element: HTMLDivElement, inner: HTMLDivElement, close: HTMLDivElement, control: Settings }
   protected thumbs: { img: HTMLImageElement, name: TSceneName }[] = []
   protected scene: { element: HTMLDivElement, inner: HTMLDivElement, btn: HTMLDivElement, spoil: Record<string, HTMLImageElement>, name: TSceneName }
   protected gamepadSupport: HTMLDivElement
-  protected menuActive = false
+  protected isActive = false
 
   constructor() {
     this.loc = inject(Localization)
     this.container = document.createElement('div')
-    this.container.className = styles.menu_layer
-    this.container.setAttribute('style', 'display: none;')
+    this.container.classList.add(layer.menu, modal.outer, styles.backdrop)
+    this.container.setAttribute('style', `display: none;`)
 
     const level = document.createElement('div')
     level.className = styles.level
@@ -53,38 +53,32 @@ class MenuView {
       level.append(img)
     }
 
-    this.about = document.createElement('div')
-    this.about.className = styles.about
-    const aHeader = document.createElement('h3')
-    // aHeader.innerText = 'About'
-    this.loc.register('about', aHeader)
-    const aboutInner = document.createElement('div')
-    aboutInner.className = styles.about__inner
-    const aboutClose = buttonClose()
-    aboutClose.addEventListener('click', () => {
-      this.about.setAttribute('style', 'display: none;')
-    })
-    aboutInner.append(aHeader, ...about(), aboutClose)
-    this.about.append(aboutInner)
+    const version = document.createElement('div')
+    version.className = `${styles.version} text-shadow`
+    version.innerText = GAME.version
 
-    const settingsContainer = document.createElement('div')
-    settingsContainer.className = styles.settings
-    const sHeader = document.createElement('h3')
-    // sHeader.innerText = 'Settings'
-    this.loc.register('settings', sHeader)
-    const settingsInner = document.createElement('div')
-    const settingsClose = buttonClose()
-    settingsInner.className = styles.settings__inner
-    const settings = new Settings()
-    settingsInner.append(sHeader, settings.element, settingsClose)
-    settingsContainer.append(settingsInner)
-    this.settings = { element: settingsContainer, inner: settingsInner, close: settingsClose, control: settings }
+    this.menu = document.createElement('div')
+    this.menu.className = styles.menu
 
-    const scene = document.createElement('div')
-    scene.className = styles.scene
+    this.gamepadSupport = document.createElement('div')
+    this.gamepadSupport.className = styles.gamepad_support
+    const check = document.createElement('img')
+    check.src = iconSrc.check
+    check.alt = 'check'
+    check.className = 'green'
+    this.gamepadSupport.append(check)
+
+    this.scene = this.sceneCreate()
+    this.container.append(version, this.gamepadSupport, level, this.menu, this.scene.element)
+  }
+
+  private sceneCreate = () => {
+    const sceneContainer = document.createElement('div')
+    sceneContainer.classList.add(layer.scene, modal.outer)
+    sceneContainer.setAttribute('style', 'display: none;')
 
     const sceneInner = document.createElement('div')
-    sceneInner.className = styles.scene__inner
+    sceneInner.classList.add(modal.inner, styles.scene)
     const sceneClose = buttonClose()
     sceneClose.addEventListener('click', () => {
       this.scene.element.setAttribute('style', 'display: none;')
@@ -109,28 +103,11 @@ class MenuView {
     })
 
     sceneInner.append(btn, spoilContainer, sceneClose)
-    scene.append(sceneInner)
-    this.scene = { element: scene, inner: sceneInner, btn, spoil, name: 'default' }
-
-    const version = document.createElement('div')
-    version.className = `${styles.version} text-shadow`
-    version.innerText = GAME.version
-
-    this.menu = document.createElement('div')
-    this.menu.className = styles.menu
-
-    this.gamepadSupport = document.createElement('div')
-    this.gamepadSupport.className = styles.gamepad_support
-    const check = document.createElement('img')
-    check.src = iconSrc.check
-    check.alt = 'check'
-    check.className = 'green'
-    this.gamepadSupport.append(check)
-
-    this.container.append(version, this.gamepadSupport, level, this.menu, scene, this.about, this.settings.element)
+    sceneContainer.append(sceneInner)
+    return { element: sceneContainer, inner: sceneInner, btn, spoil, name: ('default' as TSceneName) }
   }
 
-  protected menuInit(menuItems: MenuItem[]) {
+  protected menuCreate(menuItems: MenuItem[]) {
     for (const props of menuItems) {
       const container = document.createElement('div')
       container.className = styles.menu__item
@@ -156,7 +133,7 @@ class MenuView {
 
   public show = (state = true) => {
     this.container.setAttribute('style', `display: ${state ? 'block' : 'none'};`)
-    this.menuActive = state
+    this.isActive = state
   }
 
   public get element() {
@@ -168,45 +145,50 @@ export class Menu extends MenuView {
   private startGame: (levelName: TSceneName, restart?: boolean) => void
   private confirm: ConfirmationModal
   private gamepadService?: GamepadService
-  private twoPlayers: TwoPlayers
+  private twoPlayersUI: TwoPlayers
   private selectedMenuItemIndex = 0
   private activeMenuItemId: string | null = null
+  private settings: Settings
+  private about: About
 
-  constructor({ start, confirm, twoPlayers }: { start: (levelName: TSceneName, restart?: boolean) => void, confirm: ConfirmationModal, twoPlayers: TwoPlayers }) {
+  constructor({ start, confirm }: { start: (levelName: TSceneName, restart?: boolean) => void, confirm: ConfirmationModal }) {
     super()
     this.startGame = start
     this.confirm = confirm
-    this.twoPlayers = twoPlayers
-    this.gamepadService = inject(GamepadService)
 
-    this.menuInit([
+    const onClose = () => { this.isActive = true }
+    this.twoPlayersUI = inject(TwoPlayers)
+    this.twoPlayersUI.registerCallback({ onClose })
+    this.gamepadService = inject(GamepadService)
+    this.settings = inject(Settings)
+    this.settings.registerCallback({ onClose })
+    this.about = inject(About)
+    this.about.registerCallback({ onClose })
+
+    this.menuCreate([
       { id: 'start', icon: iconSrc.play, func: () => { this.activeMenuItemId = 'start'; this.handleStart() } },
-      { id: 'twoPlayers', icon: iconSrc.gamepad, func: () => { this.activeMenuItemId = 'twoPlayers'; twoPlayers.show(true) } },
+      { id: 'twoPlayers', icon: iconSrc.gamepad, func: () => { this.isActive = false; this.twoPlayersUI.show(true) } },
       { id: 'restart', icon: iconSrc.restart, func: () => { this.activeMenuItemId = 'restart'; this.handleRestart() } },
-      { id: 'settings', icon: iconSrc.settings, func: () => { this.activeMenuItemId = 'settings'; this.handleSettings(true) } },
+      { id: 'settings', icon: iconSrc.settings, func: () => { this.isActive = false; this.settings.show(true) } },
       // { id: 'about', icon: iconSrc.about, func: this.handleAbout },
     ])
     this.menuItems[0].element.classList.add(styles.hover)
 
     const btnAbout = buttonIcon({ src: iconSrc.about })
     btnAbout.classList.add(styles['top-right'])
-    btnAbout.addEventListener('click', this.handleAbout)
-    this.container.append(btnAbout)
+    btnAbout.addEventListener('click', () => { this.isActive = false; this.about.show(true) })
+    this.container.append(this.settings.element, btnAbout)
 
-    this.setupEventListeners();
+    this.registerEvents();
   }
 
-  private setupEventListeners = () => {
+  private registerEvents = () => {
     this.thumbs.forEach(el => {
       el.img.addEventListener('click', this.handleSceneClick(el.name))
     })
 
     this.scene.btn.addEventListener('click', this.handleSceneStart)
-
     this.scene.element.addEventListener('click', this.handleOutsideClick)
-    this.about.addEventListener('click', this.handleOutsideClick)
-    this.settings.element.addEventListener('click', this.handleOutsideClick)
-    this.settings.close.addEventListener('click', () => this.handleSettings(false))
 
     this.gamepadService?.registerCallbacks({ onButtonUp: this.handleGamepadButton, onGamepadConnected: this.handleGamepadConnected })
 
@@ -219,15 +201,11 @@ export class Menu extends MenuView {
   }
 
   private handleGamepadConnected = () => {
-    this.gamepadSupport.classList.add(styles.active, styles.bounce)
+    this.gamepadSupport.classList.add(styles.active, modal.bounce)
   }
 
   private handleGamepadButton = (_gamepadIndex: number, buttonIndex: number) => {
-    if (this.activeMenuItemId === 'settings' && buttonIndex === 0) {
-      this.handleSettings(false)
-    }
-
-    if (!this.menuActive) return
+    if (!this.isActive) return
 
     if (buttonIndex === 12 || buttonIndex === 13) {
       if (buttonIndex === 12) {
@@ -270,11 +248,7 @@ export class Menu extends MenuView {
           break
         }
         case ('twoPlayers'): {
-          this.twoPlayers.hide()
-          break
-        }
-        case ('settings'): {
-          this.handleSettings(false)
+          this.twoPlayersUI.hide()
           break
         }
         case ('restart'): {
@@ -286,7 +260,7 @@ export class Menu extends MenuView {
           break
         }
         default: {
-          this.about.setAttribute('style', 'display: none;')
+          console.log(this.activeMenuItemId)
         }
       }
       this.activeMenuItemId = null
@@ -300,7 +274,7 @@ export class Menu extends MenuView {
       const element = currentTarget as HTMLDivElement
       element.setAttribute('style', 'display: none;')
       for (const child of element.children) {
-        child.classList.remove(styles.bounce)
+        child.classList.remove(modal.bounce)
       }
     }
   }
@@ -315,25 +289,6 @@ export class Menu extends MenuView {
     this.confirm.show({ text: this.loc.get('restartDesc'), acceptCallback: () => this.startGame(SCENE_NAMES[0], true) })
   }
 
-  private handleAbout = () => {
-    this.about.setAttribute('style', 'display: flex;')
-    this.about.firstElementChild?.classList.add(styles.bounce)
-  }
-
-  private handleSettings = (show: boolean) => {
-    if (show) {
-      this.settings.element.setAttribute('style', 'display: flex;')
-      this.settings.inner.classList.add(styles.bounce)
-      this.settings.control.show(true)
-      this.menuActive = false
-    } else {
-      this.settings.element.setAttribute('style', 'display: none;')
-      this.settings.inner.classList.remove(styles.bounce)
-      this.settings.control.show(false)
-      this.menuActive = true
-    }
-  }
-
   private handleSceneClick = (name: TSceneName) => (event?: PointerEvent) => {
     if (event) {
       const element = event.currentTarget as HTMLElement;
@@ -345,7 +300,7 @@ export class Menu extends MenuView {
     this.scene.name = name
     this.scene.element.setAttribute('style', 'display: flex;')
     this.scene.inner.setAttribute('style', `background-image: url(${PATH}/${name}.jpg)`)
-    this.scene.inner.classList.add(styles.bounce)
+    this.scene.inner.classList.add(modal.bounce)
 
     const spoil: string[] = SCENE_TARGETS[name]
       .filter(el => ANIMALS.includes(el as TAnimalName))

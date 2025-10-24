@@ -4,6 +4,7 @@ import { iconSrc } from "~/ui/icons"
 import { buttonIcon } from '~/ui/button/icon'
 
 import styles from './global.module.css'
+import layer from '~/ui/layers.module.css'
 
 class OverlayView {
   protected container: HTMLDivElement
@@ -12,7 +13,7 @@ class OverlayView {
 
   constructor() {
     this.container = document.createElement('div')
-    this.container.className = `${styles.global_layer} text-shadow`
+    this.container.classList.add(layer.global, styles.global, 'text-shadow')
 
     this.upper = document.createElement('div')
     this.upper.className = styles.row_upper

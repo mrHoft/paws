@@ -5,6 +5,7 @@ import { Localization } from '~/service/localization'
 import { inject } from '~/utils/inject'
 
 import styles from './overlay.module.css'
+import layer from '~/ui/layers.module.css'
 
 class OverlayView {
   protected container: HTMLDivElement
@@ -14,7 +15,7 @@ class OverlayView {
 
   constructor() {
     this.container = document.createElement('div')
-    this.container.className = `${styles.overlay_layer} text-shadow`
+    this.container.classList.add(layer.overlay, styles.overlay, 'text-shadow')
 
     this.upper = document.createElement('div')
     this.upper.className = styles.row

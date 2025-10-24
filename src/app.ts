@@ -5,7 +5,9 @@ import { PauseModal } from '~/ui/pause/pause'
 import { ConfirmationModal } from './ui/confirmation/confirm'
 import { Overlay } from '~/ui/overlay/overlay'
 import { GlobalUI } from '~/ui/global/global'
+import { Settings } from '~/ui/settings/settings'
 import { Menu } from '~/ui/menu/menu'
+import { About } from './ui/about/about'
 import { Storage } from '~/service/storage'
 import { Audio } from '~/service/audio'
 import { ShepardTone, type ShepardToneConfig } from './service/shepardTone'
@@ -150,13 +152,14 @@ export class App extends AppView {
 
   private handleLoadComplete = () => {
     this.loaderRemove()
-    const gamepadUI = new TwoPlayers({ start: this.startGame })
-
+    const twoPlayersUI = injector.createInstance(TwoPlayers, { start: this.startGame })
     this.confirm = new ConfirmationModal()
-    this.menu = new Menu({ start: this.startGame, confirm: this.confirm, twoPlayers: gamepadUI })
+    this.menu = new Menu({ start: this.startGame, confirm: this.confirm })
     this.ui = new GlobalUI()
+    const settings = inject(Settings)
+    const about = inject(About)
 
-    this.game.append(this.menu.element, this.ui.element, this.confirm.element, gamepadUI.element)
+    this.game.append(this.menu.element, this.ui.element, this.confirm.element, twoPlayersUI.element, settings.element, about.element)
 
     if (autoStartScene) {
       this.initGame().then(() => this.engineStart!(autoStartScene))

@@ -2,24 +2,28 @@ import { type TSceneName } from "~/const"
 import { buttonClose } from "~/ui/button"
 import { Localization } from '~/service/localization'
 import { GamepadService } from "~/service/gamepad"
-import { inject } from "~/utils/inject"
+import { Injectable, inject } from "~/utils/inject"
 
 import styles from './twoPlayers.module.css'
+import modal from '~/ui/modal.module.css'
+import layer from '~/ui/layers.module.css'
 
 class TwoPlayersView {
   protected loc: Localization
   protected container: HTMLDivElement
   protected inner: HTMLDivElement
+  protected close: HTMLDivElement
   protected gamepads: HTMLDivElement[] = []
+  protected isActive = false
 
   constructor() {
     this.loc = inject(Localization)
     this.container = document.createElement('div')
-    this.container.className = styles.two_players_layer
+    this.container.classList.add(layer.two_players, modal.outer)
     this.container.setAttribute('style', 'display: none;')
 
     this.inner = document.createElement('div')
-    this.inner.className = styles.two_players__inner
+    this.inner.className = modal.inner
 
     const header = document.createElement('h3')
     this.loc.register('twoPlayers', header)
@@ -40,18 +44,16 @@ class TwoPlayersView {
       this.gamepads.push(player)
     }
 
-    const btnClose = buttonClose()
-    btnClose.addEventListener('click', () => {
-      this.container.setAttribute('style', 'display: none;')
-    })
+    this.close = buttonClose()
 
-    this.inner.append(header, message, gamepads, btnClose)
+    this.inner.append(header, message, gamepads, this.close)
     this.container.append(this.inner)
   }
 
   public show = (state = true) => {
     this.container.setAttribute('style', `display: ${state ? 'flex' : 'none'};`)
-    this.inner.classList.toggle(styles.bounce, state)
+    this.inner.classList.toggle(modal.bounce, state)
+    this.isActive = state
   }
 
   public hide = () => {
@@ -70,9 +72,11 @@ class TwoPlayersView {
   }
 }
 
+@Injectable
 export class TwoPlayers extends TwoPlayersView {
   // private startGame: (levelName: TSceneName, restart?: boolean) => void
   private gamepadService: GamepadService
+  private onClose?: () => void
 
   constructor({ /* start */ }: { start: (levelName: TSceneName, restart?: boolean) => void }) {
     super()
@@ -80,7 +84,8 @@ export class TwoPlayers extends TwoPlayersView {
     this.gamepadService = inject(GamepadService)
     this.gamepadService.registerCallbacks({
       onGamepadConnected: this.handleGamepadConnected,
-      onGamepadDisconnected: this.handleGamepadConnected
+      onGamepadDisconnected: this.handleGamepadConnected,
+      onButtonUp: this.onGamepadButtonUp
     })
 
     this.container.addEventListener('click', event => {
@@ -88,8 +93,27 @@ export class TwoPlayers extends TwoPlayersView {
       if (target === currentTarget) {
         event.preventDefault();
         this.show(false)
+        if (this.onClose) this.onClose()
       }
     })
+
+    this.close.addEventListener('click', () => {
+      this.show(false)
+      if (this.onClose) this.onClose()
+    })
+  }
+
+  public registerCallback = ({ onClose }: { onClose: () => void }) => {
+    this.onClose = onClose
+  }
+
+  private onGamepadButtonUp = (_gamepadIndex: number, buttonIndex: number) => {
+    if (!this.isActive) return
+
+    if (buttonIndex === 0) {
+      this.show(false)
+      if (this.onClose) this.onClose()
+    }
   }
 
   private handleGamepadConnected = () => {

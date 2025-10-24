@@ -4,6 +4,8 @@ import { iconSrc } from '~/ui/icons'
 import { inject } from '~/utils/inject'
 
 import styles from './confirm.module.css'
+import modal from '~/ui/modal.module.css'
+import layer from '~/ui/layers.module.css'
 
 export class ConfirmationModal {
   private loc: Localization
@@ -15,13 +17,13 @@ export class ConfirmationModal {
   constructor() {
     this.loc = inject(Localization)
     this.container = document.createElement('div')
-    this.container.className = styles.confirmation_layer
+    this.container.classList.add(layer.confirmation, modal.outer)
+    this.container.setAttribute('style', 'display: none;')
 
     const header = document.createElement('h3')
-    // aHeader.innerText = 'Confirmation'
     this.loc.register('confirmation', header)
     this.inner = document.createElement('div')
-    this.inner.className = styles.confirmation__inner
+    this.inner.className = modal.inner
     const btnClose = buttonClose()
     btnClose.addEventListener('click', () => {
       this.container.setAttribute('style', 'display: none;')
@@ -53,7 +55,7 @@ export class ConfirmationModal {
     this.acceptCallback = acceptCallback
     this.message.innerText = text || this.loc.get('confirmationDefault')
     this.container.setAttribute('style', 'display: flex;')
-    this.inner.classList.add(styles.bounce)
+    this.inner.classList.add(modal.bounce)
   }
 
   public hide = () => {
@@ -62,13 +64,13 @@ export class ConfirmationModal {
 
   private handleAccept = () => {
     this.container.setAttribute('style', 'display: none;')
-    this.inner.classList.remove(styles.bounce)
+    this.inner.classList.remove(modal.bounce)
     if (this.acceptCallback) this.acceptCallback()
   }
 
   private handleCancel = () => {
     this.container.setAttribute('style', 'display: none;')
-    this.inner.classList.remove(styles.bounce)
+    this.inner.classList.remove(modal.bounce)
   }
 
   public get element() {

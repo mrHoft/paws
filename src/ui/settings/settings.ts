@@ -5,34 +5,71 @@ import { iconSrc } from '~/ui/icons'
 import { LANGUAGES, type TLanguage } from '~/i18n'
 import { Localization } from '~/service/localization'
 import { GamepadService } from '~/service/gamepad'
-import { inject } from '~/utils/inject'
+import { Injectable, inject } from '~/utils/inject'
+import { buttonClose } from '~/ui/button'
 
 import styles from './settings.module.css'
+import modal from '~/ui/modal.module.css'
+import layer from '~/ui/layers.module.css'
 
 type TOption = 'music' | 'sound' | 'fps' | 'language'
 const OPTIONS: TOption[] = ['music', 'sound', 'fps', 'language']
 
-export class Settings {
+class SettingsView {
+  protected loc: Localization
+  protected container: HTMLDivElement
+  protected inner: HTMLDivElement
+  protected close: HTMLDivElement
+  protected isActive = false
+
+  constructor() {
+    this.loc = inject(Localization)
+
+    this.container = document.createElement('div')
+    this.container.classList.add(layer.settings, modal.outer)
+    this.container.setAttribute('style', 'display: none;')
+
+    const header = document.createElement('h3')
+    this.loc.register('settings', header)
+    this.inner = document.createElement('div')
+    this.inner.className = modal.inner
+    this.close = buttonClose()
+    this.inner.append(header, this.close)
+    this.container.append(this.inner)
+  }
+
+  public show = (state: boolean) => {
+    this.isActive = state
+    this.container.setAttribute('style', `display: ${state ? 'flex' : 'none'};`)
+    this.inner.classList.toggle(styles.bounce, state)
+  }
+
+  public get element() {
+    return this.container
+  }
+}
+
+@Injectable
+export class Settings extends SettingsView {
   private storage: Storage
   private audio: Audio
   private tone: ShepardTone
-  private loc: Localization
-  private container: HTMLUListElement
+  private list: HTMLUListElement
   private opt: Record<string, { element: HTMLLIElement, label: HTMLLabelElement, icon: HTMLImageElement, input: HTMLInputElement }> = {}
   private flags: HTMLDivElement
-  private gamepadService!: GamepadService
-  private settingsActive = false
+  private gamepadService: GamepadService
   private selectedOptionIndex = 0
   private selectedOptionId: TOption = 'music'
+  private onClose?: () => void
 
   constructor() {
+    super()
     this.gamepadService = inject(GamepadService)
     this.storage = inject(Storage)
     this.audio = inject(Audio)
     this.tone = inject(ShepardTone)
-    this.loc = inject(Localization)
-    this.container = document.createElement('ul')
-    this.container.className = styles.list
+    this.list = document.createElement('ul')
+    this.list.className = styles.list
 
     OPTIONS.forEach((id, index) => {
       this.opt[id] = {
@@ -134,15 +171,47 @@ export class Settings {
     }
     this.opt.language.label.append(this.flags)
 
-    this.container.append(...Object.values(this.opt).map(opt => opt.element))
+    this.list.append(...Object.values(this.opt).map(opt => opt.element))
+    this.inner.append(this.list)
 
     this.gamepadService.registerCallbacks({ onButtonUp: this.onGamepadButtonUp })
 
     this.handleOptionSelect()
+    this.registerEvents()
+  }
+
+  public registerCallback = ({ onClose }: { onClose: () => void }) => {
+    this.onClose = onClose
+  }
+
+  private registerEvents = () => {
+    const handleOutsideClick = (event: PointerEvent) => {
+      const { target, currentTarget } = event;
+      if (currentTarget && target === currentTarget) {
+        event.preventDefault();
+        const element = currentTarget as HTMLDivElement
+        element.setAttribute('style', 'display: none;')
+        for (const child of element.children) {
+          child.classList.remove(modal.bounce)
+        }
+        if (this.onClose) this.onClose()
+      }
+    }
+
+    this.container.addEventListener('click', handleOutsideClick)
+    this.close.addEventListener('click', () => {
+      this.show(false)
+      if (this.onClose) this.onClose()
+    })
   }
 
   private onGamepadButtonUp = (_gamepadIndex: number, buttonIndex: number) => {
-    if (!this.settingsActive) return
+    if (!this.isActive) return
+
+    if (buttonIndex === 0) {
+      this.show(false)
+      if (this.onClose) this.onClose()
+    }
 
     if (buttonIndex === 12 || buttonIndex === 13) {
       if (buttonIndex === 12) { // up
@@ -243,13 +312,5 @@ export class Settings {
     for (const flag of list) {
       flag.classList.toggle(styles.selected, (flag as HTMLImageElement).alt === lang)
     }
-  }
-
-  public get element() {
-    return this.container
-  }
-
-  public show = (state: boolean) => {
-    this.settingsActive = state
   }
 }

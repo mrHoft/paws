@@ -1,10 +1,9 @@
-.pause_layer {
+.pause {
   position: absolute;
   top: 0;
   left: 0;
   bottom: 0;
   right: 0;
-  z-index: 22;
   display: none;
   justify-content: center;
   align-items: center;
@@ -25,22 +24,4 @@
 .pause__btns {
   display: flex;
   gap: 1rem;
-}
-
-.bounce {
-  animation: bounce 0.3s ease-out;
-}
-
-@keyframes bounce {
-  0% {
-    transform: scale(0.25);
-  }
-
-  75% {
-    transform: scale(1.1);
-  }
-
-  100% {
-    transform: scale(1);
-  }
 }

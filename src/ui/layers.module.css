@@ -1,0 +1,39 @@
+.weather {
+  z-index: 5;
+}
+
+.overlay {
+  z-index: 10;
+}
+
+.menu {
+  z-index: 20;
+}
+
+.global {
+  z-index: 21;
+}
+
+.about {
+  z-index: 22;
+}
+
+.settings {
+  z-index: 22;
+}
+
+.scene {
+  z-index: 22;
+}
+
+.two_players {
+  z-index: 22;
+}
+
+.pause {
+  z-index: 23;
+}
+
+.confirmation {
+  z-index: 24;
+}

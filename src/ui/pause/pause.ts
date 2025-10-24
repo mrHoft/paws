@@ -6,6 +6,8 @@ import { GamepadService } from '~/service/gamepad'
 import { inject } from '~/utils/inject'
 
 import styles from './pause.module.css'
+import modal from '~/ui/modal.module.css'
+import layer from '~/ui/layers.module.css'
 
 export class PauseModal {
   private loc: Localization
@@ -19,20 +21,22 @@ export class PauseModal {
   private pauseActive = false
 
   constructor({ pause, restart, menu, confirm }: { pause: (_state: boolean) => void, restart: () => void, menu: () => void, confirm?: ConfirmationModal }) {
-    this.gamepadService = inject(GamepadService)
-    this.loc = inject(Localization)
-    this.confirm = confirm
-    this.container = document.createElement('div')
-    this.container.className = styles.pause_layer
     this.pause = pause
     this.restart = restart
     this.menu = menu
+    this.confirm = confirm
+
+    this.gamepadService = inject(GamepadService)
+    this.loc = inject(Localization)
+
+    this.container = document.createElement('div')
+    this.container.classList.add(layer.pause, styles.pause)
+    this.container.setAttribute('style', `display: none;`)
 
     this.inner = document.createElement('div')
-    this.inner.className = styles.pause__inner
+    // this.inner.className = styles.pause__inner
     const h2 = document.createElement('h2')
     h2.className = styles.pause__header
-    // h2.textContent = 'Pause'
     this.loc.register('pause', h2)
 
     const btns = document.createElement('div')
@@ -64,7 +68,7 @@ export class PauseModal {
 
   public show = (state: boolean) => {
     this.container.setAttribute('style', state ? 'display: flex;' : 'display: none;')
-    this.inner.classList.toggle(styles.bounce, state)
+    this.inner.classList.toggle(modal.bounce, state)
     this.pauseActive = state
   }
 

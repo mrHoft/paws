@@ -1,4 +1,5 @@
 import styles from './weather.module.css'
+import layer from '~/ui/layers.module.css'
 
 const leafSrc = './images/leaf_brown.svg'
 
@@ -27,7 +28,7 @@ export class Weather {
     const { leafCount = 3 } = options;
 
     this.container = document.createElement('div');
-    this.container.className = styles.weather_layer;
+    this.container.classList.add(layer.weather, styles.weather);
 
     for (let i = 0; i < leafCount; i++) {
       this.addLeaf();
