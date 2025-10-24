@@ -8,7 +8,8 @@ export class Draw {
   constructor(ctx: CanvasRenderingContext2D) {
     this.ctx = ctx
   }
-
+  /*
+  // Simple
   private drawShadow = (x: number, y: number, width: number, force = false) => {
     if (!this.ctx) return
 
@@ -17,6 +18,56 @@ export class Draw {
       this.ctx.beginPath()
       this.ctx.ellipse(x, y, width / 4, width / 10, 0, 0, 2 * Math.PI)
       this.ctx.fill()
+    }
+  }
+
+  // With gradient
+  private drawShadow = (x: number, y: number, width: number, force = false) => {
+    if (!this.ctx) return
+
+    if (GAME.shadowsEnable || force) {
+      const shadowWidth = width / 4;
+      const shadowHeight = width / 10;
+
+      const gradient = this.ctx.createRadialGradient(x, y, 0, x, y, shadowWidth * 1.2);
+
+      gradient.addColorStop(0, 'rgba(0, 0, 0, 0.25)');
+      gradient.addColorStop(0.65, 'rgba(0, 0, 0, 0.20)');
+      gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+      this.ctx.fillStyle = gradient;
+      this.ctx.beginPath();
+      this.ctx.ellipse(x, y, shadowWidth, shadowHeight, 0, 0, 2 * Math.PI);
+      this.ctx.fill();
+    }
+  }
+  */
+
+  // With context scaling to make it look like an ellipse
+  private drawShadow = (x: number, y: number, width: number, force = false) => {
+    if (!this.ctx) return
+
+    if (GAME.shadowsEnable || force) {
+      const shadowWidth = width / 4;
+      const shadowHeight = width / 10;
+
+      this.ctx.save();
+
+      this.ctx.translate(x, y);
+      this.ctx.scale(1, shadowHeight / shadowWidth);
+
+      const gradient = this.ctx.createRadialGradient(0, 0, 0, 0, 0, shadowWidth * 1.2);
+
+      gradient.addColorStop(0, 'rgba(0, 0, 0, 0.25)');
+      gradient.addColorStop(0.65, 'rgba(0, 0, 0, 0.20)');
+      gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+      this.ctx.fillStyle = gradient;
+      this.ctx.beginPath();
+      this.ctx.arc(0, 0, shadowWidth, 0, 2 * Math.PI);
+      this.ctx.fill();
+
+      this.ctx.restore();
     }
   }
 
@@ -32,28 +83,66 @@ export class Draw {
   public drawCat = (image: HTMLCanvasElement, x: number, y: number) => {
     this.drawObject(image, x, y, SpriteSize.cat.height)
   }
-
-  public drawTrajectory = (x: number, y: number, jumpHeight: number, forward = true) => {
+  /*
+  public drawTrajectory_simple = (x: number, y: number, jumpHeight: number, forward = true) => {
     if (this.ctx) {
       const width = jumpHeight * (forward ? 0.5 : 1)
 
       // Outer path
-      this.ctx.strokeStyle = 'rgba(70, 119, 24, 0.5)'
+      const gradient1 = this.ctx.createLinearGradient(x, y - 10, x + jumpHeight * 2, y - 10)
+      gradient1.addColorStop(0, 'rgba(122, 208, 41, 0)')
+      gradient1.addColorStop(1, 'rgba(70, 119, 24, 1)')
+      this.ctx.strokeStyle = gradient1  //'rgba(70, 119, 24, 0.5)'
       this.ctx.beginPath()
       this.ctx.ellipse(x + jumpHeight, y - 10, jumpHeight, width, 0, Math.PI, 0)
-      this.ctx.lineWidth = 4
-      this.ctx.lineCap = 'round'
+      this.ctx.lineWidth = 12
       this.ctx.stroke()
 
       // Inner path
-      this.ctx.strokeStyle = 'rgba(122, 208, 41, 1)'
+      const gradient2 = this.ctx.createLinearGradient(x, y - 10, x + jumpHeight * 2, y - 10)
+      gradient2.addColorStop(0, 'rgba(122, 208, 41, 0)')
+      gradient2.addColorStop(1, 'rgba(122, 208, 41, 1)')
+
+      this.ctx.strokeStyle = gradient2  // 'rgba(122, 208, 41, 0.5)'
       this.ctx.beginPath()
       this.ctx.ellipse(x + jumpHeight, y - 10, jumpHeight, width, 0, Math.PI, 0)
-      this.ctx.lineWidth = 2
+      this.ctx.lineWidth = 6
       this.ctx.stroke()
-
-      this.drawShadow(x + jumpHeight * 2, y, SpriteSize.cat.width, true)
     }
+  }
+  */
+  public drawTrajectory_segmented = (x: number, y: number, jumpHeight: number, forward = true) => {
+    if (this.ctx) {
+      const width = jumpHeight * (forward ? 0.5 : 1)
+      const segments = 50;
+      const maxLineWidth = 14;
+
+      const gradient = this.ctx.createLinearGradient(x, y - 10, x + jumpHeight * 2, y - 10
+      )
+      gradient.addColorStop(0, 'rgba(122, 208, 41, 0)')
+      gradient.addColorStop(1, 'rgba(122, 208, 41, 1)')
+
+      this.ctx.strokeStyle = gradient
+
+      for (let i = 0; i < segments; i++) {
+        const startAngle = Math.PI + (i / segments) * Math.PI;
+        const endAngle = Math.PI + ((i + 1) / segments) * Math.PI;
+
+        const progress = (i + 1) / segments;
+        const lineWidth = progress * maxLineWidth;
+
+        this.ctx.lineWidth = lineWidth;
+
+        this.ctx.beginPath();
+        this.ctx.ellipse(x + jumpHeight, y - 10, jumpHeight, width, 0, startAngle, endAngle);
+        this.ctx.stroke();
+      }
+    }
+  }
+
+  public drawTrajectory = (x: number, y: number, jumpHeight: number, forward = true) => {
+    this.drawShadow(x + jumpHeight * 2, y, SpriteSize.cat.width, true)
+    this.drawTrajectory_segmented(x, y, jumpHeight, forward)
   }
 
   public drawTarget = (name: string, x: number, y: number, height: number, animate = false) => {
