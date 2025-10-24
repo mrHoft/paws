@@ -38,7 +38,7 @@ export class Engine {
     timer: 0, // setTimeout link
     movementSpeed: 10,
     runAwaySpeed: 10,
-    successHeight: GAME.defaultTargetHeight,
+    successHeight: GAME.defaultObstacleHeight,
     success: false,
     fullJump: true, // To know does current target need a full jump
     paused: false,
@@ -64,8 +64,8 @@ export class Engine {
     xLast: GAME.defaultTargetX,
     yLast: GAME.defaultTargetY,
     PositionX: GAME.defaultTargetX, // A place where a target will stop
-    heightCurr: GAME.defaultTargetHeight,
-    heightLast: GAME.defaultTargetHeight,
+    heightCurr: GAME.defaultAnimalHeight,
+    heightLast: GAME.defaultAnimalHeight,
     isBarrier: false,
     runAwayDelay: GAME.defaultRunAwayDelay,
     atPosition: false,
@@ -102,7 +102,7 @@ export class Engine {
     this.tone = inject(ShepardTone)
 
     this.game.ctx = ctx
-    this.game.successHeight = GAME.defaultTargetHeight * this.game.successHeightModifier
+    this.game.successHeight = GAME.defaultObstacleHeight * this.game.successHeightModifier
     this.draw = new Draw(this.game.ctx!)
     this.fly = new FlyingValues(this.game.ctx!)
     this.backdrop = new Backdrop({ ctx })
@@ -385,8 +385,8 @@ export class Engine {
       ? GAME.defaultTargetX
       : GAME.defaultTargetX + Math.floor(Math.random() * GAME.animalPositionDelta)
     this.target.heightCurr = this.target.isBarrier
-      ? GAME.defaultTargetHeight * (1 + 0.1 * level)
-      : GAME.defaultTargetHeight
+      ? GAME.defaultObstacleHeight * (1 + 0.1 * level)
+      : GAME.defaultAnimalHeight
     this.target.runAwayDelay = GAME.defaultRunAwayDelay * (1 - 0.1 * level)
     this.game.paused = false
     this.game.movementSpeed = 10

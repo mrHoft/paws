@@ -36,7 +36,8 @@ export const GAME = {
   get defaultTargetY(): number {
     return this.actionPositionVertical
   },
-  defaultTargetHeight: 160,
+  defaultObstacleHeight: 128,
+  defaultAnimalHeight: 160,
   defaultRunAwayDelay: 8000, // The time after which the target will escape
 }
 
