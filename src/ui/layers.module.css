@@ -2,15 +2,11 @@
   z-index: 5;
 }
 
-.overlay {
-  z-index: 10;
-}
-
 .menu {
   z-index: 20;
 }
 
-.global {
+.single-ui {
   z-index: 21;
 }
 

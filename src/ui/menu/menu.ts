@@ -1,11 +1,11 @@
 import { GAME, SCENE_NAMES, SCENE_TARGETS, ANIMALS, type TSceneName, type TAnimalName } from "~/const"
 import { buttonCircle, buttonIcon, buttonClose } from "~/ui/button"
-import { Settings } from "~/ui/settings/settings"
-import { About } from "~/ui/about/about"
+import { SettingsUI } from "~/ui/settings/settings"
+import { AboutUI } from "~/ui/about/about"
 import { iconSrc, spoilSrc } from "~/ui/icons"
 import { Localization } from '~/service/localization'
 import { ConfirmationModal } from "~/ui/confirmation/confirm"
-import { TwoPlayers } from "~/ui/twoPlayers/twoPlayers"
+import { TwoPlayers } from "~/ui/two-players/twoPlayers"
 import { GamepadService } from '~/service/gamepad'
 import { inject } from "~/utils/inject"
 
@@ -141,15 +141,15 @@ class MenuView {
   }
 }
 
-export class Menu extends MenuView {
+export class MenuUI extends MenuView {
   private startGame: (options?: { sceneName: TSceneName, restart?: boolean }) => void
   private confirm: ConfirmationModal
   private gamepadService?: GamepadService
   private twoPlayersUI: TwoPlayers
   private selectedMenuItemIndex = 0
   private activeMenuItemId: string | null = null
-  private settings: Settings
-  private about: About
+  private settingsUI: SettingsUI
+  private aboutUI: AboutUI
 
   constructor({ start, confirm }: { start: (options?: { sceneName: TSceneName, restart?: boolean }) => void, confirm: ConfirmationModal }) {
     super()
@@ -160,24 +160,24 @@ export class Menu extends MenuView {
     this.twoPlayersUI = inject(TwoPlayers)
     this.twoPlayersUI.registerCallback({ onClose })
     this.gamepadService = inject(GamepadService)
-    this.settings = inject(Settings)
-    this.settings.registerCallback({ onClose })
-    this.about = inject(About)
-    this.about.registerCallback({ onClose })
+    this.settingsUI = inject(SettingsUI)
+    this.settingsUI.registerCallback({ onClose })
+    this.aboutUI = inject(AboutUI)
+    this.aboutUI.registerCallback({ onClose })
 
     this.menuCreate([
       { id: 'start', icon: iconSrc.play, func: () => { this.activeMenuItemId = 'start'; this.handleStart() } },
       { id: 'twoPlayers', icon: iconSrc.gamepad, func: () => { this.isActive = false; this.twoPlayersUI.show(true) } },
       { id: 'restart', icon: iconSrc.restart, func: () => { this.activeMenuItemId = 'restart'; this.handleRestart() } },
-      { id: 'settings', icon: iconSrc.settings, func: () => { this.isActive = false; this.settings.show(true) } },
+      { id: 'settings', icon: iconSrc.settings, func: () => { this.isActive = false; this.settingsUI.show(true) } },
       // { id: 'about', icon: iconSrc.about, func: this.handleAbout },
     ])
     this.menuItems[0].element.classList.add(styles.hover)
 
     const btnAbout = buttonIcon({ src: iconSrc.about })
     btnAbout.classList.add(styles['top-right'])
-    btnAbout.addEventListener('click', () => { this.isActive = false; this.about.show(true) })
-    this.container.append(this.settings.element, btnAbout)
+    btnAbout.addEventListener('click', () => { this.isActive = false; this.aboutUI.show(true) })
+    this.container.append(this.settingsUI.element, btnAbout)
 
     this.registerEvents();
   }

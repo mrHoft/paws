@@ -58,7 +58,7 @@ class AboutView {
 }
 
 @Injectable
-export class About extends AboutView {
+export class AboutUI extends AboutView {
   private gamepadService: GamepadService
   private onClose?: () => void
 

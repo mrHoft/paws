@@ -50,7 +50,7 @@ class SettingsView {
 }
 
 @Injectable
-export class Settings extends SettingsView {
+export class SettingsUI extends SettingsView {
   private storage: Storage
   private audio: Audio
   private tone: ShepardTone

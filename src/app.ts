@@ -3,21 +3,20 @@ import { CANVAS, type TSceneName } from '~/const'
 import { Weather } from '~/ui/weather/weather'
 import { PauseModal } from '~/ui/pause/pause'
 import { ConfirmationModal } from './ui/confirmation/confirm'
-import { Overlay } from '~/ui/overlay/overlay'
-import { GlobalUI } from '~/ui/global/global'
-import { Settings } from '~/ui/settings/settings'
-import { Menu } from '~/ui/menu/menu'
-import { About } from './ui/about/about'
+import { SinglePlayerUI } from '~/ui/single-player/singlePlayer'
+import { SettingsUI } from '~/ui/settings/settings'
+import { MenuUI } from '~/ui/menu/menu'
+import { AboutUI } from '~/ui/about/about'
 import { Storage } from '~/service/storage'
 import { Audio } from '~/service/audio'
 import { ShepardTone, type ShepardToneConfig } from './service/shepardTone'
 import { Localization } from '~/service/localization'
-import { FocusListener } from '~/service/focus'
-import { TwoPlayers } from '~/ui/twoPlayers/twoPlayers'
+import { WindowFocusService } from '~/service/focus'
+import { TwoPlayers } from '~/ui/two-players/twoPlayers'
 import { injector, inject } from '~/utils/inject'
-import type { EngineOptions } from './engine/types'
+import type { EngineOptions } from '~/engine/types'
 
-const autoStartScene: TSceneName | null = 'autumn'
+const autoStartScene: TSceneName | null = null  // 'autumn'
 
 type TErrorSource = 'assets' | 'api'
 
@@ -88,14 +87,14 @@ export class App extends AppView {
   private loading = { start: 0 }
   private pause?: PauseModal
   private confirm?: ConfirmationModal
-  private overlay?: Overlay
+  private singlePlayerUI?: SinglePlayerUI
   private weather?: Weather
   private audio: Audio
-  private menu?: Menu
-  private ui?: GlobalUI
+  private menuUI?: MenuUI
   private storage: Storage
-  private focus: FocusListener
+  private focusService: WindowFocusService
   private engineStart?: (options1?: EngineOptions, options2?: EngineOptions) => void
+  private enginePause?: (state: boolean) => void
 
   constructor() {
     super()
@@ -124,8 +123,8 @@ export class App extends AppView {
     }
     injector.createInstance(ShepardTone, config)
 
-    this.focus = new FocusListener()
-    this.focus.addCallbacks({
+    this.focusService = new WindowFocusService()
+    this.focusService.addCallbacks({
       focusLoss: () => { this.audio.mute = true },
       focusGain: () => { this.audio.mute = false }
     })
@@ -156,12 +155,13 @@ export class App extends AppView {
     this.loaderRemove()
     const twoPlayersUI = injector.createInstance(TwoPlayers, { start: this.startSinglePlayerGame })
     this.confirm = new ConfirmationModal()
-    this.menu = new Menu({ start: this.startSinglePlayerGame, confirm: this.confirm })
-    this.ui = new GlobalUI()
-    const settings = inject(Settings)
-    const about = inject(About)
+    this.menuUI = new MenuUI({ start: this.startSinglePlayerGame, confirm: this.confirm })
+    const initialScore = this.storage.get<number>('data.score')
+    this.singlePlayerUI = new SinglePlayerUI({ enginePause: this.handleEnginePause, initialScore })
+    const settingsUI = inject(SettingsUI)
+    const aboutUI = inject(AboutUI)
 
-    this.game.append(this.menu.element, this.ui.element, this.confirm.element, twoPlayersUI.element, settings.element, about.element)
+    this.game.append(this.menuUI.element, this.singlePlayerUI.element, this.confirm.element, twoPlayersUI.element, settingsUI.element, aboutUI.element)
 
     if (autoStartScene) {
       this.initGame().then(() => {
@@ -174,7 +174,8 @@ export class App extends AppView {
       return
     }
 
-    this.menu.show()
+    this.menuUI.show()
+    this.singlePlayerUI.toggleView('menu')
   }
 
   private initGame = async () => {
@@ -189,19 +190,18 @@ export class App extends AppView {
 
     const { Engine } = await import('./engine/engine');
     const handlers = {
-      handlePause: this.handlePause,
+      handlePause: (state: boolean) => { this.pause?.show(state); this.weather?.pause(state) },
       handleGameOver: () => console.log('Handle game over'),
-      setLevel: (value: number) => this.overlay?.handleLevel(value),
-      setCombo: (value: number) => this.overlay?.handleCombo(value),
+      setLevel: (value: number) => this.singlePlayerUI?.handleLevel(value),
+      setCombo: (value: number) => this.singlePlayerUI?.handleCombo(value),
       updateScore: this.handleUpdateScore,
-      updateCaught: (value: string) => this.ui?.caught.handleUpdate(value),
-      resetCaught: () => this.ui?.caught.handleReset(),
-      showTooltip: (value: string) => this.overlay?.handleTooltip(value),
+      updateCaught: (value: string) => this.singlePlayerUI?.caught.handleUpdate(value),
+      resetCaught: () => this.singlePlayerUI?.caught.handleReset(),
+      showTooltip: (value: string) => this.singlePlayerUI?.handleTooltip(value),
     }
-    const initialScore = this.storage.get<number>('data.score')
     const engines = Array.from({ length: 2 }, (_, i) => new Engine({ ctx: canvas[i].getContext('2d')!, handlers }))
 
-    const enginePause = (state: boolean) => {
+    this.enginePause = (state: boolean) => {
       engines.forEach((engine) => {
         engine.pause(state)
       })
@@ -209,13 +209,14 @@ export class App extends AppView {
 
     this.engineStart = (options1?: EngineOptions, options2?: EngineOptions) => {
       if (options1?.multiplayer) {
-        console.log('multiplayer')
+        this.singlePlayerUI?.toggleView('multiplayer')
         canvas.forEach((el, i) => el.setAttribute('style', `z-index: ${i + 1}; display: block;`))
         engines[0].start(options1)
         engines[1].start(options2)
       } else {
-        console.log('single player')
+        this.singlePlayerUI?.toggleView('single-player')
         engines[0].start(options1)
+        canvas[0].setAttribute('style', `z-index: 1;`)
         canvas[1].setAttribute('style', `z-index: 2; display: none;`)
       }
     }
@@ -226,25 +227,30 @@ export class App extends AppView {
       })
     }
 
-    this.overlay = new Overlay({ enginePause, initialScore })
     this.weather = new Weather()
     this.pause = new PauseModal({
-      pause: (state: boolean) => { enginePause(state); this.weather?.pause(state) },
-      restart: () => { this.engineStart!({ restart: true }); this.weather?.pause(false) },
-      menu: () => { engineStop(); this.menu?.show() },
+      pause: (state: boolean) => { this.handleEnginePause(state); this.weather?.pause(state) },
+      restart: () => { this.handleEngineStart({ restart: true }); this.weather?.pause(false) },
+      menu: () => {
+        console.log('menu show')
+        engineStop();
+        this.menuUI?.show();
+        this.singlePlayerUI?.toggleView('menu')
+        canvas.forEach((el, i) => el.setAttribute('style', `z-index: ${i + 1}; display: none;`))
+      },
       confirm: this.confirm
     })
 
-    this.game.append(...canvas, this.overlay.element, this.weather.element, this.pause.element)
+    this.game.append(...canvas, this.weather.element, this.pause.element)
 
-    this.focus.addCallbacks({
-      focusLoss: () => { enginePause(true); this.weather?.pause(true); },
-      focusGain: () => { this.pause?.show(false); enginePause(false); this.weather?.pause(false); }
+    this.focusService.addCallbacks({
+      focusLoss: () => { this.handleEnginePause(true); this.weather?.pause(true); },
+      focusGain: () => { this.pause?.show(false); this.handleEnginePause(false); this.weather?.pause(false); }
     })
   }
 
   private startSinglePlayerGame = (options?: EngineOptions) => {
-    this.menu?.show(false)
+    this.menuUI?.show(false)
     this.weather?.pause(false)
     if (this.engineStart) {
       this.engineStart({ fps: this.storage.get<boolean>('fps'), ...options })
@@ -253,13 +259,20 @@ export class App extends AppView {
     }
   }
 
-  private handlePause = (state: boolean) => {
-    this.pause?.show(state)
-    this.weather?.pause(state)
+  private handleEngineStart = (options1?: EngineOptions, options2?: EngineOptions) => {
+    if (this.engineStart) {
+      this.engineStart(options1, options2)
+    }
+  }
+
+  private handleEnginePause = (state: boolean) => {
+    if (this.enginePause) {
+      this.enginePause(state)
+    }
   }
 
   private handleUpdateScore = (value: number) => {
-    this.overlay?.handleScore(value)
+    this.singlePlayerUI?.handleScore(value)
     this.storage.set('data.score', value)
   }
 

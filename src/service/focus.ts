@@ -1,4 +1,4 @@
-export class FocusListener {
+export class WindowFocusService {
   private callbacks: Record<'focusLoss' | 'focusGain', (() => void)[]> = { focusLoss: [], focusGain: [] }
 
   constructor() {

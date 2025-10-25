@@ -18,7 +18,7 @@ export const SpriteSize = {
 
 // Core game constants
 export const GAME = {
-  version: 'alpha.0.3.13',
+  version: 'alpha.0.4.14',
   scorePerLevel: 1000,
   catchRange: 24, // A range where an animal can be caught
   shadowsEnable: false,
@@ -46,6 +46,8 @@ export const GAME = {
 
   // Multiplayer
   roundLength: 20,
+
+  fullscreenControl: true
 }
 
 export type TAnimalName = 'butterfly1' | 'butterfly2' | 'grasshopper' | 'frog' | 'bird' | 'mouse'
