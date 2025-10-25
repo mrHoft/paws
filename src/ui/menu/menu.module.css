@@ -74,7 +74,7 @@
 
 .level__thumb {
   position: absolute;
-  border-radius: 1em;
+  border-radius: 20% 20% 20% 20% / 18% 18% 18% 18%;
   border: 2px solid var(--color-orange70);
   box-sizing: border-box;
   transition: transform 0.25s ease-in;

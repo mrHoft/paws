@@ -38,7 +38,7 @@ export class Overlay extends OverlayView {
   private audio: Audio
   private player: Record<'level' | 'score' | 'combo', { el: HTMLDivElement, value: HTMLSpanElement }>
 
-  constructor({ handlePause, initialScore }: { handlePause: (_show: boolean) => void, initialScore?: number }) {
+  constructor({ enginePause, initialScore }: { enginePause: (_show: boolean) => void, initialScore?: number }) {
     super()
     this.loc = inject(Localization)
     this.audio = inject(Audio)
@@ -83,7 +83,7 @@ export class Overlay extends OverlayView {
     const pause = buttonIcon({ src: iconSrc.pause })
     pause.addEventListener('mousedown', (event) => {
       event.stopPropagation()
-      handlePause(true)
+      enginePause(true)
     })
     this.bottom.append(pause)
   }

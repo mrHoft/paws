@@ -76,7 +76,7 @@ export class PauseModal {
     if (!this.pauseActive) return
 
     if (buttonIndex === 9) {  // Start button
-      this.handleMenu()
+      // this.handleMenu()
     }
     if (buttonIndex === 0 || buttonIndex === 1 || buttonIndex === 8) {  // Accept / Cancel button
       this.handleResume()

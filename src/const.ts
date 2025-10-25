@@ -21,10 +21,14 @@ export const GAME = {
   version: 'alpha.0.3.13',
   scorePerLevel: 1000,
   catchRange: 24, // A range where an animal can be caught
-  meter: true, // Performance meter
-  actionPositionVertical: Math.floor(CANVAS.height * 0.88),
   shadowsEnable: false,
-  trajectoryStep: 3,
+
+  updateTime: Math.floor(1000 / 60 * 1000) / 1000, // The time between renders (60fps)
+  updateModifier: 2,  // Affects updateTime (2 = 120fps)
+  movementSpeed: 4,
+  trajectoryStep: 1.5,
+
+  actionPositionVertical: Math.floor(CANVAS.height * 0.88),
   jumpHeightMin: Math.floor(SpriteSize.cat.height / 1.5),
   jumpHeightMax: SpriteSize.cat.height * 2.25,
   defaultCatX: Math.floor(CANVAS.width / 3),
@@ -39,6 +43,9 @@ export const GAME = {
   defaultObstacleHeight: 128,
   defaultAnimalHeight: 160,
   defaultRunAwayDelay: 8000, // The time after which the target will escape
+
+  // Multiplayer
+  roundLength: 20,
 }
 
 export type TAnimalName = 'butterfly1' | 'butterfly2' | 'grasshopper' | 'frog' | 'bird' | 'mouse'

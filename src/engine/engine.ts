@@ -1,16 +1,28 @@
-import { ANIMALS, OBSTACLES, CANVAS, SCENE_TARGETS, GAME, TARGET_SCORE, type TAnimalName, type TSceneName } from '~/const'
+import { ANIMALS, OBSTACLES, CANVAS, GAME, TARGET_SCORE, type TAnimalName } from '~/const'
 import { Draw } from './draw'
 import { Resource } from './resource'
 import { Backdrop } from './backdrop'
 import { FlyingValues } from './flyingValues'
-import { ControlEvents } from './events'
+import { EventsService } from './events'
 import { Tooltip } from './tooltip'
-import type { Target, TCat, TCaught, TGame } from './types'
+import { PerformanceMeter } from './meter'
+import { TargetService } from './target'
+import type { Target, TCat, TCaught, TGame, EngineOptions } from './types'
 import type { GifObject } from '~/utils/gif'
-import { Queue } from '~/utils/queue'
 import { Audio } from '~/service/audio'
 import { ShepardTone } from '~/service/shepardTone'
 import { inject } from '~/utils/inject'
+
+interface EngineHandlers {
+  handlePause: (_state: boolean) => void,
+  handleGameOver: () => void,
+  setLevel: (_value: number) => void,
+  setCombo: (_value: number) => void,
+  updateScore: (_value: number) => void,
+  updateCaught: (_id: string) => void,
+  resetCaught: () => void,
+  showTooltip: (_id: string) => void,
+}
 
 const caughtDefault: TCaught = {
   butterfly: 0,
@@ -22,23 +34,20 @@ const caughtDefault: TCaught = {
 
 export class Engine {
   private audio: Audio
+  private ctx: CanvasRenderingContext2D
   private game: TGame = {
     sceneName: 'default',
-    level: 0, // Game complexity level
-    SPEED: 0.5, // Game complexity (normal: 0.5 fast: 1)
-    successHeightModifier: 1.3, // Defines jump to target height ratio
-    // Frame reit, actually no :). Updates automatically.
-    get updateTime(): number {
-      return Math.floor(17 / this.SPEED)
-    },
+    level: 0, // Game complexity level (normal: 0 fast: 5)
+    movementSpeed: Math.floor(GAME.movementSpeed * GAME.updateModifier * 1000) / 1000,
+    runAwaySpeed: Math.floor(GAME.movementSpeed * 1.2 * GAME.updateModifier * 1000) / 1000,
+    jumpStep: Math.floor(5 / GAME.updateModifier * 1000) / 1000,
+    updateTime: Math.floor(GAME.updateTime / GAME.updateModifier / 0.5), // Frame reit, actually no :)
     action: null,
     ctx: null,
     fps: true,
     definingTrajectory: false, // Jump attempt state
     timer: 0, // setTimeout link
-    movementSpeed: 10,
-    runAwaySpeed: 10,
-    successHeight: GAME.defaultObstacleHeight,
+    successHeightModifier: 1.3, // Defines jump to target height ratio
     success: false,
     fullJump: true, // To know does current target need a full jump
     paused: false,
@@ -52,14 +61,14 @@ export class Engine {
     jumpHeight: GAME.jumpHeightMin,
     jumpStage: 0,
     trajectoryDirection: 1,
-    CatX: GAME.defaultCatX,
-    CatY: GAME.defaultCatY,
+    x: GAME.defaultCatX,
+    y: GAME.defaultCatY,
     atPosition: false,
   }
   private target: Target = {
     nameCurr: 'none',
     nameLast: 'none',
-    xCurr: this.cat.CatX + CANVAS.width / 2,
+    xCurr: this.cat.x + CANVAS.width / 2,
     yCurr: GAME.defaultTargetY,
     xLast: GAME.defaultTargetX,
     yLast: GAME.defaultTargetY,
@@ -73,44 +82,47 @@ export class Engine {
   private resource: Resource
   private draw: Draw
   private tone: ShepardTone
-  private fly: FlyingValues
-  private events: ControlEvents
+  private flyingValues: FlyingValues
+  private events: EventsService
+  private targetService: TargetService
   private tooltip: Tooltip
   private backdrop: Backdrop
-  private meterStack = new Queue()
+  private meter: PerformanceMeter
   private handlePause: (pause: boolean) => void
-  // private handleGameOver: () => void
   private showLevel: (value: number) => void
   private showCombo: (value: number) => void
   private showTooltip: (tooltip: string) => void
   private updateScore: (score: number) => void
   private updateCaught: (id: string) => void
   private resetCaught: () => void
-  private static __instance: Engine
+  // private handleGameOver: () => void
 
-  private constructor(ctx: CanvasRenderingContext2D, handlers: Record<string, (value?: any) => void>) {
+  constructor({ ctx, handlers, initialScore }: { ctx: CanvasRenderingContext2D, handlers: EngineHandlers, initialScore?: number }) {
     this.handlePause = handlers.handlePause
-    // this.handleGameOver = handlers.handleGameOver
     this.showLevel = handlers.setLevel
     this.showCombo = handlers.setCombo
     this.showTooltip = handlers.showTooltip
     this.updateScore = handlers.updateScore
     this.updateCaught = handlers.updateCaught
     this.resetCaught = handlers.resetCaught
+    // this.handleGameOver = handlers.handleGameOver
+
+    this.ctx = ctx
+    this.ctx.font = '32px Arial'
+
+    if (initialScore) this.game.score = initialScore
 
     this.audio = inject(Audio)
     this.tone = inject(ShepardTone)
-
-    this.game.ctx = ctx
-    this.game.successHeight = GAME.defaultObstacleHeight * this.game.successHeightModifier
-    this.draw = new Draw(this.game.ctx!)
-    this.fly = new FlyingValues(this.game.ctx!)
-    this.backdrop = new Backdrop({ ctx })
-    this.events = new ControlEvents({ game: this.game, prepareJumpStart: this.prepareJumpStart, prepareJumpEnd: this.prepareJumpEnd, pause: this.pause })
-    this.tooltip = new Tooltip(this.showTooltip)
-
-    this.resource = Resource.get()
+    this.targetService = inject(TargetService)
+    this.resource = inject(Resource)
     this.cat.source = this.resource.sprite.cat as GifObject
+    this.meter = new PerformanceMeter(this.ctx)
+    this.draw = new Draw({ ctx })
+    this.flyingValues = new FlyingValues(this.ctx)
+    this.backdrop = new Backdrop({ ctx })
+    this.tooltip = new Tooltip(this.showTooltip)
+    this.events = inject(EventsService)
   }
 
   private setScore = (value: number, multiplier = 1) => {
@@ -118,7 +130,7 @@ export class Engine {
     this.game.score += value * multiplier * combo
     if (this.game.score < 0) this.game.score = 0
     this.updateScore(this.game.score)
-    if (value != 0) this.fly.throw(value * combo, multiplier, this.cat.CatX)
+    if (value != 0) this.flyingValues.throw(value * combo, multiplier, this.cat.x)
     if (this.game.success) this.tooltip.hide()
   }
 
@@ -153,7 +165,7 @@ export class Engine {
         this.game.combo += 1
         if (this.game.combo > 1) {
           this.showCombo(this.game.combo)
-          this.fly.throw('Combo:', this.game.combo, this.cat.CatX)
+          this.flyingValues.throw('Combo:', this.game.combo, this.cat.x)
           this.audio.use('combo')
         }
       }
@@ -167,6 +179,7 @@ export class Engine {
   }
 
   private prepareJumpStart = () => {
+    if (this.game.stopped || this.game.paused) return
     if (!this.audio.sound.muted) {
       this.tone.direction = 'ascending'
       this.tone.start();
@@ -180,6 +193,7 @@ export class Engine {
   }
 
   private prepareJumpEnd = () => {
+    if (this.game.stopped || this.game.paused) return
     this.tone.stop();
     this.game.definingTrajectory = false
     // Prevent accidental taps
@@ -188,14 +202,14 @@ export class Engine {
       this.game.action = 'jump'
       this.cat.atPosition = false
       this.cat.jumpStage = -Math.PI
-      this.game.successHeight = this.target.isBarrier
+      let successHeight = this.target.isBarrier
         ? Math.floor(
           this.target.heightCurr * this.game.successHeightModifier + (this.target.xCurr - this.target.PositionX) / 2
         )
-        : Math.floor((this.target.xCurr - this.cat.CatX) / 2)
+        : Math.floor((this.target.xCurr - this.cat.x) / 2)
       this.game.success =
-        (this.target.isBarrier && this.cat.jumpHeight > this.game.successHeight) ||
-        Math.abs(this.cat.jumpHeight - this.game.successHeight) < GAME.catchRange
+        (this.target.isBarrier && this.cat.jumpHeight > successHeight) ||
+        Math.abs(this.cat.jumpHeight - successHeight) < GAME.catchRange
       // console.log('Jump height: ', this.cat.jumpHeight, '/', this.game.successHeight, this.game.success)	// Do not remove!
     }
   }
@@ -214,13 +228,13 @@ export class Engine {
       this.tone.stop();
       return
     }
-    this.draw.drawTrajectory(this.cat.CatX, this.cat.CatY, this.cat.jumpHeight, !this.target.isBarrier)
+    this.draw.drawTrajectory(this.cat.x, this.cat.y, this.cat.jumpHeight, !this.target.isBarrier)
   }
 
   private defineJump = () => {
     const modifier = this.target.isBarrier ? 1 : 0.6
-    const r = this.cat.jumpHeight // Circle radius
-    const points = r / 5 // Position count
+    const r = this.cat.jumpHeight // Trajectory curve radius
+    const points = r / this.game.jumpStep // Position count
     const step = Math.PI / points / modifier
     this.cat.jumpStage += step
     const i = this.cat.jumpStage
@@ -228,10 +242,10 @@ export class Engine {
       this.commitFail()
     }
     if (i < 0) {
-      this.cat.CatX = Math.floor(GAME.defaultCatX + r + r * Math.cos(i))
-      const y = this.cat.CatY + r * Math.sin(i) * modifier
+      this.cat.x = Math.floor(GAME.defaultCatX + r + r * Math.cos(i))
+      const y = this.cat.y + r * Math.sin(i) * modifier
       const frameIndex = Math.floor(((i + Math.PI) / Math.PI) * 7)
-      this.draw.drawCat(this.cat.source.frames[frameIndex].image, this.cat.CatX, y)
+      this.draw.drawCat(this.cat.source.frames[frameIndex].image, this.cat.x, y)
     } else {
       this.game.success ? this.commitSuccess() : this.commitFail()
     }
@@ -265,8 +279,8 @@ export class Engine {
     }
 
     // Move Cat
-    if (this.cat.CatX > GAME.defaultCatX) {
-      this.cat.CatX -= this.target.atPosition ? Math.floor((this.game.movementSpeed / 3) * 2) : this.game.movementSpeed
+    if (this.cat.x > GAME.defaultCatX) {
+      this.cat.x -= this.target.atPosition ? Math.floor((this.game.movementSpeed / 3) * 2) : this.game.movementSpeed
     } else {
       this.cat.atPosition = true
     }
@@ -279,7 +293,7 @@ export class Engine {
   private runAway = () => {
     const speed = this.game.runAwaySpeed
     if (this.target.nameLast.startsWith('butterfly') || this.target.nameLast.startsWith('bird')) {
-      this.target.xLast -= speed * (this.target.nameLast.startsWith('bird') ? 2 : 1.5)
+      this.target.xLast -= speed * (this.target.nameLast.startsWith('bird') ? 1.8 : 1.4)
       this.target.yLast -= this.target.nameLast.startsWith('butterfly') ? Math.random() * speed : speed
       return
     }
@@ -299,10 +313,8 @@ export class Engine {
   }
 
   private render = () => {
-    // Development time patch
-    if (!this.cat.source) this.cat.source = this.resource.sprite.cat as GifObject
-    performance.mark('beginRenderProcess')
-    this.game.ctx!.clearRect(0, 0, CANVAS.width, CANVAS.height)
+    performance.mark(this.meter.begin)
+    this.ctx.clearRect(0, 0, CANVAS.width, CANVAS.height)
     if (!this.target.atPosition && (this.game.action == 'return' || this.game.action == 'scene')) {
       this.backdrop.move(this.scrollSpeed())
     } else {
@@ -316,33 +328,27 @@ export class Engine {
     switch (this.game.action) {
       case 'return':
         this.sceneChange()
-        this.draw.drawCat(this.cat.source.image!, this.cat.CatX, this.cat.CatY)
+        this.draw.drawCat(this.cat.source.image!, this.cat.x, this.cat.y)
         break
       case 'scene':
         this.sceneChange()
-        this.draw.drawCat(this.cat.source.image!, this.cat.CatX, this.cat.CatY)
+        this.draw.drawCat(this.cat.source.image!, this.cat.x, this.cat.y)
         break
       case 'run':
-        this.draw.drawCat(this.cat.source.image!, this.cat.CatX, this.cat.CatY)
+        this.draw.drawCat(this.cat.source.image!, this.cat.x, this.cat.y)
         break
       case 'jump':
         this.defineJump()
         break
       default: // 'stay'
-        this.draw.drawCat(this.cat.source.frames[0].image, this.cat.CatX, this.cat.CatY)
+        this.draw.drawCat(this.cat.source.frames[0].image, this.cat.x, this.cat.y)
     }
-    this.fly.render()
+    this.flyingValues.render()
+
+    performance.mark(this.meter.end)
+    if (this.game.fps && this.game.multiplayer === undefined) this.meter.render()
+
     if (this.game.definingTrajectory || this.updateIsNeeded()) setTimeout(this.update, this.game.updateTime)
-    // Performance meter
-    performance.mark('endRenderProcess')
-    if (this.game.fps) {
-      const measure = performance.measure('measureRenderProcess', 'beginRenderProcess', 'endRenderProcess')
-      const duration = Math.floor(measure.duration * 1000)
-      if (duration > 0) this.meterStack.enqueue(duration)
-      const fps = Math.floor(10000 / this.meterStack.average(10))
-      this.game.ctx!.fillStyle = '#cedbf0'
-      this.game.ctx!.fillText(`fps: ${fps}`, CANVAS.width * .75, 32)
-    }
   }
 
   private updateIsNeeded = (): boolean => {
@@ -351,13 +357,10 @@ export class Engine {
 
   // Main update function
   private update = (/* timer: number */) => {
-    if (!this.game.paused && this.game.ctx) {
+    if (!this.game.paused) {
       // Development time patch
       if (this.resource.sprite.cat && !this.resource.sprite.cat.loading) {
         this.render()
-      } else {
-        console.log('Waiting for GIF image')
-        setTimeout(this.update, 500)
       }
     }
   }
@@ -368,18 +371,18 @@ export class Engine {
     const level = Math.min(Math.floor(Math.max(this.game.score, 0) / GAME.scorePerLevel), 5)
     if (level !== this.game.level) {
       this.game.level = level
-      this.game.SPEED = 0.5 + level * 0.1
+      const speed = Math.min(0.5 + level * 0.1, 1)
+      this.game.updateTime = Math.floor(GAME.updateTime / GAME.updateModifier / speed)
       this.showLevel(level)
     }
-    const targets = SCENE_TARGETS[this.game.sceneName]
-    const rand = Math.floor(Math.random() * targets.length)
+
     this.target.nameLast = this.target.nameCurr
     this.target.heightLast = this.target.heightCurr
     this.target.xLast = this.target.xCurr
     this.target.yLast = this.target.yCurr
-    this.target.xCurr = Math.floor(Math.max(this.cat.CatX + CANVAS.width / 2, CANVAS.width))
-    this.target.yCurr = GAME.defaultTargetY
-    this.target.nameCurr = targets[rand]
+    this.target.xCurr = Math.floor(Math.max(this.cat.x + CANVAS.width / 2, CANVAS.width))
+    this.target.yCurr = GAME.defaultTargetY / (this.game.multiplayer ? 2 : 1) + (this.game.multiplayer === 'bottom' ? CANVAS.height / 2 : 0)
+    this.target.nameCurr = this.targetService.getTarget(this.game.multiplayer)
     this.target.isBarrier = OBSTACLES.includes(this.target.nameCurr)
     this.target.PositionX = this.target.isBarrier
       ? GAME.defaultTargetX
@@ -389,7 +392,6 @@ export class Engine {
       : GAME.defaultAnimalHeight
     this.target.runAwayDelay = GAME.defaultRunAwayDelay * (1 - 0.1 * level)
     this.game.paused = false
-    this.game.movementSpeed = 10
     this.game.fullJump = this.target.nameCurr == 'puddle' || ANIMALS.includes(this.target.nameCurr as TAnimalName)
     this.cat.atPosition = false
     this.target.atPosition = false
@@ -399,20 +401,41 @@ export class Engine {
     this.game.action = 'scene'
   }
 
-  public start(options: { sceneName?: TSceneName, restart?: boolean, fps?: boolean } = {}) {
-    const { sceneName = this.game.sceneName, restart, fps } = options
-    this.events = new ControlEvents({ game: this.game, prepareJumpStart: this.prepareJumpStart, prepareJumpEnd: this.prepareJumpEnd, pause: this.pause })
-    this.tooltip = new Tooltip(this.showTooltip)
-    this.backdrop.init(sceneName)
+  public start(options: EngineOptions = {}) {
+    const { sceneName = this.game.sceneName, restart, fps, multiplayer, control = 'any' } = options
+
+    this.game.multiplayer = multiplayer
+    if (multiplayer) {
+      this.cat.y = GAME.defaultCatY / 2
+      this.target.yCurr = GAME.defaultTargetY / 2
+      this.target.yLast = GAME.defaultTargetY / 2
+      if (multiplayer === 'bottom') {
+        this.cat.y += CANVAS.height / 2
+        this.target.yCurr += CANVAS.height / 2
+        this.target.yLast += CANVAS.height / 2
+      }
+    } else {
+      this.cat.y = GAME.defaultCatY
+    }
+
+    const sizeModifier = multiplayer ? 0.7 : 1
+    this.draw.setup({ sizeModifier })
+    this.backdrop.setup({ sceneName, multiplayer })
+    this.targetService.setup({ sceneName, multiplayer })
+    this.events.registerControl(control, {
+      game: this.game,
+      prepareJumpStart: this.prepareJumpStart,
+      prepareJumpEnd: this.prepareJumpEnd,
+      pause: this.pause
+    })
+
     this.audio.musicMute = false
     this.audio.play(0, true)  // TODO: level music
 
-    this.game.ctx!.font = '32px Arial'
     this.game.sceneName = sceneName
     this.game.stopped = false
     this.game.paused = false
     this.game.action = null
-    this.events.registerEvents()
     this.levelPrepare()
     this.tooltip.show('start')
 
@@ -431,7 +454,6 @@ export class Engine {
   }
 
   public stop() {
-    this.events.unRegisterEvents()
     window.clearTimeout(this.game.timer)
     this.audio.pause()
     this.game.stopped = true
@@ -443,36 +465,12 @@ export class Engine {
     console.log(`Game ${this.game.paused ? 'paused' : 'continued'}`)
 
     if (this.game.paused) {
-      this.events.unRegisterEvents()
       this.handlePause(true)
       window.clearTimeout(this.game.timer)
       this.audio.musicMute = true
     } else {
-      this.events.registerEvents()
       requestAnimationFrame(this.update)
       this.audio.musicMute = false
     }
-  }
-
-  public static get({ ctx, handlers, initialScore }: { ctx?: CanvasRenderingContext2D, handlers?: Record<string, (value?: any) => void>, initialScore?: number }) {
-    if (Engine.__instance) {
-      // Renew handlers
-      if (handlers) {
-        Engine.__instance.handlePause = handlers.handlePause
-        // Engine.__instance.handleGameOver = handlers.handleGameOver
-        Engine.__instance.showLevel = handlers.setLevel
-        Engine.__instance.showCombo = handlers.setCombo
-        Engine.__instance.showTooltip = handlers.showTooltip
-        Engine.__instance.updateScore = handlers.updateScore
-        Engine.__instance.updateCaught = handlers.updateCaught
-        Engine.__instance.resetCaught = handlers.resetCaught
-      }
-      return Engine.__instance
-    }
-    if (ctx && handlers) {
-      Engine.__instance = new Engine(ctx, handlers)
-      if (initialScore) Engine.__instance.game.score = initialScore
-    }
-    return Engine.__instance
   }
 }

@@ -142,7 +142,7 @@ class MenuView {
 }
 
 export class Menu extends MenuView {
-  private startGame: (levelName: TSceneName, restart?: boolean) => void
+  private startGame: (options?: { sceneName: TSceneName, restart?: boolean }) => void
   private confirm: ConfirmationModal
   private gamepadService?: GamepadService
   private twoPlayersUI: TwoPlayers
@@ -151,7 +151,7 @@ export class Menu extends MenuView {
   private settings: Settings
   private about: About
 
-  constructor({ start, confirm }: { start: (levelName: TSceneName, restart?: boolean) => void, confirm: ConfirmationModal }) {
+  constructor({ start, confirm }: { start: (options?: { sceneName: TSceneName, restart?: boolean }) => void, confirm: ConfirmationModal }) {
     super()
     this.startGame = start
     this.confirm = confirm
@@ -231,7 +231,7 @@ export class Menu extends MenuView {
           }
           case ('confirmation'): {
             this.confirm.hide()
-            this.startGame(SCENE_NAMES[0], true)
+            this.startGame({ sceneName: SCENE_NAMES[0], restart: true })
             break
           }
           default: {
@@ -286,7 +286,7 @@ export class Menu extends MenuView {
 
   private handleRestart = () => {
     this.activeMenuItemId = 'confirmation'
-    this.confirm.show({ text: this.loc.get('restartDesc'), acceptCallback: () => this.startGame(SCENE_NAMES[0], true) })
+    this.confirm.show({ text: this.loc.get('restartDesc'), acceptCallback: () => this.startGame({ sceneName: SCENE_NAMES[0], restart: true }) })
   }
 
   private handleSceneClick = (name: TSceneName) => (event?: PointerEvent) => {
@@ -323,6 +323,6 @@ export class Menu extends MenuView {
   private handleSceneStart = () => {
     this.show(false)
     this.scene.element.setAttribute('style', 'display: none;')
-    this.startGame(this.scene.name)
+    this.startGame({ sceneName: this.scene.name })
   }
 }

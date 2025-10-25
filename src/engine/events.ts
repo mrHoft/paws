@@ -1,81 +1,116 @@
-import type { TGame } from './types'
+import type { TGame, TControl } from './types'
 import { GamepadService } from '~/service/gamepad'
-import { inject } from '~/utils/inject'
+import { inject, Injectable } from '~/utils/inject'
 
-interface ControlEventsProps { game: TGame, prepareJumpStart: () => void, prepareJumpEnd: () => void, pause: (state: boolean) => void }
+const controlType: Record<'keyboard' | 'pointer' | 'gamepad', TControl[]> = {
+  keyboard: ['keyboard', 'any'],
+  pointer: ['pointer', 'any'],
+  gamepad: ['gamepad1', 'gamepad2', 'any'],
+}
 
-export class ControlEvents {
-  private game: TGame
-  private prepareJumpStart: () => void
-  private prepareJumpEnd: () => void
-  private pause: (state: boolean) => void
-  private static __instance: ControlEvents
-  private gamepadService!: GamepadService
+interface EngineData {
+  game: TGame,
+  prepareJumpStart: () => void,
+  prepareJumpEnd: () => void,
+  pause: (state: boolean) => void
+}
 
-  constructor({ game, prepareJumpStart, prepareJumpEnd, pause }: ControlEventsProps) {
-    this.game = game
-    this.prepareJumpStart = prepareJumpStart
-    this.prepareJumpEnd = prepareJumpEnd
-    this.pause = pause
+@Injectable
+export class EventsService {
+  private gamepadService: GamepadService
+  private controls: Partial<Record<TControl, EngineData>> = {}
 
-    if (ControlEvents.__instance) return ControlEvents.__instance
-    ControlEvents.__instance = this
-
+  constructor() {
     this.gamepadService = inject(GamepadService)
+    this.registerEvents()
   }
 
-  private canJump = (): boolean => {
-    return !this.game.definingTrajectory && this.game.action !== 'jump'
+  public registerControl = (control: TControl, data: EngineData) => {
+    this.controls[control] = data
+  }
+
+  private canJump = (engine: EngineData): boolean => {
+    return !engine.game.definingTrajectory && engine.game.action !== 'jump'
   }
 
   private onkeydown = (event: KeyboardEvent) => {
-    if (this.canJump() && event.code == 'Space') {
-      this.prepareJumpStart()
+    for (const control of controlType.keyboard) {
+      const engine = this.controls[control]
+      if (engine) {
+        if (this.canJump(engine) && event.code == 'Space') {
+          engine.prepareJumpStart()
+        }
+      }
     }
   }
 
   private onkeyup = (event: KeyboardEvent) => {
-    if (this.game.definingTrajectory && event.code == 'Space') {
-      this.prepareJumpEnd()
-    }
-    if (event.code == 'Escape') {
-      this.pause(true)
+    for (const control of controlType.keyboard) {
+      const engine = this.controls[control]
+      if (engine) {
+        if (event.code == 'Escape') {
+          engine.pause(true)
+        }
+        if (engine.game.definingTrajectory && (event.code == 'Space' || event.code == 'Escape')) {
+          engine.prepareJumpEnd()
+        }
+      }
     }
   }
 
   private touchstart = (event: MouseEvent | TouchEvent) => {
     event.preventDefault()
     if (event.target && event.target instanceof HTMLDivElement && event.target.ariaLabel) return
-    if (this.canJump()) {
-      this.prepareJumpStart()
+    for (const control of controlType.pointer) {
+      const engine = this.controls[control]
+      if (engine) {
+        if (this.canJump(engine)) {
+          engine.prepareJumpStart()
+        }
+      }
     }
   }
 
   private touchend = (/* event: MouseEvent | TouchEvent */) => {
-    if (this.game.definingTrajectory) {
-      this.prepareJumpEnd()
+    for (const control of controlType.pointer) {
+      const engine = this.controls[control]
+      if (engine) {
+        if (engine.game.definingTrajectory) {
+          engine.prepareJumpEnd()
+        }
+      }
     }
   }
 
   private onGamepadButtonDown = (_gamepadIndex: number, buttonIndex: number, _value: number) => {
-    if (buttonIndex === 9) {
-      return
-    }
-    if (this.canJump()) {
-      this.prepareJumpStart()
+    for (const control of controlType.gamepad) {
+      const engine = this.controls[control]
+      if (engine) {
+        if (buttonIndex === 9) {
+          return
+        }
+        if (this.canJump(engine)) {
+          engine.prepareJumpStart()
+        }
+      }
     }
   }
 
   private onGamepadButtonUp = (_gamepadIndex: number, buttonIndex: number) => {
-    if (buttonIndex === 9) {
-      this.pause(true)
-    }
-    if (this.game.definingTrajectory) {
-      this.prepareJumpEnd()
+    for (const control of controlType.gamepad) {
+      const engine = this.controls[control]
+      if (engine) {
+        if (buttonIndex === 9) {
+          engine.pause(true)
+        }
+        if (engine.game.definingTrajectory) {
+          engine.prepareJumpEnd()
+        }
+      }
     }
   }
 
-  public registerEvents = () => {
+  private registerEvents = () => {
     window.addEventListener('keydown', this.onkeydown)
     window.addEventListener('keyup', this.onkeyup)
     window.addEventListener('touchstart', this.touchstart)
@@ -85,7 +120,7 @@ export class ControlEvents {
     this.gamepadService.registerCallbacks({ onButtonDown: this.onGamepadButtonDown, onButtonUp: this.onGamepadButtonUp })
   }
 
-  public unRegisterEvents = () => {
+  public dispose = () => {
     window.removeEventListener('keydown', this.onkeydown)
     window.removeEventListener('keyup', this.onkeyup)
     window.removeEventListener('touchstart', this.touchstart)

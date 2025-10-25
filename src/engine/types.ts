@@ -29,7 +29,7 @@ export type TCaught = {
 export type TGame = {
   sceneName: TSceneName
   level: number
-  SPEED: number
+  multiplayer?: 'top' | 'bottom'
   successHeightModifier: number
   updateTime: number
   action: TAction
@@ -39,9 +39,9 @@ export type TGame = {
   timer: number
   movementSpeed: number
   runAwaySpeed: number
-  successHeight: number
   success: boolean
   fullJump: boolean
+  jumpStep: number
   paused: boolean
   stopped: boolean
   combo: number
@@ -54,7 +54,11 @@ export type TCat = {
   jumpHeight: number
   jumpStage: number
   trajectoryDirection: number
-  CatX: number
-  CatY: number
+  x: number
+  y: number
   atPosition: boolean
 }
+
+export type TControl = 'pointer' | 'keyboard' | 'gamepad1' | 'gamepad2' | 'any'
+
+export interface EngineOptions { sceneName?: TSceneName, restart?: boolean, fps?: boolean, multiplayer?: 'top' | 'bottom', control?: TControl }

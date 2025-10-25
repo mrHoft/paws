@@ -74,11 +74,11 @@ class TwoPlayersView {
 
 @Injectable
 export class TwoPlayers extends TwoPlayersView {
-  // private startGame: (levelName: TSceneName, restart?: boolean) => void
+  // private startGame: (options?: { sceneName: TSceneName, restart?: boolean }) => void
   private gamepadService: GamepadService
   private onClose?: () => void
 
-  constructor({ /* start */ }: { start: (levelName: TSceneName, restart?: boolean) => void }) {
+  constructor({ /* start */ }: { start: (options?: { sceneName: TSceneName, restart?: boolean }) => void }) {
     super()
     // this.startGame = start
     this.gamepadService = inject(GamepadService)

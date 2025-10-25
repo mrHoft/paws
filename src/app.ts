@@ -15,8 +15,9 @@ import { Localization } from '~/service/localization'
 import { FocusListener } from '~/service/focus'
 import { TwoPlayers } from '~/ui/twoPlayers/twoPlayers'
 import { injector, inject } from '~/utils/inject'
+import type { EngineOptions } from './engine/types'
 
-const autoStartScene: TSceneName | null = null  //'autumn'
+const autoStartScene: TSceneName | null = 'autumn'
 
 type TErrorSource = 'assets' | 'api'
 
@@ -94,7 +95,7 @@ export class App extends AppView {
   private ui?: GlobalUI
   private storage: Storage
   private focus: FocusListener
-  private engineStart?: (levelName?: TSceneName, options?: { fps: boolean }) => void
+  private engineStart?: (options1?: EngineOptions, options2?: EngineOptions) => void
 
   constructor() {
     super()
@@ -139,7 +140,7 @@ export class App extends AppView {
 
     this.loading.start = Date.now()
 
-    const loaderCallback = (progress: number) => {
+    const progressCallback = (progress: number) => {
       this.loaderUpdate(progress)
       if (progress === 100) {
         console.log(`\x1b[33m${resource.total}\x1b[0m assets loaded in \x1b[33m${Date.now() - this.loading.start}ms\x1b[0m`)
@@ -147,14 +148,15 @@ export class App extends AppView {
       }
     }
 
-    const resource = Resource.get(loaderCallback, this.onError({ source: 'assets' }))
+    const resource = injector.createInstance(Resource)
+    resource.registerCallbacks({ progressCallback, errorCallback: () => this.onError({ source: 'assets' }) })
   }
 
   private handleLoadComplete = () => {
     this.loaderRemove()
-    const twoPlayersUI = injector.createInstance(TwoPlayers, { start: this.startGame })
+    const twoPlayersUI = injector.createInstance(TwoPlayers, { start: this.startSinglePlayerGame })
     this.confirm = new ConfirmationModal()
-    this.menu = new Menu({ start: this.startGame, confirm: this.confirm })
+    this.menu = new Menu({ start: this.startSinglePlayerGame, confirm: this.confirm })
     this.ui = new GlobalUI()
     const settings = inject(Settings)
     const about = inject(About)
@@ -162,7 +164,9 @@ export class App extends AppView {
     this.game.append(this.menu.element, this.ui.element, this.confirm.element, twoPlayersUI.element, settings.element, about.element)
 
     if (autoStartScene) {
-      this.initGame().then(() => this.engineStart!(autoStartScene))
+      this.initGame().then(() => {
+        this.engineStart!({ sceneName: autoStartScene, multiplayer: 'top' }, { sceneName: autoStartScene, multiplayer: 'bottom', control: 'keyboard' })
+      })
       return
     }
 
@@ -174,11 +178,14 @@ export class App extends AppView {
   }
 
   private initGame = async () => {
-    const canvas = document.createElement('canvas')
-    canvas.width = CANVAS.width
-    canvas.height = CANVAS.height
-    canvas.className = 'game_layer'
-    canvas.setAttribute('style', 'z-index: 1')
+    const canvas: HTMLCanvasElement[] = Array.from({ length: 2 }, (_, i) => {
+      const el = document.createElement('canvas')
+      el.width = CANVAS.width
+      el.height = CANVAS.height
+      el.className = 'game_layer'
+      el.setAttribute('style', `z-index: ${i + 1}; display: none;`)
+      return el
+    })
 
     const { Engine } = await import('./engine/engine');
     const handlers = {
@@ -192,38 +199,57 @@ export class App extends AppView {
       showTooltip: (value: string) => this.overlay?.handleTooltip(value),
     }
     const initialScore = this.storage.get<number>('data.score')
-    const engine = Engine.get({ ctx: canvas.getContext('2d')!, handlers, initialScore })
+    const engines = Array.from({ length: 2 }, (_, i) => new Engine({ ctx: canvas[i].getContext('2d')!, handlers }))
 
-    this.overlay = new Overlay({ handlePause: engine.pause, initialScore })
+    const enginePause = (state: boolean) => {
+      engines.forEach((engine) => {
+        engine.pause(state)
+      })
+    }
+
+    this.engineStart = (options1?: EngineOptions, options2?: EngineOptions) => {
+      if (options1?.multiplayer) {
+        console.log('multiplayer')
+        canvas.forEach((el, i) => el.setAttribute('style', `z-index: ${i + 1}; display: block;`))
+        engines[0].start(options1)
+        engines[1].start(options2)
+      } else {
+        console.log('single player')
+        engines[0].start(options1)
+        canvas[1].setAttribute('style', `z-index: 2; display: none;`)
+      }
+    }
+
+    const engineStop = () => {
+      engines.forEach((engine) => {
+        engine.stop()
+      })
+    }
+
+    this.overlay = new Overlay({ enginePause, initialScore })
     this.weather = new Weather()
     this.pause = new PauseModal({
-      pause: (state: boolean) => { engine.pause(state); this.weather?.pause(state) },
-      restart: () => { engine.start({ restart: true }); this.weather?.pause(false) },
-      menu: () => { engine.stop(); this.menu?.show() },
+      pause: (state: boolean) => { enginePause(state); this.weather?.pause(state) },
+      restart: () => { this.engineStart!({ restart: true }); this.weather?.pause(false) },
+      menu: () => { engineStop(); this.menu?.show() },
       confirm: this.confirm
     })
 
-    this.game.append(canvas, this.overlay.element, this.weather.element, this.pause.element)
-
-    this.engineStart = (sceneName: TSceneName = 'default', options?: { restart?: boolean, fps?: boolean }) => engine.start({ sceneName, fps: options?.fps, restart: options?.restart })
+    this.game.append(...canvas, this.overlay.element, this.weather.element, this.pause.element)
 
     this.focus.addCallbacks({
-      focusLoss: () => { engine.pause(true); this.weather?.pause(true); },
-      focusGain: () => { this.pause?.show(false); engine.pause(false); this.weather?.pause(false); }
+      focusLoss: () => { enginePause(true); this.weather?.pause(true); },
+      focusGain: () => { this.pause?.show(false); enginePause(false); this.weather?.pause(false); }
     })
   }
 
-  private startGame = (sceneName: TSceneName, restart?: boolean) => {
+  private startSinglePlayerGame = (options?: EngineOptions) => {
     this.menu?.show(false)
     this.weather?.pause(false)
-    const options = {
-      fps: this.storage.get<boolean>('fps'),
-      restart
-    }
     if (this.engineStart) {
-      this.engineStart(sceneName, options)
+      this.engineStart({ fps: this.storage.get<boolean>('fps'), ...options })
     } else {
-      this.initGame().then(() => this.engineStart!(sceneName, options))
+      this.initGame().then(() => this.engineStart!({ fps: this.storage.get<boolean>('fps'), ...options }))
     }
   }
 

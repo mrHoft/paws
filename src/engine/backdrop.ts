@@ -1,9 +1,10 @@
 import { CANVAS, type TSceneName } from '~/const'
 import { Resource } from './resource'
 import { getValue } from '~/utils/data'
+import { inject } from '~/utils/inject'
 
 interface Layer {
-  img: HTMLImageElement | null
+  img: HTMLImageElement
   x: number
   y: number
   dx: number
@@ -67,38 +68,44 @@ export class Backdrop {
   private layersArr: Layer[] = []
   private clearX = CANVAS.width
   private clearY = CANVAS.height
-  private static __instance: Backdrop
-  private resource = Resource.get()
+  private resource: Resource
 
-  constructor({ ctx }: { ctx?: CanvasRenderingContext2D }) {
-    if (Backdrop.__instance) {
-      if (ctx) Backdrop.__instance.ctx = ctx
-      return Backdrop.__instance
-    }
-    Backdrop.__instance = this
-    if (ctx) Backdrop.__instance.ctx = ctx
+  constructor({ ctx }: { ctx: CanvasRenderingContext2D }) {
+    this.ctx = ctx
+    this.resource = inject(Resource)
   }
 
-  public init = (levelName: TSceneName) => {
+  public setup = ({ sceneName, multiplayer }: { sceneName: TSceneName, multiplayer?: 'top' | 'bottom' }) => {
     // TODO: Development time patch
     if (this.resource.progress < 100) {
-      setTimeout(this.init, 500)
+      setTimeout(this.setup, 500)
       return
     }
 
     this.layersArr = []
-    layersData[levelName].forEach(data => {
+    layersData[sceneName].forEach(data => {
       const img = getValue(this.resource.sprite, data.src) as HTMLImageElement
       const aspectRatio = img.width / img.height
-      const height = CANVAS.height * (data.scale || 1)
+      let height = CANVAS.height * (data.scale || 1)
+      if (multiplayer) height = height / 2
       const width = (height * aspectRatio) > CANVAS.width ? height * aspectRatio : CANVAS.width
+
+      let y = 0
+      if (multiplayer === 'top') {
+        y = data.fromTop ? 0 : CANVAS.height / 2 - height
+      } else if (multiplayer === 'bottom') {
+        y = data.fromTop ? CANVAS.height / 2 : CANVAS.height - height
+      } else {
+        y = data.fromTop ? 0 : CANVAS.height - height
+      }
+
       const layer: Layer = {
         img,
         dx: data.dx,
         width,
         height,
         x: 0,
-        y: data.fromTop ? 0 : CANVAS.height - height
+        y
       }
       this.layersArr.push(layer)
     })
@@ -112,10 +119,10 @@ export class Backdrop {
       }
 
       if (layer.x > -layer.width) {
-        this.ctx?.drawImage(layer.img as CanvasImageSource, layer.width - 2 + layer.x, layer.y, layer.width, layer.height)
+        this.ctx?.drawImage(layer.img, layer.width - 2 + layer.x, layer.y, layer.width, layer.height)
       }
 
-      this.ctx?.drawImage(layer.img as CanvasImageSource, layer.x, layer.y, layer.width, layer.height)
+      this.ctx?.drawImage(layer.img, layer.x, layer.y, layer.width, layer.height)
       layer.x += speed * layer.dx
     })
   }

@@ -1,18 +1,23 @@
-import { GAME, SpriteSize } from '../const'
+import { GAME, SpriteSize } from '~/const'
 import { Resource } from './resource'
+import { inject } from '~/utils/inject'
 
 export class Draw {
-  private ctx: CanvasRenderingContext2D | null = null
-  private resource = Resource.get()
+  private ctx: CanvasRenderingContext2D
+  private sizeModifier = 1
+  private resource: Resource
 
-  constructor(ctx: CanvasRenderingContext2D) {
+  constructor({ ctx }: { ctx: CanvasRenderingContext2D }) {
     this.ctx = ctx
+    this.resource = inject(Resource)
+  }
+
+  public setup = ({ sizeModifier = 1 }: { sizeModifier?: number }) => {
+    this.sizeModifier = sizeModifier
   }
   /*
   // Simple
   private drawShadow = (x: number, y: number, width: number, force = false) => {
-    if (!this.ctx) return
-
     if (GAME.shadowsEnable || force) {
       this.ctx.fillStyle = 'rgba(0, 0, 0, 0.25)'
       this.ctx.beginPath()
@@ -20,33 +25,10 @@ export class Draw {
       this.ctx.fill()
     }
   }
-
-  // With gradient
-  private drawShadow = (x: number, y: number, width: number, force = false) => {
-    if (!this.ctx) return
-
-    if (GAME.shadowsEnable || force) {
-      const shadowWidth = width / 4;
-      const shadowHeight = width / 10;
-
-      const gradient = this.ctx.createRadialGradient(x, y, 0, x, y, shadowWidth * 1.2);
-
-      gradient.addColorStop(0, 'rgba(0, 0, 0, 0.25)');
-      gradient.addColorStop(0.65, 'rgba(0, 0, 0, 0.20)');
-      gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
-
-      this.ctx.fillStyle = gradient;
-      this.ctx.beginPath();
-      this.ctx.ellipse(x, y, shadowWidth, shadowHeight, 0, 0, 2 * Math.PI);
-      this.ctx.fill();
-    }
-  }
   */
 
-  // With context scaling to make it look like an ellipse
+  // With context scaling to make shadow look like an ellipse
   private drawShadow = (x: number, y: number, width: number, force = false) => {
-    if (!this.ctx) return
-
     if (GAME.shadowsEnable || force) {
       const shadowWidth = width / 4;
       const shadowHeight = width / 10;
@@ -72,71 +54,65 @@ export class Draw {
   }
 
   public drawObject = (image: HTMLCanvasElement, x: number, y: number, height: number) => {
-    if (this.ctx) {
-      const width = (image.width * height) / image.height
+    const width = (image.width * height) / image.height
 
-      this.drawShadow(x, GAME.actionPositionVertical, width)
-      this.ctx.drawImage(image, x - width / 2, y - height, width, height)
-    }
+    this.drawShadow(x, GAME.actionPositionVertical, width)
+    this.ctx.drawImage(image, x - width / 2, y - height, width, height)
   }
 
   public drawCat = (image: HTMLCanvasElement, x: number, y: number) => {
-    this.drawObject(image, x, y, SpriteSize.cat.height)
+    this.drawObject(image, x, y, SpriteSize.cat.height * this.sizeModifier)
   }
   /*
   public drawTrajectory_simple = (x: number, y: number, jumpHeight: number, forward = true) => {
-    if (this.ctx) {
-      const width = jumpHeight * (forward ? 0.5 : 1)
+    const width = jumpHeight * (forward ? 0.5 : 1)
 
-      // Outer path
-      const gradient1 = this.ctx.createLinearGradient(x, y - 10, x + jumpHeight * 2, y - 10)
-      gradient1.addColorStop(0, 'rgba(122, 208, 41, 0)')
-      gradient1.addColorStop(1, 'rgba(70, 119, 24, 1)')
-      this.ctx.strokeStyle = gradient1  //'rgba(70, 119, 24, 0.5)'
-      this.ctx.beginPath()
-      this.ctx.ellipse(x + jumpHeight, y - 10, jumpHeight, width, 0, Math.PI, 0)
-      this.ctx.lineWidth = 12
-      this.ctx.stroke()
+    // Outer path
+    const gradient1 = this.ctx.createLinearGradient(x, y - 10, x + jumpHeight * 2, y - 10)
+    gradient1.addColorStop(0, 'rgba(122, 208, 41, 0)')
+    gradient1.addColorStop(1, 'rgba(70, 119, 24, 1)')
+    this.ctx.strokeStyle = gradient1  //'rgba(70, 119, 24, 0.5)'
+    this.ctx.beginPath()
+    this.ctx.ellipse(x + jumpHeight, y - 10, jumpHeight, width, 0, Math.PI, 0)
+    this.ctx.lineWidth = 12
+    this.ctx.stroke()
 
-      // Inner path
-      const gradient2 = this.ctx.createLinearGradient(x, y - 10, x + jumpHeight * 2, y - 10)
-      gradient2.addColorStop(0, 'rgba(122, 208, 41, 0)')
-      gradient2.addColorStop(1, 'rgba(122, 208, 41, 1)')
+    // Inner path
+    const gradient2 = this.ctx.createLinearGradient(x, y - 10, x + jumpHeight * 2, y - 10)
+    gradient2.addColorStop(0, 'rgba(122, 208, 41, 0)')
+    gradient2.addColorStop(1, 'rgba(122, 208, 41, 1)')
 
-      this.ctx.strokeStyle = gradient2  // 'rgba(122, 208, 41, 0.5)'
-      this.ctx.beginPath()
-      this.ctx.ellipse(x + jumpHeight, y - 10, jumpHeight, width, 0, Math.PI, 0)
-      this.ctx.lineWidth = 6
-      this.ctx.stroke()
-    }
+    this.ctx.strokeStyle = gradient2  // 'rgba(122, 208, 41, 0.5)'
+    this.ctx.beginPath()
+    this.ctx.ellipse(x + jumpHeight, y - 10, jumpHeight, width, 0, Math.PI, 0)
+    this.ctx.lineWidth = 6
+    this.ctx.stroke()
   }
   */
   public drawTrajectory_segmented = (x: number, y: number, jumpHeight: number, forward = true) => {
-    if (this.ctx) {
-      const width = jumpHeight * (forward ? 0.5 : 1)
-      const segments = 50;
-      const maxLineWidth = 14;
+    const width = jumpHeight * (forward ? 0.5 : 1)
+    const segments = 50;
+    const maxLineWidth = 14;
 
-      const gradient = this.ctx.createLinearGradient(x, y - 10, x + jumpHeight * 2, y - 10
-      )
-      gradient.addColorStop(0, 'rgba(122, 208, 41, 0)')
-      gradient.addColorStop(1, 'rgba(122, 208, 41, 1)')
+    const gradient = this.ctx.createLinearGradient(x, y - 10, x + jumpHeight * 2, y - 10
+    )
+    gradient.addColorStop(0, 'rgba(122, 208, 41, 0)')
+    gradient.addColorStop(1, 'rgba(122, 208, 41, 1)')
 
-      this.ctx.strokeStyle = gradient
+    this.ctx.strokeStyle = gradient
 
-      for (let i = 0; i < segments; i++) {
-        const startAngle = Math.PI + (i / segments) * Math.PI;
-        const endAngle = Math.PI + ((i + 1) / segments) * Math.PI;
+    for (let i = 0; i < segments; i++) {
+      const startAngle = Math.PI + (i / segments) * Math.PI;
+      const endAngle = Math.PI + ((i + 1) / segments) * Math.PI;
 
-        const progress = (i + 1) / segments;
-        const lineWidth = progress * maxLineWidth;
+      const progress = (i + 1) / segments;
+      const lineWidth = progress * maxLineWidth;
 
-        this.ctx.lineWidth = lineWidth;
+      this.ctx.lineWidth = lineWidth;
 
-        this.ctx.beginPath();
-        this.ctx.ellipse(x + jumpHeight, y - 10, jumpHeight, width, 0, startAngle, endAngle);
-        this.ctx.stroke();
-      }
+      this.ctx.beginPath();
+      this.ctx.ellipse(x + jumpHeight, y - 10, jumpHeight, width, 0, startAngle, endAngle);
+      this.ctx.stroke();
     }
   }
 
@@ -146,6 +122,7 @@ export class Draw {
   }
 
   public drawTarget = (name: string, x: number, y: number, height: number, animate = false) => {
+    height = height * this.sizeModifier
     const image = this.resource.sprite[name]
     if (image instanceof HTMLImageElement) {
       let width = (image.width * height) / image.height
@@ -157,7 +134,7 @@ export class Draw {
       }
       const newX = x - width / 2
       // if (name != 'puddle') this.drawShadow(tx, ty, w)
-      this.ctx!.drawImage(image, newX, newY, width, height)
+      this.ctx.drawImage(image, newX, newY, width, height)
     } else {
       // GifObject
       const frame = animate ? image.image! : image.frames[image.frameCount - 1].image

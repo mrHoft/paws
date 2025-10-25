@@ -1,5 +1,6 @@
 import { GifFactory, type GifObject } from '~/utils/gif'
 import { setValue } from '~/utils/data.js'
+import { Injectable } from '~/utils/inject'
 
 const PATH = '.'
 
@@ -46,18 +47,17 @@ const assets: Record<string, string> = {
   'forest.layer3': 'scene/forest/layer3.png',
 }
 
+@Injectable
 export class Resource {
   public total: number
   public progress = 0 // 0 - 100 in percents
   private current = 0
 
-  protected static __instance: Resource
-  protected static _initialized = false
-  protected static _progressCallback: (progress: number) => void
-  protected static _errorCallback: (message: string) => void
+  private _progressCallback?: (progress: number) => void
+  private _errorCallback?: (message: string) => void
   public sprite: Record<string, HTMLImageElement | GifObject> = {}
 
-  private constructor() {
+  constructor() {
     this.total = Object.keys(assets).length
     this.initialize()
   }
@@ -65,17 +65,20 @@ export class Resource {
   private countOne = () => {
     this.current += 1
     this.progress = Math.floor((this.current / this.total) * 100)
-    Resource._progressCallback(this.progress)
+    if (this._progressCallback) {
+      this._progressCallback(this.progress)
+    }
   }
 
   private loadGif = (name: string, url: string) => {
+    const self = this
     // Timeout just waits till script has been parsed and executed then starts loading a gif
     setTimeout(() => {
       const newGif = GifFactory()
       newGif.onerror = function (err) {
         console.log('Gif loading error ' + err.type)
-        if (Resource._errorCallback) {
-          Resource._errorCallback(`Img loading error: ${err.type}`)
+        if (self._errorCallback) {
+          self._errorCallback(`Img loading error: ${err.type}`)
         }
       }
       newGif.onloadall = (/* res */) => {
@@ -96,6 +99,7 @@ export class Resource {
   }
 
   private loadImg = (name: string, url: string): HTMLImageElement => {
+    const self = this
     const newImg = document.createElement('img')
     newImg.src = url
     newImg.onload = () => {
@@ -110,42 +114,38 @@ export class Resource {
     }
     newImg.onerror = function (error) {
       console.log('Img loading error:', error)
-      if (Resource._errorCallback) {
-        Resource._errorCallback(`Img loading error: ${name}`)
+      if (self._errorCallback) {
+        self._errorCallback(`Img loading error: ${name}`)
       }
     }
     setValue(this.sprite, name, newImg)
     return newImg
   }
 
-  public initialize = () => {
-    if (!Resource._initialized) {
-      const keys = Object.keys(assets)
-      for (const key of keys) {
-        const fileName = assets[key]
-        const ext = fileName.split('.').pop()
-        const path = `${PATH}/${fileName}`
-        switch (ext) {
-          case ('gif'): {
-            this.loadGif(key, path)
-            break
-          }
-          case ('png'): {
-            this.loadImg(key, path)
-            break
-          }
-          default: {
-            break
-          }
+  private initialize = () => {
+    const keys = Object.keys(assets)
+    for (const key of keys) {
+      const fileName = assets[key]
+      const ext = fileName.split('.').pop()
+      const path = `${PATH}/${fileName}`
+      switch (ext) {
+        case ('gif'): {
+          this.loadGif(key, path)
+          break
+        }
+        case ('png'): {
+          this.loadImg(key, path)
+          break
+        }
+        default: {
+          break
         }
       }
     }
   }
 
-  public static get(progressCallback?: (progress: number) => void, errorCallback?: (message: string) => void) {
-    if (Resource.__instance) return Resource.__instance
-    if (progressCallback) Resource._progressCallback = progressCallback
-    if (errorCallback) Resource._errorCallback = errorCallback
-    return (Resource.__instance = new Resource())
+  public registerCallbacks({ progressCallback, errorCallback }: { progressCallback?: (progress: number) => void, errorCallback?: (message: string) => void }) {
+    if (progressCallback) this._progressCallback = progressCallback
+    if (errorCallback) this._errorCallback = errorCallback
   }
 }
