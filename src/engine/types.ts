@@ -8,7 +8,7 @@ export type Target = {
   nameLast: TTargetName
   xCurr: number
   yCurr: number
-  PositionX: number
+  positionX: number
   xLast: number
   yLast: number
   heightCurr: number
@@ -81,4 +81,9 @@ export interface EngineHandlers {
   updateProgress: (_value: number, _player?: 'top' | 'bottom') => void,
   updateCaught: (_id: string) => void,
   showTooltip: (_id: string) => void,
+  handleFinish?: (_result: { score: number, time: number, player: 'top' | 'bottom' }) => void
+}
+
+export interface EngineSettings {
+  set: (_settings: { fps?: boolean }) => void
 }

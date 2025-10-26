@@ -114,6 +114,10 @@ body {
   width: 100%;
 }
 
+.text-center {
+  text-align: center;
+}
+
 .text-shadow {
   text-shadow: rgb(0, 0, 0) -1px -1px 0px, rgb(0, 0, 0) 1px -1px 0px, rgb(0, 0, 0) -1px 1px 0px, rgb(0, 0, 0) 1px 1px 0px;
 }

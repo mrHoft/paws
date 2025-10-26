@@ -30,6 +30,10 @@
   z-index: 22;
 }
 
+.win {
+  z-index: 23;
+}
+
 .settings {
   z-index: 23;
 }

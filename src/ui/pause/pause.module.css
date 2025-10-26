@@ -38,8 +38,3 @@
     border-color: var(--color-orange50);
   }
 }
-
-.pause__btns {
-  display: flex;
-  gap: 1rem;
-}

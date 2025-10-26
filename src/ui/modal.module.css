@@ -36,6 +36,12 @@
   }
 }
 
+.btns {
+  margin-top: 1rem;
+  display: flex;
+  gap: 1rem;
+}
+
 .bounce {
   animation: bounce 0.3s ease-out;
 }

@@ -7,7 +7,7 @@ import { EventsService } from './events'
 import { Tooltip } from './tooltip'
 import { PerformanceMeter } from './meter'
 import { TargetService } from './target'
-import type { Target, TCat, TCaught, TGame, EngineOptions, EngineHandlers } from './types'
+import type { Target, TCat, TCaught, TGame, EngineOptions, EngineHandlers, EngineSettings } from './types'
 import type { GifObject } from '~/utils/gif'
 import { Audio } from '~/service/audio'
 import { ShepardTone } from '~/service/shepardTone'
@@ -63,7 +63,7 @@ export class Engine {
     yCurr: GAME.defaultTargetY,
     xLast: GAME.defaultTargetX,
     yLast: GAME.defaultTargetY,
-    PositionX: GAME.defaultTargetX, // A place where a target will stop
+    positionX: GAME.defaultTargetX, // A place where a target will stop
     heightCurr: GAME.defaultAnimalHeight,
     heightLast: GAME.defaultAnimalHeight,
     isBarrier: false,
@@ -80,6 +80,11 @@ export class Engine {
   private backdrop: Backdrop
   private meter: PerformanceMeter
   private handlers: EngineHandlers
+  public settings: EngineSettings = {
+    set: (settings: { fps?: boolean }) => {
+      if (settings.fps !== undefined) this.game.fps = settings.fps
+    }
+  }
 
   constructor({ ctx, handlers, initialScore }: { ctx: CanvasRenderingContext2D, handlers: EngineHandlers, initialScore?: number }) {
     this.handlers = handlers
@@ -109,6 +114,16 @@ export class Engine {
     this.handlers.updateScore(this.game.score, this.game.multiplayer)
     if (value != 0) this.flyingValues.throw(value * combo, multiplier, this.cat.x)
     if (this.game.success) this.tooltip.hide()
+  }
+
+  private handleFinish = () => {
+    if (this.game.multiplayer && this.handlers.handleFinish) {
+      this.handlers.handleFinish({
+        player: this.game.multiplayer,
+        score: this.game.score,
+        time: Date.now() - this.game.timestamp
+      })
+    }
   }
 
   private commitFail = (reason?: 'timeout') => {
@@ -156,8 +171,11 @@ export class Engine {
     this.game.progress += 1
     const percent = Math.min(this.game.progress / GAME.roundLength * 100, 100)
     this.handlers.updateProgress(percent, this.game.multiplayer)
-
-    this.levelPrepare()
+    if (percent === 100 && this.game.multiplayer) {
+      this.handleFinish()
+    } else {
+      this.levelPrepare()
+    }
   }
 
   private prepareJumpStart = () => {
@@ -186,7 +204,7 @@ export class Engine {
       this.cat.jumpStage = -Math.PI
       let successHeight = this.target.isBarrier
         ? Math.floor(
-          this.target.heightCurr * this.game.successHeightModifier + (this.target.xCurr - this.target.PositionX) / 2
+          this.target.heightCurr * this.game.successHeightModifier + (this.target.xCurr - this.target.positionX) / 2
         )
         : Math.floor((this.target.xCurr - this.cat.x) / 2)
       this.game.success =
@@ -252,8 +270,8 @@ export class Engine {
 
     // Move current target
     this.target.xCurr -= this.scrollSpeed()
-    if (this.target.xCurr < this.target.PositionX) {
-      this.target.xCurr = this.target.PositionX
+    if (this.target.xCurr < this.target.positionX) {
+      this.target.xCurr = this.target.positionX
       this.target.atPosition = true
       if (!this.target.isBarrier) {
         this.game.timer = window.setTimeout(() => this.commitFail('timeout'), this.target.runAwayDelay)
@@ -358,7 +376,7 @@ export class Engine {
     this.target.yCurr = GAME.defaultTargetY / (this.game.multiplayer ? 2 : 1) + (this.game.multiplayer === 'bottom' ? CANVAS.height / 2 : 0)
     this.target.nameCurr = this.targetService.getTarget(this.game.multiplayer)
     this.target.isBarrier = OBSTACLES.includes(this.target.nameCurr)
-    this.target.PositionX = this.target.isBarrier
+    this.target.positionX = this.target.isBarrier
       ? GAME.defaultTargetX
       : GAME.defaultTargetX + Math.floor(Math.random() * GAME.animalPositionDelta)
     this.target.heightCurr = this.target.isBarrier
@@ -446,18 +464,22 @@ export class Engine {
     this.game.stopped = true
   }
 
-  public pause = (state: boolean) => {
+  public pause = (state: boolean, force = false) => {
     if (this.game.stopped || this.game.paused == state) return
     this.game.paused = state
-    console.log(`Game ${this.game.paused ? 'paused' : 'continued'}`)
+    console.log(`Game ${this.game.multiplayer || ''} ${this.game.paused ? 'paused' : 'continued'}`)
 
     if (this.game.paused) {
-      this.handlers.handlePause(true)
+      if (!force) this.handlers.handlePause(true)
       window.clearTimeout(this.game.timer)
       this.audio.musicMute = true
     } else {
       requestAnimationFrame(this.render)
       this.audio.musicMute = false
     }
+  }
+
+  public get isActive() {
+    return !this.game.stopped && !this.game.paused
   }
 }

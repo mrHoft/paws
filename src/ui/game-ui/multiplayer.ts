@@ -8,7 +8,7 @@ class MultiplayerView {
   protected loc: Localization
   protected container: HTMLDivElement
   protected sequence: HTMLDivElement
-  protected player: Record<'top' | 'bottom', { element: HTMLDivElement, progress: HTMLDivElement, score: HTMLSpanElement, combo: HTMLSpanElement }>
+  protected player: Record<'top' | 'bottom', { element: HTMLDivElement, progress: HTMLDivElement, score: HTMLSpanElement, combo: HTMLSpanElement, finish: HTMLDivElement }>
 
   constructor() {
     this.loc = inject(Localization)
@@ -27,18 +27,27 @@ class MultiplayerView {
         element: document.createElement('div'),
         progress: document.createElement('div'),
         score: document.createElement('span'),
-        combo: document.createElement('span')
+        combo: document.createElement('span'),
+        finish: document.createElement('div')
       },
       bottom: {
         element: document.createElement('div'),
         progress: document.createElement('div'),
         score: document.createElement('span'),
-        combo: document.createElement('span')
+        combo: document.createElement('span'),
+        finish: document.createElement('div')
       }
     }
 
     this.player.top.element.classList.add(styles.ui__top)
     this.player.bottom.element.classList.add(styles.ui__bot)
+
+    this.player.top.finish.classList.add(styles.finish, styles.top)
+    this.player.bottom.finish.classList.add(styles.finish, styles.bot)
+    this.player.top.finish.setAttribute('style', 'display: none;')
+    this.player.bottom.finish.setAttribute('style', 'display: none;')
+    this.loc.register('finish', this.player.top.finish)
+    this.loc.register('finish', this.player.bottom.finish)
 
     for (const player of ['top', 'bottom'] as ('top' | 'bottom')[]) {
       this.player[player].element.append(
@@ -48,7 +57,13 @@ class MultiplayerView {
       )
     }
 
-    this.container.append(this.player.top.element, this.player.bottom.element, middle)
+    this.container.append(
+      this.player.top.element,
+      this.player.top.finish,
+      this.player.bottom.element,
+      this.player.bottom.finish,
+      middle
+    )
   }
 
   private createScoreElement = (player: 'top' | 'bottom') => {
@@ -84,6 +99,8 @@ class MultiplayerView {
   public show = (state = true) => {
     if (state) {
       this.container.removeAttribute('style')
+      this.player.top.finish.setAttribute('style', 'display: none;')
+      this.player.bottom.finish.setAttribute('style', 'display: none;')
     } else {
       this.container.setAttribute('style', 'display: none')
     }
@@ -119,6 +136,9 @@ export class MultiplayerUI extends MultiplayerView {
   public handleProgress = (value: number, player?: 'top' | 'bottom') => {
     if (!player) return
     this.player[player].progress.setAttribute('style', `width: ${value}%;`)
+    if (value === 100) {
+      this.player[player].finish.removeAttribute('style')
+    }
   }
 
   public handleScore = (value: number, player?: 'top' | 'bottom') => {

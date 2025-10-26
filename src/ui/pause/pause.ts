@@ -46,7 +46,7 @@ export class PauseModal {
     btnContinue.addEventListener('click', this.handleResume)
 
     const btns = document.createElement('div')
-    btns.className = styles.pause__btns
+    btns.className = modal.btns
     /*
     const btnResume = buttonCircle({ src: iconSrc.play })
     btnResume.addEventListener('click', this.handleResume)

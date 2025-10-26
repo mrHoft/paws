@@ -7,6 +7,7 @@ import { Localization } from '~/service/localization'
 import { GamepadService } from '~/service/gamepad'
 import { Injectable, inject } from '~/utils/inject'
 import { buttonClose } from '~/ui/button'
+import type { EngineSettings } from '~/engine/types'
 
 import styles from './settings.module.css'
 import modal from '~/ui/modal.module.css'
@@ -65,6 +66,7 @@ export class SettingsUI extends SettingsView {
   private selectedOptionIndex = 0
   private selectedOptionId: TOption = 'music'
   private onClose?: () => void
+  private engineSettings?: EngineSettings["set"]
 
   constructor() {
     super()
@@ -185,8 +187,9 @@ export class SettingsUI extends SettingsView {
     this.registerEvents()
   }
 
-  public registerCallback = ({ onClose }: { onClose: () => void }) => {
-    this.onClose = onClose
+  public registerCallback = (callbacks: { onClose?: () => void, engineSettings?: EngineSettings["set"] }) => {
+    if (callbacks.onClose) this.onClose = callbacks.onClose
+    if (callbacks.engineSettings) this.engineSettings = callbacks.engineSettings
   }
 
   private registerEvents = () => {
@@ -303,8 +306,12 @@ export class SettingsUI extends SettingsView {
   }
 
   private handleFpsCheckedChange = (checked: boolean) => {
+    console.log('fps:', checked)
     this.storage.set('fps', checked)
     this.opt.fps.input.checked = checked
+    if (this.engineSettings) {
+      this.engineSettings({ fps: checked })
+    }
   }
 
   private handleLanguageSelect = (lang: string) => () => {
