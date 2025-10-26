@@ -59,7 +59,7 @@ export class EventsService {
   }
 
   private touchstart = (event: MouseEvent | TouchEvent) => {
-    event.preventDefault()
+    // event.preventDefault()
     if (event.target && event.target instanceof HTMLDivElement && event.target.ariaLabel) return
     for (const control of controlType.pointer) {
       const engine = this.controls[control]

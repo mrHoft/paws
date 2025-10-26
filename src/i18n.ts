@@ -21,6 +21,7 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     firstBarrier: 'Need to jump over the target',
     firstTimeout: 'The animal can run away',
 
+    continue: 'Continue',
     twoPlayers: '2 Players',
     connectGamepad: 'Please connect your gamepads and press any buttons to start',
     go: 'GO!',

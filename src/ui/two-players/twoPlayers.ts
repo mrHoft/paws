@@ -95,7 +95,6 @@ export class TwoPlayers extends TwoPlayersView {
     this.container.addEventListener('click', event => {
       const { target, currentTarget } = event;
       if (target === currentTarget) {
-        event.preventDefault();
         this.show(false)
         if (this.onClose) this.onClose()
       }

@@ -12,23 +12,23 @@
 }
 
 .inner {
+  position: relative;
+  color: var(--color-blue10);
   width: 40%;
   aspect-ratio: 4/3;
-  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   padding: 0.75em;
   border: 2px solid var(--color-orange70);
-  background: var(--color-orange80);
-  color: var(--color-blue10);
+  background-color: var(--color-orange80);
+  background-image: url('./images/line.svg');
   transform-origin: center;
   border-radius: 20% 20% 20% 20% / 18% 18% 18% 18%;
-  box-shadow: inset 0 0 2em rgba(0, 0, 0, 0.35);
+  box-shadow: inset 0 0 2em rgba(0, 0, 0, 0.4);
 
   & h3 {
-    color: var(--color-blue10);
     position: absolute;
     top: 0;
     width: 100%;

@@ -378,10 +378,7 @@ export class Engine {
   public start(options: EngineOptions = {}) {
     const { sceneName = this.game.sceneName, initialScore, restart, fps, multiplayer, control = 'any' } = options
     if (fps !== undefined) this.game.fps = fps
-    if (initialScore !== undefined) {
-      this.game.score = initialScore
-      this.updateScore(this.game.score)
-    }
+    if (initialScore !== undefined) this.game.score = initialScore
 
     this.game.multiplayer = multiplayer
     if (multiplayer) {

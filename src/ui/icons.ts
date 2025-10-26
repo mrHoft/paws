@@ -8,11 +8,11 @@ export const spoilSrc: Record<string, string> = {
 export const iconSrc: Record<string, string> = {
   check: './icons/check.svg',
   close: './icons/close.svg',
-  resume: './icons/play.svg',
   restart: './icons/restart.svg',
   settings: './icons/settings.svg',
   menu: './icons/menu.svg',
   play: './icons/play.svg',
+  start: './icons/play-circle.svg',
   about: './icons/about.svg',
   fullscreen: './icons/fullscreen.svg',
   fullscreenExit: './icons/fullscreen-exit.svg',

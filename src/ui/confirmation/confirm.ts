@@ -1,12 +1,13 @@
 import { Localization } from '~/service/localization'
 import { buttonClose, buttonCircle } from "~/ui//button"
 import { iconSrc } from '~/ui/icons'
-import { inject } from '~/utils/inject'
+import { inject, Injectable } from '~/utils/inject'
 
 import styles from './confirm.module.css'
 import modal from '~/ui/modal.module.css'
 import layer from '~/ui/layers.module.css'
 
+@Injectable
 export class ConfirmationModal {
   private loc: Localization
   private container: HTMLDivElement
@@ -42,7 +43,6 @@ export class ConfirmationModal {
     this.container.addEventListener('click', event => {
       const { target, currentTarget } = event;
       if (target === currentTarget) {
-        event.preventDefault();
         this.handleCancel()
       }
     })
@@ -54,7 +54,7 @@ export class ConfirmationModal {
   public show = ({ text, acceptCallback }: { text?: string, acceptCallback: () => void }) => {
     this.acceptCallback = acceptCallback
     this.message.innerText = text || this.loc.get('confirmationDefault')
-    this.container.setAttribute('style', 'display: flex;')
+    this.container.removeAttribute('style')
     this.inner.classList.add(modal.bounce)
   }
 

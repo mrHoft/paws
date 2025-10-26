@@ -8,7 +8,6 @@ import { ConfirmationModal } from "~/ui/confirmation/confirm"
 import { SinglePlayerUI } from "../game-ui/singlePlayer"
 import { TwoPlayers } from "~/ui/two-players/twoPlayers"
 import { GamepadService } from '~/service/gamepad'
-import { Storage } from "~/service/storage"
 import { inject } from "~/utils/inject"
 import type { EngineOptions } from '~/engine/types'
 
@@ -150,7 +149,6 @@ class MenuView {
 
 export class MenuUI extends MenuView {
   private startSinglePlayerGame: (options?: EngineOptions) => void
-  private storage: Storage
   private confirmationModal: ConfirmationModal
   private gamepadService?: GamepadService
   private twoPlayersUI: TwoPlayers
@@ -160,13 +158,11 @@ export class MenuUI extends MenuView {
   private aboutUI: AboutUI
   private singlePlayerUI: SinglePlayerUI
 
-  constructor({ startSinglePlayerGame, confirmationModal }: { startSinglePlayerGame: (options?: EngineOptions) => void, confirmationModal: ConfirmationModal }) {
+  constructor({ startSinglePlayerGame }: { startSinglePlayerGame: (options?: EngineOptions) => void }) {
     super()
     this.startSinglePlayerGame = startSinglePlayerGame
-    this.confirmationModal = confirmationModal
-
     const onClose = () => { this.isActive = true }
-    this.storage = inject(Storage)
+    this.confirmationModal = inject(ConfirmationModal)
     this.singlePlayerUI = inject(SinglePlayerUI)
     this.twoPlayersUI = inject(TwoPlayers)
     this.twoPlayersUI.registerCallback({ onClose })
@@ -177,7 +173,7 @@ export class MenuUI extends MenuView {
     this.aboutUI.registerCallback({ onClose })
 
     this.menuCreate([
-      { id: 'start', icon: iconSrc.play, func: () => { this.activeMenuItemId = 'start'; this.handleStart() } },
+      { id: 'start', icon: iconSrc.start, func: () => { this.activeMenuItemId = 'start'; this.handleStart() } },
       { id: 'twoPlayers', icon: iconSrc.gamepad, func: () => { this.isActive = false; this.twoPlayersUI.show(true) } },
       { id: 'restart', icon: iconSrc.restart, func: () => { this.activeMenuItemId = 'restart'; this.handleRestart() } },
       { id: 'settings', icon: iconSrc.settings, func: () => { this.isActive = false; this.settingsUI.show(true) } },
@@ -281,7 +277,6 @@ export class MenuUI extends MenuView {
   private handleOutsideClick = (event: PointerEvent) => {
     const { target, currentTarget } = event;
     if (currentTarget && target === currentTarget) {
-      event.preventDefault();
       const element = currentTarget as HTMLDivElement
       element.setAttribute('style', 'display: none;')
       for (const child of element.children) {
@@ -340,7 +335,6 @@ export class MenuUI extends MenuView {
   private handleSceneStart = () => {
     this.show(false)
     this.scene.element.setAttribute('style', 'display: none;')
-    const initialScore = this.storage.get<number>('data.score')
-    this.startSinglePlayerGame({ sceneName: this.scene.name, initialScore })
+    this.startSinglePlayerGame({ sceneName: this.scene.name })
   }
 }

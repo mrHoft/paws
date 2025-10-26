@@ -1,7 +1,8 @@
 import { buttonCircle } from '~/ui/button/circle'
 import { iconSrc } from "~/ui/icons"
 import { Localization } from '~/service/localization'
-import { ConfirmationModal } from '../confirmation/confirm'
+import { ConfirmationModal } from '~/ui/confirmation/confirm'
+import { SettingsUI } from '~/ui/settings/settings'
 import { GamepadService } from '~/service/gamepad'
 import { inject } from '~/utils/inject'
 
@@ -11,21 +12,23 @@ import layer from '~/ui/layers.module.css'
 
 export class PauseModal {
   private loc: Localization
-  private confirm?: ConfirmationModal
+  private confirmationModal: ConfirmationModal
   private container: HTMLDivElement
   private inner: HTMLDivElement
   private pause: (_state: boolean) => void
   private restart: () => void
   private menu: () => void
-  private gamepadService!: GamepadService
+  private gamepadService: GamepadService
+  private settingsUI: SettingsUI
   private isActive = false
 
-  constructor({ pause, restart, menu, confirm }: { pause: (_state: boolean) => void, restart: () => void, menu: () => void, confirm?: ConfirmationModal }) {
+  constructor({ pause, restart, menu }: { pause: (_state: boolean) => void, restart: () => void, menu: () => void }) {
     this.pause = pause
     this.restart = restart
     this.menu = menu
-    this.confirm = confirm
 
+    this.settingsUI = inject(SettingsUI)
+    this.confirmationModal = inject(ConfirmationModal)
     this.gamepadService = inject(GamepadService)
     this.loc = inject(Localization)
 
@@ -33,33 +36,37 @@ export class PauseModal {
     this.container.classList.add(layer.pause, styles.pause)
     this.container.setAttribute('style', `display: none;`)
 
-    this.inner = document.createElement('div')
-    // this.inner.className = styles.pause__inner
-    const h2 = document.createElement('h2')
-    h2.className = styles.pause__header
-    this.loc.register('pause', h2)
+    const btnContinue = document.createElement('div')
+    btnContinue.className = styles.button
+    const continueLabel = document.createElement('span')
+    this.loc.register('continue', continueLabel)
+    const continueIcon = document.createElement('img')
+    continueIcon.src = iconSrc.start
+    btnContinue.append(continueIcon, continueLabel)
+    btnContinue.addEventListener('click', this.handleResume)
 
     const btns = document.createElement('div')
     btns.className = styles.pause__btns
-    const btnResume = buttonCircle({ src: iconSrc.resume })
-    btnResume.addEventListener('click', this.handleResume)
     /*
-    const btnSettings = buttonCircle({src: icons.settings})
-    btnSettings.addEventListener('click', this.handleSettings)
+    const btnResume = buttonCircle({ src: iconSrc.play })
+    btnResume.addEventListener('click', this.handleResume)
      */
+    const btnSettings = buttonCircle({ src: iconSrc.settings })
+    btnSettings.addEventListener('click', this.handleSettings)
+
     const btnRestart = buttonCircle({ src: iconSrc.restart })
     btnRestart.addEventListener('click', this.handleRestart)
     const btnMenu = buttonCircle({ src: iconSrc.menu })
     btnMenu.addEventListener('click', this.handleMenu)
-    btns.append(btnResume, btnRestart, /* btnSettings, */ btnMenu)
+    btns.append(/* btnResume, */ btnRestart, btnSettings, btnMenu)
 
-    this.inner.append(h2, btns)
+    this.inner = document.createElement('div')
+    this.inner.append(btnContinue, btns)
     this.container.append(this.inner)
 
     this.container.addEventListener('click', event => {
       const { target, currentTarget } = event;
       if (target === currentTarget) {
-        event.preventDefault();
         this.handleResume()
       }
     })
@@ -88,14 +95,17 @@ export class PauseModal {
   }
 
   private handleResume = () => {
+    this.isActive = false
     this.show(false)
     this.pause(false)
   }
 
-  // private handleSettings = () => console.log('Handle settings')
+  private handleSettings = () => {
+    this.settingsUI.show()
+  }
 
   private handleRestart = () => {
-    this.confirm?.show({
+    this.confirmationModal.show({
       text: this.loc.get('restartDesc'), acceptCallback: () => {
         this.show(false)
         this.restart()

@@ -72,6 +72,7 @@ export class SettingsUI extends SettingsView {
     this.storage = inject(Storage)
     this.audio = inject(Audio)
     this.tone = inject(ShepardTone)
+
     this.list = document.createElement('ul')
     this.list.className = styles.list
 
@@ -106,7 +107,7 @@ export class SettingsUI extends SettingsView {
       max: '1',
       step: '0.1',
       defaultValue: musicVolume.toString(),
-      // onchange: (event: Event) => console.log((event.currentTarget as HTMLInputElement).value)
+      // onchange: (event: Event) => console.log((event.currentTarget as HTMLInputElement).value),
     });
     this.opt.music.icon.src = iconSrc.music
     this.opt.music.input.addEventListener('change', event => {
@@ -192,7 +193,6 @@ export class SettingsUI extends SettingsView {
     const handleOutsideClick = (event: PointerEvent) => {
       const { target, currentTarget } = event;
       if (currentTarget && target === currentTarget) {
-        event.preventDefault();
         const element = currentTarget as HTMLDivElement
         element.setAttribute('style', 'display: none;')
         for (const child of element.children) {

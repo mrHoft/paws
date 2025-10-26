@@ -76,7 +76,6 @@ export class AboutUI extends AboutView {
     this.container.addEventListener('click', event => {
       const { target, currentTarget } = event;
       if (target === currentTarget) {
-        event.preventDefault();
         this.show(false)
         if (this.onClose) this.onClose()
       }

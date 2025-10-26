@@ -14,11 +14,11 @@
   z-index: 21;
 }
 
-.about {
+.pause {
   z-index: 22;
 }
 
-.settings {
+.about {
   z-index: 22;
 }
 
@@ -30,10 +30,10 @@
   z-index: 22;
 }
 
-.pause {
+.settings {
   z-index: 23;
 }
 
 .confirmation {
-  z-index: 24;
+  z-index: 23;
 }

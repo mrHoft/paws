@@ -146,7 +146,7 @@ export class SinglePlayerUI extends SinglePlayerView {
   }
 
   public handleLevel = (value: number) => {
-    this.player.level.value.innerText = (value + 1).toString()
+    this.player.level.value.innerText = value >= 5 ? 'MAX' : (value + 1).toString()
     this.player.level.element.classList.add(styles.bounce)
     setTimeout(() => {
       this.player.level.element.classList.remove(styles.bounce)
