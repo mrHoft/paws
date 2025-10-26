@@ -51,7 +51,11 @@ class TwoPlayersView {
   }
 
   public show = (state = true) => {
-    this.container.setAttribute('style', `display: ${state ? 'flex' : 'none'};`)
+    if (state) {
+      this.container.removeAttribute('style')
+    } else {
+      this.container.setAttribute('style', 'display: none')
+    }
     this.inner.classList.toggle(modal.bounce, state)
     this.isActive = state
   }

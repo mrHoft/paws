@@ -7,22 +7,11 @@ import { EventsService } from './events'
 import { Tooltip } from './tooltip'
 import { PerformanceMeter } from './meter'
 import { TargetService } from './target'
-import type { Target, TCat, TCaught, TGame, EngineOptions } from './types'
+import type { Target, TCat, TCaught, TGame, EngineOptions, EngineHandlers } from './types'
 import type { GifObject } from '~/utils/gif'
 import { Audio } from '~/service/audio'
 import { ShepardTone } from '~/service/shepardTone'
 import { inject } from '~/utils/inject'
-
-interface EngineHandlers {
-  handlePause: (_state: boolean) => void,
-  handleGameOver: () => void,
-  setLevel: (_value: number) => void,
-  setCombo: (_value: number) => void,
-  updateScore: (_value: number) => void,
-  updateCaught: (_id: string) => void,
-  resetCaught: () => void,
-  showTooltip: (_id: string) => void,
-}
 
 const caughtDefault: TCaught = {
   butterfly: 0,
@@ -54,7 +43,9 @@ export class Engine {
     stopped: true,
     combo: 0, // Combo multiplier for score
     score: 0,
-    caught: { ...caughtDefault }
+    caught: { ...caughtDefault },
+    progress: 0,
+    timestamp: 0
   }
   private cat: TCat = {
     source: {} as GifObject,
@@ -88,24 +79,10 @@ export class Engine {
   private tooltip: Tooltip
   private backdrop: Backdrop
   private meter: PerformanceMeter
-  private handlePause: (pause: boolean) => void
-  private showLevel: (value: number) => void
-  private showCombo: (value: number) => void
-  private showTooltip: (tooltip: string) => void
-  private updateScore: (score: number) => void
-  private updateCaught: (id: string) => void
-  private resetCaught: () => void
-  // private handleGameOver: () => void
+  private handlers: EngineHandlers
 
   constructor({ ctx, handlers, initialScore }: { ctx: CanvasRenderingContext2D, handlers: EngineHandlers, initialScore?: number }) {
-    this.handlePause = handlers.handlePause
-    this.showLevel = handlers.setLevel
-    this.showCombo = handlers.setCombo
-    this.showTooltip = handlers.showTooltip
-    this.updateScore = handlers.updateScore
-    this.updateCaught = handlers.updateCaught
-    this.resetCaught = handlers.resetCaught
-    // this.handleGameOver = handlers.handleGameOver
+    this.handlers = handlers
 
     this.ctx = ctx
     this.ctx.font = '32px Arial'
@@ -121,15 +98,15 @@ export class Engine {
     this.draw = new Draw({ ctx })
     this.flyingValues = new FlyingValues(this.ctx)
     this.backdrop = new Backdrop({ ctx })
-    this.tooltip = new Tooltip(this.showTooltip)
+    this.tooltip = new Tooltip(this.handlers.showTooltip)
     this.events = inject(EventsService)
   }
 
-  private setScore = (value: number, multiplier = 1) => {
+  private updateScore = (value: number, multiplier = 1) => {
     const combo = Math.max(this.game.combo, 1)
     this.game.score += value * multiplier * combo
     if (this.game.score < 0) this.game.score = 0
-    this.updateScore(this.game.score)
+    this.handlers.updateScore(this.game.score, this.game.multiplayer)
     if (value != 0) this.flyingValues.throw(value * combo, multiplier, this.cat.x)
     if (this.game.success) this.tooltip.hide()
   }
@@ -148,33 +125,38 @@ export class Engine {
     if (this.target.isBarrier) this.audio.use('impact')
 
     this.game.combo = 0
-    this.showCombo(this.game.combo)
+    this.handlers.updateCombo(this.game.combo, this.game.multiplayer)
     this.game.success = false
     if (reason != 'timeout') {
       this.game.action = 'return'
     }
-    this.setScore(TARGET_SCORE[this.target.nameCurr].fail)
+    this.updateScore(TARGET_SCORE[this.target.nameCurr].fail)
     if (!this.target.isBarrier) this.levelPrepare()
   }
 
   private commitSuccess = () => {
     const multiplier = this.target.atPosition ? 1 : 2
-    this.setScore(TARGET_SCORE[this.target.nameCurr].success, multiplier)
+    this.updateScore(TARGET_SCORE[this.target.nameCurr].success, multiplier)
     if (!this.target.isBarrier) {
       if (this.game.combo < 5) {
         this.game.combo += 1
         if (this.game.combo > 1) {
-          this.showCombo(this.game.combo)
+          this.handlers.updateCombo(this.game.combo, this.game.multiplayer)
           this.flyingValues.throw('Combo:', this.game.combo, this.cat.x)
           this.audio.use('combo')
         }
       }
       const name: TAnimalName = this.target.nameCurr as TAnimalName
 
-      this.updateCaught(name)
+      if (!this.game.multiplayer) this.handlers.updateCaught(name)
       this.audio.use('catch')
       this.target.nameCurr = 'none'
     }
+
+    this.game.progress += 1
+    const percent = Math.min(this.game.progress / GAME.roundLength * 100, 100)
+    this.handlers.updateProgress(percent, this.game.multiplayer)
+
     this.levelPrepare()
   }
 
@@ -188,7 +170,7 @@ export class Engine {
     this.cat.trajectoryDirection = 1
     this.game.definingTrajectory = true
     if (!this.updateIsNeeded()) {
-      requestAnimationFrame(this.update)
+      requestAnimationFrame(this.render)
     }
   }
 
@@ -348,21 +330,13 @@ export class Engine {
     performance.mark(this.meter.end)
     if (this.game.fps && this.game.multiplayer === undefined) this.meter.render()
 
-    if (this.game.definingTrajectory || this.updateIsNeeded()) setTimeout(this.update, this.game.updateTime)
+    if (!this.game.paused && (this.game.definingTrajectory || this.updateIsNeeded())) {
+      setTimeout(this.render, this.game.updateTime)
+    }
   }
 
   private updateIsNeeded = (): boolean => {
     return this.game.action !== null && this.game.action !== 'stay'
-  }
-
-  // Main update function
-  private update = (/* timer: number */) => {
-    if (!this.game.paused) {
-      // Development time patch
-      if (this.resource.sprite.cat && !this.resource.sprite.cat.loading) {
-        this.render()
-      }
-    }
   }
 
   private levelPrepare = () => {
@@ -373,7 +347,7 @@ export class Engine {
       this.game.level = level
       const speed = Math.min(0.5 + level * 0.1, 1)
       this.game.updateTime = Math.floor(GAME.updateTime / GAME.updateModifier / speed)
-      this.showLevel(level)
+      this.handlers.updateLevel(level)
     }
 
     this.target.nameLast = this.target.nameCurr
@@ -397,15 +371,21 @@ export class Engine {
     this.target.atPosition = false
     // console.log(`Level ${level}:`, {speed: this.game.SPEED, rand: `${rand}/${targets.length}`, target: this.target})
 
-    if (!this.updateIsNeeded()) requestAnimationFrame(this.update)
+    if (!this.updateIsNeeded()) requestAnimationFrame(this.render)
     this.game.action = 'scene'
   }
 
   public start(options: EngineOptions = {}) {
-    const { sceneName = this.game.sceneName, restart, fps, multiplayer, control = 'any' } = options
+    const { sceneName = this.game.sceneName, initialScore, restart, fps, multiplayer, control = 'any' } = options
+    if (fps !== undefined) this.game.fps = fps
+    if (initialScore !== undefined) {
+      this.game.score = initialScore
+      this.updateScore(this.game.score)
+    }
 
     this.game.multiplayer = multiplayer
     if (multiplayer) {
+      this.handlers.updateProgress(0, multiplayer)
       this.cat.y = GAME.defaultCatY / 2
       this.target.yCurr = GAME.defaultTargetY / 2
       this.target.yLast = GAME.defaultTargetY / 2
@@ -432,25 +412,35 @@ export class Engine {
     this.audio.musicMute = false
     this.audio.play(0, true)  // TODO: level music
 
+    this.target.nameCurr = 'none'
+    this.game.progress = 0
     this.game.sceneName = sceneName
     this.game.stopped = false
     this.game.paused = false
     this.game.action = null
-    this.levelPrepare()
-    this.tooltip.show('start')
-
+    this.game.timestamp = Date.now()
     this.game.combo = 0
-    this.showCombo(this.game.combo)
+    this.handlers.updateCombo(this.game.combo, multiplayer)
 
-    if (restart) {
+    if (restart || multiplayer) {
       console.log('Game restarted')
       this.game.score = 0
       this.game.caught = { ...caughtDefault }
       this.updateScore(this.game.score)
-      this.resetCaught()
     }
 
-    if (fps !== undefined) this.game.fps = fps
+    this.levelPrepare()
+    if (multiplayer) {
+      this.game.paused = true
+      this.game.action = null
+      setTimeout(() => {
+        this.game.paused = false
+        this.game.action = 'scene'
+        requestAnimationFrame(this.render)
+      }, 3000)
+    } else {
+      this.tooltip.show('startNewGame')
+    }
   }
 
   public stop() {
@@ -465,11 +455,11 @@ export class Engine {
     console.log(`Game ${this.game.paused ? 'paused' : 'continued'}`)
 
     if (this.game.paused) {
-      this.handlePause(true)
+      this.handlers.handlePause(true)
       window.clearTimeout(this.game.timer)
       this.audio.musicMute = true
     } else {
-      requestAnimationFrame(this.update)
+      requestAnimationFrame(this.render)
       this.audio.musicMute = false
     }
   }

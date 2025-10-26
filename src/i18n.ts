@@ -16,13 +16,14 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     confirmationDefault: 'Are you sure?',
     restartDesc: 'This will reset all your progress. Are you sure want to restart?',
     // tooltip
-    newGame: 'Hold space/tap to jump',
+    startNewGame: 'Hold space/tap to jump',
     firstAnimal: 'Need to jump on target',
     firstBarrier: 'Need to jump over the target',
     firstTimeout: 'The animal can run away',
 
     twoPlayers: '2 Players',
     connectGamepad: 'Please connect your gamepads and press any buttons to start',
+    go: 'GO!',
   },
   ru: {
     // ui
@@ -38,7 +39,7 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     confirmationDefault: 'Вы уверены?',
     restartDesc: 'Это сбросит весь ваш прогресс. Вы точно хотите начать заново?',
     // tooltip
-    newGame: 'Удерживайте пробел/тап для прыжка',
+    startNewGame: 'Удерживайте пробел/тап для прыжка',
     firstAnimal: 'Для поимки нужно прыгать на цель',
     firstBarrier: 'Через препятствие нужно перепрыгивать',
     firstTimeout: 'Животное может убежать',
@@ -57,7 +58,7 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     confirmationDefault: 'Emin misiniz?',
     restartDesc: 'Bu, tüm ilerlemenizi sıfırlayacak. Yeniden başlatmak istediğinizden emin misiniz?',
     // tooltip
-    newGame: 'Zıplamak için boşluk tuşunu basılı tutun/dokunun',
+    startNewGame: 'Zıplamak için boşluk tuşunu basılı tutun/dokunun',
     firstAnimal: 'Hedefin üzerine zıplanmalı',
     firstBarrier: 'Hedefin üzerinden atlanmalı',
     firstTimeout: 'Hayvan kaçabilir',
@@ -76,7 +77,7 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     confirmationDefault: 'Sind Sie sicher?',
     restartDesc: 'Dies wird Ihren gesamten Fortschritt zurücksetzen. Möchten Sie wirklich neu starten?',
     // tooltip
-    newGame: 'Leertaste gedrückt halten/tippen zum Springen',
+    startNewGame: 'Leertaste gedrückt halten/tippen zum Springen',
     firstAnimal: 'Muss auf das Ziel springen',
     firstBarrier: 'Muss über das Ziel springen',
     firstTimeout: 'Das Tier kann weglaufen',
@@ -95,7 +96,7 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     confirmationDefault: 'Êtes-vous sûr?',
     restartDesc: 'Cela réinitialisera toute votre progression. Êtes-vous sûr de vouloir recommencer?',
     // tooltip
-    newGame: 'Maintenez espace/touchez pour sauter',
+    startNewGame: 'Maintenez espace/touchez pour sauter',
     firstAnimal: 'Doit sauter sur la cible',
     firstBarrier: 'Doit sauter par-dessus la cible',
     firstTimeout: 'L\'animal peut s\'échapper',

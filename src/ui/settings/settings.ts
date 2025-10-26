@@ -38,10 +38,14 @@ class SettingsView {
     this.container.append(this.inner)
   }
 
-  public show = (state: boolean) => {
+  public show = (state = true) => {
+    if (state) {
+      this.container.removeAttribute('style')
+    } else {
+      this.container.setAttribute('style', 'display: none')
+    }
+    this.inner.classList.toggle(modal.bounce, state)
     this.isActive = state
-    this.container.setAttribute('style', `display: ${state ? 'flex' : 'none'};`)
-    this.inner.classList.toggle(styles.bounce, state)
   }
 
   public get element() {

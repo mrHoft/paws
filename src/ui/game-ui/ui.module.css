@@ -1,4 +1,4 @@
-.single-ui {
+.ui {
   position: absolute;
   top: 0;
   left: 0;
@@ -10,15 +10,37 @@
   justify-content: space-between;
   color: var(--color-blue90);
   pointer-events: none;
+
+  &.center {
+    justify-content: center;
+  }
+}
+
+.ui__top {
+  position: absolute;
+  left: 1rem;
+  top: 1rem;
+}
+
+.ui__bot {
+  position: absolute;
+  left: 1rem;
+  top: calc(50% + 1rem);
 }
 
 .row {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
 }
 
 .middle {
   text-align: center;
+}
+
+.sequence {
+  font-size: 7em;
+  font-weight: 600;
 }
 
 .level,
@@ -34,6 +56,22 @@
   font-size: 1.25em;
   color: yellow;
   transform-origin: left;
+}
+
+.progress {
+  position: relative;
+  width: 10em;
+  height: 0.5em;
+  border: 1px solid var(--color-orange60);
+  margin-bottom: 0.5em;
+}
+
+.progress__bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  background-color: var(--color-orange50);
 }
 
 .bounce {

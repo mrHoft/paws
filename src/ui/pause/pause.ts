@@ -18,7 +18,7 @@ export class PauseModal {
   private restart: () => void
   private menu: () => void
   private gamepadService!: GamepadService
-  private pauseActive = false
+  private isActive = false
 
   constructor({ pause, restart, menu, confirm }: { pause: (_state: boolean) => void, restart: () => void, menu: () => void, confirm?: ConfirmationModal }) {
     this.pause = pause
@@ -66,14 +66,18 @@ export class PauseModal {
     this.gamepadService.registerCallbacks({ onButtonUp: this.onGamepadButtonUp })
   }
 
-  public show = (state: boolean) => {
-    this.container.setAttribute('style', state ? 'display: flex;' : 'display: none;')
+  public show = (state = true) => {
+    if (state) {
+      this.container.removeAttribute('style')
+    } else {
+      this.container.setAttribute('style', 'display: none')
+    }
     this.inner.classList.toggle(modal.bounce, state)
-    this.pauseActive = state
+    this.isActive = state
   }
 
   private onGamepadButtonUp = (_gamepadIndex: number, buttonIndex: number) => {
-    if (!this.pauseActive) return
+    if (!this.isActive) return
 
     if (buttonIndex === 9) {  // Start button
       // this.handleMenu()

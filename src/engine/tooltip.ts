@@ -37,12 +37,12 @@ export class Tooltip {
     this.set()
   }
 
-  public show = (reason?: 'start' | 'timeout' | 'barrier' | 'animal') => {
+  public show = (reason?: 'startNewGame' | 'timeout' | 'barrier' | 'animal') => {
     switch (reason) {
-      case 'start':
+      case 'startNewGame':
         if (this.tooltip.firstTip) {
           this.tooltip.firstTip = false
-          this.set(this.loc.get('newGame'))
+          this.set(this.loc.get('startNewGame'))
         }
         break
       case 'barrier':

@@ -3,7 +3,8 @@ import { CANVAS, type TSceneName } from '~/const'
 import { Weather } from '~/ui/weather/weather'
 import { PauseModal } from '~/ui/pause/pause'
 import { ConfirmationModal } from './ui/confirmation/confirm'
-import { SinglePlayerUI } from '~/ui/single-player/singlePlayer'
+import { SinglePlayerUI } from '~/ui/game-ui/singlePlayer'
+import { MultiplayerUI } from './ui/game-ui/multiplayer'
 import { SettingsUI } from '~/ui/settings/settings'
 import { MenuUI } from '~/ui/menu/menu'
 import { AboutUI } from '~/ui/about/about'
@@ -14,9 +15,9 @@ import { Localization } from '~/service/localization'
 import { WindowFocusService } from '~/service/focus'
 import { TwoPlayers } from '~/ui/two-players/twoPlayers'
 import { injector, inject } from '~/utils/inject'
-import type { EngineOptions } from '~/engine/types'
+import type { EngineOptions, EngineHandlers } from '~/engine/types'
 
-const autoStartScene: TSceneName | null = null  // 'autumn'
+const autoStartScene: TSceneName | null = 'autumn'
 
 type TErrorSource = 'assets' | 'api'
 
@@ -85,9 +86,10 @@ export class AppView {
 
 export class App extends AppView {
   private loading = { start: 0 }
-  private pause?: PauseModal
-  private confirm?: ConfirmationModal
+  private pauseModal?: PauseModal
+  private confirmationModal?: ConfirmationModal
   private singlePlayerUI?: SinglePlayerUI
+  private multiplayerUI?: MultiplayerUI
   private weather?: Weather
   private audio: Audio
   private menuUI?: MenuUI
@@ -95,6 +97,9 @@ export class App extends AppView {
   private focusService: WindowFocusService
   private engineStart?: (options1?: EngineOptions, options2?: EngineOptions) => void
   private enginePause?: (state: boolean) => void
+  private engineStop?: () => void
+  private canvas: HTMLCanvasElement[] = []
+  private multiplayer: { options1?: EngineOptions, options2?: EngineOptions } | null = null
 
   constructor() {
     super()
@@ -153,19 +158,23 @@ export class App extends AppView {
 
   private handleLoadComplete = () => {
     this.loaderRemove()
-    const twoPlayersUI = injector.createInstance(TwoPlayers, { start: this.startSinglePlayerGame })
-    this.confirm = new ConfirmationModal()
-    this.menuUI = new MenuUI({ start: this.startSinglePlayerGame, confirm: this.confirm })
+
     const initialScore = this.storage.get<number>('data.score')
-    this.singlePlayerUI = new SinglePlayerUI({ enginePause: this.handleEnginePause, initialScore })
+    const twoPlayersUI = injector.createInstance(TwoPlayers, { start: this.startSinglePlayerGame })
+    this.singlePlayerUI = injector.createInstance(SinglePlayerUI, { enginePause: this.handleEnginePause, initialScore })
+    this.multiplayerUI = new MultiplayerUI()
+    this.confirmationModal = new ConfirmationModal()
+    this.menuUI = new MenuUI({ startSinglePlayerGame: this.startSinglePlayerGame, confirmationModal: this.confirmationModal })
     const settingsUI = inject(SettingsUI)
     const aboutUI = inject(AboutUI)
 
-    this.game.append(this.menuUI.element, this.singlePlayerUI.element, this.confirm.element, twoPlayersUI.element, settingsUI.element, aboutUI.element)
+    this.game.append(this.menuUI.element, this.singlePlayerUI.element, this.multiplayerUI.element, this.confirmationModal.element, twoPlayersUI.element, settingsUI.element, aboutUI.element)
 
     if (autoStartScene) {
       this.initGame().then(() => {
-        this.engineStart!({ sceneName: autoStartScene, multiplayer: 'top' }, { sceneName: autoStartScene, multiplayer: 'bottom', control: 'keyboard' })
+        this.engineStart!(
+          { sceneName: autoStartScene, multiplayer: 'top' },
+          { sceneName: autoStartScene, multiplayer: 'bottom', control: 'keyboard' })
       })
       return
     }
@@ -174,32 +183,31 @@ export class App extends AppView {
       return
     }
 
-    this.menuUI.show()
-    this.singlePlayerUI.toggleView('menu')
+    this.handleMenuShow()
   }
 
   private initGame = async () => {
-    const canvas: HTMLCanvasElement[] = Array.from({ length: 2 }, (_, i) => {
+    this.canvas = Array.from({ length: 2 }, (_, i) => {
       const el = document.createElement('canvas')
       el.width = CANVAS.width
       el.height = CANVAS.height
-      el.className = 'game_layer'
-      el.setAttribute('style', `z-index: ${i + 1}; display: none;`)
+      el.className = `game_layer${i + 1}`
+      el.setAttribute('style', 'display: none;')
       return el
     })
 
     const { Engine } = await import('./engine/engine');
-    const handlers = {
-      handlePause: (state: boolean) => { this.pause?.show(state); this.weather?.pause(state) },
+    const handlers: EngineHandlers = {
+      handlePause: (state: boolean) => { this.pauseModal?.show(state); this.weather?.pause(state) },
       handleGameOver: () => console.log('Handle game over'),
-      setLevel: (value: number) => this.singlePlayerUI?.handleLevel(value),
-      setCombo: (value: number) => this.singlePlayerUI?.handleCombo(value),
+      updateLevel: (value: number) => this.singlePlayerUI?.handleLevel(value),
+      updateCombo: this.handleUpdateCombo,
       updateScore: this.handleUpdateScore,
+      updateProgress: this.handleUpdateProgress,
       updateCaught: (value: string) => this.singlePlayerUI?.caught.handleUpdate(value),
-      resetCaught: () => this.singlePlayerUI?.caught.handleReset(),
       showTooltip: (value: string) => this.singlePlayerUI?.handleTooltip(value),
     }
-    const engines = Array.from({ length: 2 }, (_, i) => new Engine({ ctx: canvas[i].getContext('2d')!, handlers }))
+    const engines = Array.from({ length: 2 }, (_, i) => new Engine({ ctx: this.canvas[i].getContext('2d')!, handlers }))
 
     this.enginePause = (state: boolean) => {
       engines.forEach((engine) => {
@@ -209,43 +217,40 @@ export class App extends AppView {
 
     this.engineStart = (options1?: EngineOptions, options2?: EngineOptions) => {
       if (options1?.multiplayer) {
+        this.multiplayer = { options1, options2 }
         this.singlePlayerUI?.toggleView('multiplayer')
-        canvas.forEach((el, i) => el.setAttribute('style', `z-index: ${i + 1}; display: block;`))
+        this.multiplayerUI?.show(true)
+        this.multiplayerUI?.startCount()
+        this.canvas.forEach((el) => el.removeAttribute('style'))
         engines[0].start(options1)
         engines[1].start(options2)
       } else {
         this.singlePlayerUI?.toggleView('single-player')
         engines[0].start(options1)
-        canvas[0].setAttribute('style', `z-index: 1;`)
-        canvas[1].setAttribute('style', `z-index: 2; display: none;`)
+        this.canvas[0].removeAttribute('style')
+        this.canvas[1].setAttribute('style', 'display: none;')
       }
     }
 
-    const engineStop = () => {
+    this.engineStop = () => {
       engines.forEach((engine) => {
         engine.stop()
       })
     }
 
     this.weather = new Weather()
-    this.pause = new PauseModal({
+    this.pauseModal = new PauseModal({
       pause: (state: boolean) => { this.handleEnginePause(state); this.weather?.pause(state) },
-      restart: () => { this.handleEngineStart({ restart: true }); this.weather?.pause(false) },
-      menu: () => {
-        console.log('menu show')
-        engineStop();
-        this.menuUI?.show();
-        this.singlePlayerUI?.toggleView('menu')
-        canvas.forEach((el, i) => el.setAttribute('style', `z-index: ${i + 1}; display: none;`))
-      },
-      confirm: this.confirm
+      restart: this.handleEngineRestart,
+      menu: this.handleMenuShow,
+      confirm: this.confirmationModal
     })
 
-    this.game.append(...canvas, this.weather.element, this.pause.element)
+    this.game.append(...this.canvas, this.weather.element, this.pauseModal.element)
 
     this.focusService.addCallbacks({
       focusLoss: () => { this.handleEnginePause(true); this.weather?.pause(true); },
-      focusGain: () => { this.pause?.show(false); this.handleEnginePause(false); this.weather?.pause(false); }
+      focusGain: () => { this.pauseModal?.show(false); this.handleEnginePause(false); this.weather?.pause(false); }
     })
   }
 
@@ -258,10 +263,24 @@ export class App extends AppView {
       this.initGame().then(() => this.engineStart!({ fps: this.storage.get<boolean>('fps'), ...options }))
     }
   }
-
-  private handleEngineStart = (options1?: EngineOptions, options2?: EngineOptions) => {
+  /*
+    private handleEngineStart = (options1?: EngineOptions, options2?: EngineOptions) => {
+      if (this.engineStart) {
+        this.engineStart(options1, options2)
+      }
+    }
+   */
+  private handleEngineRestart = () => {
     if (this.engineStart) {
-      this.engineStart(options1, options2)
+      if (this.multiplayer) {
+        this.engineStart(this.multiplayer.options1, this.multiplayer.options2)
+      } else {
+        this.engineStart({ restart: true })
+      }
+      this.weather?.pause(false);
+      if (!this.multiplayer) {
+        this.singlePlayerUI?.caught.handleReset()
+      }
     }
   }
 
@@ -271,9 +290,31 @@ export class App extends AppView {
     }
   }
 
-  private handleUpdateScore = (value: number) => {
+  private handleUpdateScore = (value: number, player?: 'top' | 'bottom') => {
     this.singlePlayerUI?.handleScore(value)
-    this.storage.set('data.score', value)
+    this.multiplayerUI?.handleScore(value, player)
+    if (!player) {
+      this.storage.set('data.score', value)
+    }
+  }
+
+  private handleUpdateCombo = (value: number, player?: 'top' | 'bottom') => {
+    this.singlePlayerUI?.handleCombo(value)
+    this.multiplayerUI?.handleCombo(value, player)
+  }
+
+  private handleUpdateProgress = (value: number, player?: 'top' | 'bottom') => {
+    // this.singlePlayerUI?.handleProgress(value)
+    this.multiplayerUI?.handleProgress(value, player)
+  }
+
+  private handleMenuShow = () => {
+    if (this.engineStop) this.engineStop();
+    this.singlePlayerUI?.toggleView('menu')
+    this.multiplayerUI?.show(false)
+    this.canvas.forEach(el => el.setAttribute('style', 'display: none;'))
+    this.multiplayer = null
+    this.menuUI?.show();
   }
 
   private onError = ({ source }: { source: TErrorSource }) => (message: string) => {

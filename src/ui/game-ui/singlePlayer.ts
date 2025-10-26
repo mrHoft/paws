@@ -7,7 +7,7 @@ import { Localization } from '~/service/localization'
 import { inject } from '~/utils/inject'
 import { isFullscreenActive, fullscreenSwitch } from '~/utils/fullscreen'
 
-import styles from './singlePlayer.module.css'
+import styles from './ui.module.css'
 import layer from '~/ui/layers.module.css'
 
 class SinglePlayerView {
@@ -18,7 +18,7 @@ class SinglePlayerView {
 
   constructor() {
     this.container = document.createElement('div')
-    this.container.classList.add(layer['single-ui'], styles['single-ui'], 'text-shadow')
+    this.container.classList.add(layer['single-ui'], styles.ui, 'text-shadow')
 
     this.upper = document.createElement('div')
     this.upper.className = styles.row
@@ -183,6 +183,7 @@ export class SinglePlayerUI extends SinglePlayerView {
     this.audio.mute = !muted
     iconElement.src = muted ? iconSrc.soundOff : iconSrc.soundOn
   }
+
   private handleFullscreenToggle = (iconElement: HTMLImageElement) => {
     const active = isFullscreenActive()
     const element = document.querySelector('main')

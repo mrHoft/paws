@@ -106,7 +106,8 @@ body {
   height: 1lh;
 }
 
-.game_layer {
+.game_layer1,
+.game_layer2 {
   position: absolute;
   left: 0;
   top: 0;

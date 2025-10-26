@@ -59,10 +59,10 @@ export class Weather {
   }
 
   private setRandomLeafProperties(leaf: WeatherLeaf): void {
-    const top = 90 - Math.pow(Math.random(), 2) * 85; // 5-90% from top
+    const top = Math.floor(90 - Math.pow(Math.random(), 2) * 85); // 5-90% from top
     leaf.style.top = `${top}%`;
     leaf.style.left = '0';
-    const size = 30 + Math.random() * 15;
+    const size = Math.floor(30 + Math.random() * 15);
     leaf.style.width = leaf.style.height = `${size}px`;
   }
 
@@ -143,39 +143,3 @@ export class Weather {
     return this.container
   }
 }
-/*
-function createLeafAnimation({ element, speedX, speedY }: { element: HTMLElement, speedX: number, speedY: number }) {
-  const randomY = Math.pow(Math.random(), 2) * 90 + 5;
-  const randomCubicBezier = `cubic-bezier(${Math.random()}, ${Math.random()}, ${Math.random()}, ${Math.random()})`;
-  // Default: cubic-bezier(0.25, 0.1, 0.25, 1)
-
-  const xKeyframes = [
-    { transform: `translateX(0vw) rotate(0deg)` },
-    { transform: `translateX(100vw) rotate(720deg)` }
-  ];
-
-  const yKeyframes = [
-    { transform: `translateY(${randomY}%)` },
-    { transform: `translateY(${(randomY + 50) % 100}%)` }
-  ];
-
-  // X animation - runs once
-  const xOptions: KeyframeAnimationOptions = {
-    duration: Math.max(speedX, 100),
-    iterations: 1,
-    fill: 'forwards'
-  };
-
-  // Y animation - runs infinitely
-  const yOptions: KeyframeAnimationOptions = {
-    duration: Math.max(speedY, 100),
-    iterations: Infinity,
-    easing: randomCubicBezier,
-    direction: 'alternate'
-  };
-
-  // Apply both animations
-  element.animate(xKeyframes, xOptions);
-  // element.animate(yKeyframes, yOptions);
-}
- */

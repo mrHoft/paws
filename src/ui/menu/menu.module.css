@@ -1,7 +1,13 @@
-.backdrop {
-  background-repeat: no-repeat !important;
-  background-image: url(./images/cover_720.jpg) !important;
-  background-size: contain !important;
+.container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  padding: 1rem;
+  background-repeat: no-repeat;
+  background-image: url(./images/cover_720.jpg);
+  background-size: contain;
 }
 
 .header {

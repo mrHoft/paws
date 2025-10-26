@@ -5,9 +5,12 @@ import { AboutUI } from "~/ui/about/about"
 import { iconSrc, spoilSrc } from "~/ui/icons"
 import { Localization } from '~/service/localization'
 import { ConfirmationModal } from "~/ui/confirmation/confirm"
+import { SinglePlayerUI } from "../game-ui/singlePlayer"
 import { TwoPlayers } from "~/ui/two-players/twoPlayers"
 import { GamepadService } from '~/service/gamepad'
+import { Storage } from "~/service/storage"
 import { inject } from "~/utils/inject"
+import type { EngineOptions } from '~/engine/types'
 
 import styles from './menu.module.css'
 import modal from '~/ui/modal.module.css'
@@ -30,7 +33,7 @@ class MenuView {
   constructor() {
     this.loc = inject(Localization)
     this.container = document.createElement('div')
-    this.container.classList.add(layer.menu, modal.outer, styles.backdrop)
+    this.container.classList.add(layer.menu, styles.container)
     this.container.setAttribute('style', `display: none;`)
 
     const level = document.createElement('div')
@@ -132,7 +135,11 @@ class MenuView {
   }
 
   public show = (state = true) => {
-    this.container.setAttribute('style', `display: ${state ? 'block' : 'none'};`)
+    if (state) {
+      this.container.removeAttribute('style')
+    } else {
+      this.container.setAttribute('style', 'display: none')
+    }
     this.isActive = state
   }
 
@@ -142,21 +149,25 @@ class MenuView {
 }
 
 export class MenuUI extends MenuView {
-  private startGame: (options?: { sceneName: TSceneName, restart?: boolean }) => void
-  private confirm: ConfirmationModal
+  private startSinglePlayerGame: (options?: EngineOptions) => void
+  private storage: Storage
+  private confirmationModal: ConfirmationModal
   private gamepadService?: GamepadService
   private twoPlayersUI: TwoPlayers
   private selectedMenuItemIndex = 0
   private activeMenuItemId: string | null = null
   private settingsUI: SettingsUI
   private aboutUI: AboutUI
+  private singlePlayerUI: SinglePlayerUI
 
-  constructor({ start, confirm }: { start: (options?: { sceneName: TSceneName, restart?: boolean }) => void, confirm: ConfirmationModal }) {
+  constructor({ startSinglePlayerGame, confirmationModal }: { startSinglePlayerGame: (options?: EngineOptions) => void, confirmationModal: ConfirmationModal }) {
     super()
-    this.startGame = start
-    this.confirm = confirm
+    this.startSinglePlayerGame = startSinglePlayerGame
+    this.confirmationModal = confirmationModal
 
     const onClose = () => { this.isActive = true }
+    this.storage = inject(Storage)
+    this.singlePlayerUI = inject(SinglePlayerUI)
     this.twoPlayersUI = inject(TwoPlayers)
     this.twoPlayersUI.registerCallback({ onClose })
     this.gamepadService = inject(GamepadService)
@@ -230,8 +241,8 @@ export class MenuUI extends MenuView {
             break
           }
           case ('confirmation'): {
-            this.confirm.hide()
-            this.startGame({ sceneName: SCENE_NAMES[0], restart: true })
+            this.confirmationModal.hide()
+            this.startSinglePlayerGame({ sceneName: SCENE_NAMES[0], restart: true })
             break
           }
           default: {
@@ -252,11 +263,11 @@ export class MenuUI extends MenuView {
           break
         }
         case ('restart'): {
-          this.confirm.hide()
+          this.confirmationModal.hide()
           break
         }
         case ('confirmation'): {
-          this.confirm.hide()
+          this.confirmationModal.hide()
           break
         }
         default: {
@@ -286,7 +297,13 @@ export class MenuUI extends MenuView {
 
   private handleRestart = () => {
     this.activeMenuItemId = 'confirmation'
-    this.confirm.show({ text: this.loc.get('restartDesc'), acceptCallback: () => this.startGame({ sceneName: SCENE_NAMES[0], restart: true }) })
+    this.confirmationModal.show({
+      text: this.loc.get('restartDesc'),
+      acceptCallback: () => {
+        this.startSinglePlayerGame({ sceneName: SCENE_NAMES[0], restart: true })
+        this.singlePlayerUI?.caught.handleReset()
+      }
+    })
   }
 
   private handleSceneClick = (name: TSceneName) => (event?: PointerEvent) => {
@@ -323,6 +340,7 @@ export class MenuUI extends MenuView {
   private handleSceneStart = () => {
     this.show(false)
     this.scene.element.setAttribute('style', 'display: none;')
-    this.startGame({ sceneName: this.scene.name })
+    const initialScore = this.storage.get<number>('data.score')
+    this.startSinglePlayerGame({ sceneName: this.scene.name, initialScore })
   }
 }

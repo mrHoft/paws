@@ -47,6 +47,8 @@ export type TGame = {
   combo: number
   score: number
   caught: TCaught
+  progress: number
+  timestamp: number
 }
 
 export type TCat = {
@@ -61,4 +63,22 @@ export type TCat = {
 
 export type TControl = 'pointer' | 'keyboard' | 'gamepad1' | 'gamepad2' | 'any'
 
-export interface EngineOptions { sceneName?: TSceneName, restart?: boolean, fps?: boolean, multiplayer?: 'top' | 'bottom', control?: TControl }
+export interface EngineOptions {
+  sceneName?: TSceneName,
+  initialScore?: number
+  restart?: boolean,
+  fps?: boolean,
+  multiplayer?: 'top' | 'bottom',
+  control?: TControl
+}
+
+export interface EngineHandlers {
+  handlePause: (_state: boolean) => void,
+  handleGameOver: () => void,
+  updateLevel: (_value: number) => void,
+  updateCombo: (_value: number, _player?: 'top' | 'bottom') => void,
+  updateScore: (_value: number, _player?: 'top' | 'bottom') => void,
+  updateProgress: (_value: number, _player?: 'top' | 'bottom') => void,
+  updateCaught: (_id: string) => void,
+  showTooltip: (_id: string) => void,
+}
