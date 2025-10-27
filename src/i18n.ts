@@ -23,7 +23,7 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
 
     continue: 'Continue',
     twoPlayers: '2 Players',
-    connectGamepad: 'Please connect your gamepads and press any buttons to start',
+    connectGamepad: 'Please connect your gamepad and press any button to activate.',
     go: 'GO!',
     win: 'Win',
     replay: 'Are you ready to replay?',

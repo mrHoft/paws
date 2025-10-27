@@ -33,9 +33,11 @@ export class GamepadService {
     this.startPolling();
 
     // TODO: Remove
+    /*
     this.callbacks.onButtonUp.push((gamepadIndex: number, buttonIndex: number) => {
-      console.log(`Gamepad ${gamepadIndex} - Button ${buttonIndex} released`);
+      console.log(`Gamepad ${gamepadIndex + 1} - Button ${buttonIndex} released`);
     })
+    */
   }
 
   public registerCallbacks = (callbacks: GamepadServiceCallbacks = {}) => {
@@ -70,6 +72,21 @@ export class GamepadService {
     }
   }
 
+  public vibrate = (index: number) => {
+    const gamepad = this._gamepads.get(index)
+    if (gamepad && 'vibrationActuator' in gamepad) {
+      const vibration = gamepad.vibrationActuator
+      if (vibration.playEffect) {
+        vibration.playEffect('dual-rumble', {
+          startDelay: 0,
+          duration: 200,
+          weakMagnitude: 1.0,
+          strongMagnitude: 1.0,
+        });
+      }
+    }
+  }
+
   private setupEventListeners(): void {
     window.addEventListener('gamepadconnected', (event: GamepadEvent) => {
       this.handleGamepadConnected(event);
@@ -95,17 +112,7 @@ export class GamepadService {
     console.log(`Gamepad ${gamepad.index} connected: ${gamepad.id}`);
     console.log(`Total gamepads: ${this.gamepadCount}`);
 
-    if ('vibrationActuator' in gamepad) {
-      const vibration = gamepad.vibrationActuator as any;
-      if (vibration.playEffect) {
-        vibration.playEffect('dual-rumble', {
-          startDelay: 0,
-          duration: 200,
-          weakMagnitude: 1.0,
-          strongMagnitude: 1.0,
-        });
-      }
-    }
+    this.vibrate(gamepad.index)
 
     this.emitEvent('onGamepadConnected', gamepad)
   }

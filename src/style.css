@@ -39,6 +39,17 @@ a:visited {
   color: inherit;
 }
 
+p,
+h3 {
+  margin-block-start: 0.5em;
+  margin-block-end: 0.5em;
+}
+
+h3 {
+  font-size: 1.25em;
+  text-align: center;
+}
+
 body {
   margin: 0;
   user-select: none;

@@ -179,7 +179,9 @@ export class SettingsUI extends SettingsView {
     this.opt.language.label.append(this.flags)
 
     this.list.append(...Object.values(this.opt).map(opt => opt.element))
-    this.inner.append(this.list)
+    const dummy = document.createElement('div')
+    dummy.className = modal.dummy
+    this.inner.append(this.list, dummy)
 
     this.gamepadService.registerCallbacks({ onButtonUp: this.onGamepadButtonUp })
 
@@ -306,7 +308,6 @@ export class SettingsUI extends SettingsView {
   }
 
   private handleFpsCheckedChange = (checked: boolean) => {
-    console.log('fps:', checked)
     this.storage.set('fps', checked)
     this.opt.fps.input.checked = checked
     if (this.engineSettings) {

@@ -11,10 +11,13 @@ function about() {
   link.innerText = 'mrHoft'
   link.href = 'mailto:mrhoft@yandex.ru'
 
-  const paragraph = document.createElement('p')
-  paragraph.append('Developed by\u00a0', link, '\u00a0in 2025.')
+  const author = document.createElement('p')
+  author.append('Developed by\u00a0', link)
 
-  return paragraph
+  const copyright = document.createElement('div')
+  copyright.innerText = '© 2025'
+
+  return [author, copyright]
 }
 
 class AboutView {
@@ -38,7 +41,7 @@ class AboutView {
 
     this.close = buttonClose()
 
-    this.inner.append(header, about(), this.close)
+    this.inner.append(header, ...about(), this.close)
     this.container.append(this.inner)
   }
 

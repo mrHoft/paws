@@ -7,14 +7,14 @@ import { WinModal } from './ui/win/win'
 import { SinglePlayerUI } from '~/ui/game-ui/singlePlayer'
 import { MultiplayerUI } from './ui/game-ui/multiplayer'
 import { SettingsUI } from '~/ui/settings/settings'
-import { MenuUI } from '~/ui/menu/menu'
+import { MainMenu } from '~/ui/menu/main'
 import { AboutUI } from '~/ui/about/about'
 import { Storage } from '~/service/storage'
 import { Audio } from '~/service/audio'
 import { ShepardTone, type ShepardToneConfig } from './service/shepardTone'
 import { Localization } from '~/service/localization'
 import { WindowFocusService } from '~/service/focus'
-import { TwoPlayers } from '~/ui/two-players/twoPlayers'
+import { MultiplayerMenu } from '~/ui/menu/multiplayer'
 import { injector, inject } from '~/utils/inject'
 import type { EngineOptions, EngineHandlers } from '~/engine/types'
 
@@ -95,7 +95,7 @@ export class App extends AppView {
   private settingsUI?: SettingsUI
   private weather?: Weather
   private audio: Audio
-  private menuUI?: MenuUI
+  private mainMenu?: MainMenu
   private storage: Storage
   private focusService: WindowFocusService
   private engineStart?: (options1?: EngineOptions, options2?: EngineOptions) => void
@@ -132,7 +132,7 @@ export class App extends AppView {
     injector.createInstance(ShepardTone, config)
 
     this.focusService = new WindowFocusService()
-    this.focusService.addCallbacks({
+    this.focusService.registerCallback({
       focusLoss: () => { this.audio.mute = true },
       focusGain: () => { this.audio.mute = false }
     })
@@ -174,13 +174,13 @@ export class App extends AppView {
     this.loaderRemove()
 
     const initialScore = this.storage.get<number>('data.score')
-    const twoPlayersUI = injector.createInstance(TwoPlayers, { start: this.startSinglePlayerGame })
     this.singlePlayerUI = injector.createInstance(SinglePlayerUI, { enginePause: this.handleEnginePause, initialScore })
     this.multiplayerUI = new MultiplayerUI()
     this.confirmationModal = injector.createInstance(ConfirmationModal)
     const aboutUI = injector.createInstance(AboutUI)
     this.settingsUI = injector.createInstance(SettingsUI)
-    this.menuUI = new MenuUI({ startSinglePlayerGame: this.startSinglePlayerGame })
+    const multiplayerMenu = injector.createInstance(MultiplayerMenu, { startMultiplayerGame: this.startMultiplayerGame })
+    this.mainMenu = new MainMenu({ startSinglePlayerGame: this.startSinglePlayerGame })
     this.pauseModal = new PauseModal({
       pause: (state: boolean) => { this.handleEnginePause(state); this.weather?.pause(state) },
       restart: this.handleEngineRestart,
@@ -204,10 +204,10 @@ export class App extends AppView {
     this.game.append(
       ...this.canvas,
       this.weather.element,
-      this.menuUI.element,
+      this.mainMenu.element,
       this.singlePlayerUI.element,
       this.multiplayerUI.element,
-      twoPlayersUI.element,
+      multiplayerMenu.element,
       aboutUI.element,
       this.settingsUI.element,
       this.winModal.element,
@@ -285,7 +285,7 @@ export class App extends AppView {
       }
     })
 
-    this.focusService.addCallbacks({
+    this.focusService.registerCallback({
       focusLoss: () => {
         if (engines[0].isActive) {
           this.handleEnginePause(true);
@@ -297,7 +297,7 @@ export class App extends AppView {
   }
 
   private startSinglePlayerGame = (options1?: EngineOptions) => {
-    this.menuUI?.show(false)
+    this.mainMenu?.show(false)
     this.weather?.pause(false)
     const initialScore = this.storage.get<number>('data.score')
     const options = { fps: this.storage.get<boolean>('fps'), ...options1, initialScore }
@@ -305,6 +305,16 @@ export class App extends AppView {
       this.engineStart(options)
     } else {
       this.initGame().then(() => this.engineStart!(options))
+    }
+  }
+
+  private startMultiplayerGame = (options1: EngineOptions, options2: EngineOptions) => {
+    this.mainMenu?.show(false)
+    this.weather?.pause(false)
+    if (this.engineStart) {
+      this.engineStart(options1, options2)
+    } else {
+      this.initGame().then(() => this.engineStart!(options1, options2))
     }
   }
 
@@ -354,6 +364,6 @@ export class App extends AppView {
     this.multiplayer = null
     this.weather?.pause(true)
     this.weather?.element.setAttribute('style', 'display: none;')
-    this.menuUI?.show();
+    this.mainMenu?.show();
   }
 }

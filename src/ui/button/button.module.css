@@ -87,7 +87,5 @@
   & img {
     width: 2em;
     height: 2em;
-    transform-origin: center;
-    transition: transform 0.25s linear;
   }
 }

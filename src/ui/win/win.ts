@@ -25,12 +25,13 @@ class WinView {
     this.loc = inject(Localization)
 
     this.container = document.createElement('div')
-    this.container.classList.add(layer.win, styles.win)
+    this.container.classList.add(layer.win, styles.layer)
     this.container.setAttribute('style', `display: none;`)
 
     this.inner = document.createElement('div')
-    const h2 = document.createElement('h2')
-    this.loc.register('win', h2)
+    this.inner.classList.add(modal.inner)
+    const h3 = document.createElement('h3')
+    this.loc.register('win', h3)
 
     this.button = {
       replay: buttonCircle({ src: iconSrc.restart }),
@@ -63,10 +64,10 @@ class WinView {
     time.append(timeLabel, ': ', this.result.time)
 
     const result = document.createElement('div')
-    result.classList.add('text-shadow')
+    // result.classList.add('text-shadow')
     result.append(winner, score, time)
 
-    this.inner.append(h2, result, btns)
+    this.inner.append(h3, result, btns)
     this.container.append(this.inner)
   }
 
@@ -119,9 +120,9 @@ export class WinModal extends WinView {
     if (!this.isActive) return
 
     if (buttonIndex === 9) {  // Start button
-      // this.handleMenu()
+      this.handleMenu()
     }
-    if (buttonIndex === 0 || buttonIndex === 1 || buttonIndex === 8) {  // Accept / Cancel button
+    if (buttonIndex === 1 || buttonIndex === 8) {  // Accept button
       this.handleReplay()
     }
   }

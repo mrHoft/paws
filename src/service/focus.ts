@@ -5,7 +5,7 @@ export class WindowFocusService {
     this.setupListeners();
   }
 
-  public addCallbacks = ({ focusLoss, focusGain }: { focusLoss?: () => void, focusGain?: () => void } = {}) => {
+  public registerCallback = ({ focusLoss, focusGain }: { focusLoss?: () => void, focusGain?: () => void } = {}) => {
     if (focusLoss) {
       this.callbacks.focusLoss.push(focusLoss)
     }

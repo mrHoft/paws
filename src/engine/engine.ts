@@ -438,7 +438,7 @@ export class Engine {
     this.handlers.updateCombo(this.game.combo, multiplayer)
 
     if (restart || multiplayer) {
-      console.log('Game restarted')
+      // console.log('Game restarted')
       this.game.score = 0
       this.game.caught = { ...caughtDefault }
       this.updateScore(this.game.score)
@@ -459,6 +459,7 @@ export class Engine {
   }
 
   public stop() {
+    this.events.unregisterControls()
     window.clearTimeout(this.game.timer)
     this.audio.pause()
     this.game.stopped = true
@@ -467,7 +468,7 @@ export class Engine {
   public pause = (state: boolean, force = false) => {
     if (this.game.stopped || this.game.paused == state) return
     this.game.paused = state
-    console.log(`Game ${this.game.multiplayer || ''} ${this.game.paused ? 'paused' : 'continued'}`)
+    // console.log(`Game ${this.game.multiplayer || ''} ${this.game.paused ? 'paused' : 'continued'}`)
 
     if (this.game.paused) {
       if (!force) this.handlers.handlePause(true)

@@ -1,0 +1,88 @@
+.menu {
+  margin-left: -2.25em;
+}
+
+.item {
+  pointer-events: all;
+  display: flex;
+  align-items: center;
+  column-gap: 0.5rem;
+  cursor: pointer;
+}
+
+.paw {
+  width: 1.75em;
+  height: 1.75em;
+  margin-right: 0.25em;
+  opacity: 0;
+  transition: opacity 0.25s linear;
+}
+
+.item.hover {
+  & .paw {
+    opacity: 1;
+  }
+
+  & .device {
+    border-color: var(--color-orange70);
+
+    &>span {
+      opacity: 1;
+    }
+  }
+}
+
+.row {
+  display: flex;
+  column-gap: 1em;
+  padding: 0.1em;
+  box-sizing: border-box;
+  border-radius: 0.2em;
+}
+
+.device {
+  position: relative;
+  width: 2.5em;
+  height: 2.5em;
+  border-radius: 1.25em;
+  border: 2px solid transparent;
+  padding: 0.25em;
+  box-sizing: border-box;
+  background-color: green;
+
+  &>img {
+    width: calc(2em - 4px);
+    height: calc(2em - 4px);
+  }
+
+  &>span {
+    position: absolute;
+    top: 0.75em;
+    left: 0;
+    right: 0;
+    text-align: center;
+    color: #fff;
+    font-weight: 600;
+    line-height: 1;
+    opacity: 0;
+    transition: opacity 0.25s linear;
+  }
+
+  &.inactive {
+    background-color: red;
+  }
+}
+
+.device.shake {
+  animation: shake 0.1s linear 6;
+}
+
+@keyframes shake {
+  0% {
+    transform: translateX(-0.35em);
+  }
+
+  100% {
+    transform: translateX(0.35em);
+  }
+}

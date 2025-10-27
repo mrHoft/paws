@@ -29,6 +29,10 @@ export class EventsService {
     this.controls[control] = data
   }
 
+  public unregisterControls = () => {
+    this.controls = {}
+  }
+
   private canJump = (engine: EngineData): boolean => {
     return !engine.game.definingTrajectory && engine.game.action !== 'jump'
   }
@@ -82,8 +86,9 @@ export class EventsService {
     }
   }
 
-  private onGamepadButtonDown = (_gamepadIndex: number, buttonIndex: number, _value: number) => {
-    for (const control of controlType.gamepad) {
+  private onGamepadButtonDown = (gamepadIndex: number, buttonIndex: number) => {
+    const gamepad = `gamepad${gamepadIndex + 1}`
+    for (const control of [gamepad, 'any'] as TControl[]) {
       const engine = this.controls[control]
       if (engine) {
         if (buttonIndex === 9) {
@@ -96,8 +101,9 @@ export class EventsService {
     }
   }
 
-  private onGamepadButtonUp = (_gamepadIndex: number, buttonIndex: number) => {
-    for (const control of controlType.gamepad) {
+  private onGamepadButtonUp = (gamepadIndex: number, buttonIndex: number) => {
+    const gamepad = `gamepad${gamepadIndex + 1}`
+    for (const control of [gamepad, 'any'] as TControl[]) {
       const engine = this.controls[control]
       if (engine) {
         if (buttonIndex === 9) {

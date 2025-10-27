@@ -6,12 +6,12 @@ import { iconSrc, spoilSrc } from "~/ui/icons"
 import { Localization } from '~/service/localization'
 import { ConfirmationModal } from "~/ui/confirmation/confirm"
 import { SinglePlayerUI } from "../game-ui/singlePlayer"
-import { TwoPlayers } from "~/ui/two-players/twoPlayers"
+import { MultiplayerMenu } from "~/ui/menu/multiplayer"
 import { GamepadService } from '~/service/gamepad'
 import { inject } from "~/utils/inject"
 import type { EngineOptions } from '~/engine/types'
 
-import styles from './menu.module.css'
+import styles from './main.module.css'
 import modal from '~/ui/modal.module.css'
 import layer from '~/ui/layers.module.css'
 
@@ -27,6 +27,7 @@ class MenuView {
   protected thumbs: { img: HTMLImageElement, name: TSceneName }[] = []
   protected scene: { element: HTMLDivElement, inner: HTMLDivElement, btn: HTMLDivElement, spoil: Record<string, HTMLImageElement>, name: TSceneName }
   protected gamepadSupport: HTMLDivElement
+  protected isVisible = false
   protected isActive = false
 
   constructor() {
@@ -139,6 +140,7 @@ class MenuView {
     } else {
       this.container.setAttribute('style', 'display: none')
     }
+    this.isVisible = state
     this.isActive = state
   }
 
@@ -147,11 +149,11 @@ class MenuView {
   }
 }
 
-export class MenuUI extends MenuView {
+export class MainMenu extends MenuView {
   private startSinglePlayerGame: (options?: EngineOptions) => void
   private confirmationModal: ConfirmationModal
   private gamepadService?: GamepadService
-  private twoPlayersUI: TwoPlayers
+  private multiplayerMenu: MultiplayerMenu
   private selectedMenuItemIndex = 0
   private activeMenuItemId: string | null = null
   private settingsUI: SettingsUI
@@ -161,11 +163,14 @@ export class MenuUI extends MenuView {
   constructor({ startSinglePlayerGame }: { startSinglePlayerGame: (options?: EngineOptions) => void }) {
     super()
     this.startSinglePlayerGame = startSinglePlayerGame
-    const onClose = () => { this.isActive = true }
-    this.confirmationModal = inject(ConfirmationModal)
+    const onClose = () => {
+      if (this.isVisible) this.isActive = true
+    }
     this.singlePlayerUI = inject(SinglePlayerUI)
-    this.twoPlayersUI = inject(TwoPlayers)
-    this.twoPlayersUI.registerCallback({ onClose })
+    this.confirmationModal = inject(ConfirmationModal)
+    this.confirmationModal.registerCallback({ onClose })
+    this.multiplayerMenu = inject(MultiplayerMenu)
+    this.multiplayerMenu.registerCallback({ onClose })
     this.gamepadService = inject(GamepadService)
     this.settingsUI = inject(SettingsUI)
     this.settingsUI.registerCallback({ onClose })
@@ -174,7 +179,7 @@ export class MenuUI extends MenuView {
 
     this.menuCreate([
       { id: 'start', icon: iconSrc.start, func: () => { this.activeMenuItemId = 'start'; this.handleStart() } },
-      { id: 'twoPlayers', icon: iconSrc.gamepad, func: () => { this.isActive = false; this.twoPlayersUI.show(true) } },
+      { id: 'twoPlayers', icon: iconSrc.gamepad, func: () => { this.isActive = false; this.multiplayerMenu.show(true) } },
       { id: 'restart', icon: iconSrc.restart, func: () => { this.activeMenuItemId = 'restart'; this.handleRestart() } },
       { id: 'settings', icon: iconSrc.settings, func: () => { this.isActive = false; this.settingsUI.show(true) } },
       // { id: 'about', icon: iconSrc.about, func: this.handleAbout },
@@ -221,6 +226,7 @@ export class MenuUI extends MenuView {
       if (buttonIndex === 13) {
         this.selectedMenuItemIndex = this.selectedMenuItemIndex < this.menuItems.length - 1 ? this.selectedMenuItemIndex + 1 : this.menuItems.length - 1
       }
+      // console.log('selectedMenuItemIndex:', this.selectedMenuItemIndex)
       this.menuItems.forEach((item, i) => { item.element.classList.toggle(styles.hover, i === this.selectedMenuItemIndex) })
     }
     if (buttonIndex === 1 || buttonIndex === 8) { // Accept
@@ -232,17 +238,8 @@ export class MenuUI extends MenuView {
             this.handleSceneStart()
             break
           }
-          case ('restart'): {
-            this.handleStart()
-            break
-          }
-          case ('confirmation'): {
-            this.confirmationModal.hide()
-            this.startSinglePlayerGame({ sceneName: SCENE_NAMES[0], restart: true })
-            break
-          }
           default: {
-            console.log(this.activeMenuItemId)
+            console.log('activeMenuItem:', this.activeMenuItemId)
           }
         }
         this.activeMenuItemId = null
@@ -254,20 +251,8 @@ export class MenuUI extends MenuView {
           this.scene.element.setAttribute('style', 'display: none;')
           break
         }
-        case ('twoPlayers'): {
-          this.twoPlayersUI.hide()
-          break
-        }
-        case ('restart'): {
-          this.confirmationModal.hide()
-          break
-        }
-        case ('confirmation'): {
-          this.confirmationModal.hide()
-          break
-        }
         default: {
-          console.log(this.activeMenuItemId)
+          console.log('activeMenuItem:', this.activeMenuItemId)
         }
       }
       this.activeMenuItemId = null
