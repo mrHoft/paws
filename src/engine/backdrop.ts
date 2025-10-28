@@ -31,14 +31,14 @@ const layersData: Record<TSceneName, LayersData[]> = {
     { src: 'mountains.layer3', dx: -1, scale: 0.37 },
   ],
   cliff: [
-    { src: 'cliff.layer1', dx: -0.1, scale: 0.86, fromTop: true },
-    { src: 'cliff.layer2', dx: -0.25, scale: 0.91, fromTop: true },
-    { src: 'cliff.layer3', dx: -1, scale: 0.125 },
+    { src: 'cliff.layer1', dx: -0.1 },
+    { src: 'cliff.layer2', dx: -0.25 },
+    { src: 'cliff.layer3', dx: -1 },
   ],
   autumn: [
-    { src: 'autumn.layer1', dx: 0, scale: 0.9, fromTop: true },
-    { src: 'autumn.layer2', dx: -0.25, scale: 1, fromTop: true },
-    { src: 'autumn.layer3', dx: -1, scale: 0.299 },
+    { src: 'autumn.layer1', dx: 0 },
+    { src: 'autumn.layer2', dx: -0.5 },
+    { src: 'autumn.layer3', dx: -1 },
   ],
   desert: [
     { src: 'desert.layer1', dx: 0, fromTop: true },
@@ -76,12 +76,6 @@ export class Backdrop {
   }
 
   public setup = ({ sceneName, multiplayer }: { sceneName: TSceneName, multiplayer?: 'top' | 'bottom' }) => {
-    // TODO: Development time patch
-    if (this.resource.progress < 100) {
-      setTimeout(this.setup, 500)
-      return
-    }
-
     this.layersArr = []
     layersData[sceneName].forEach(data => {
       const img = getValue(this.resource.sprite, data.src) as HTMLImageElement
