@@ -17,19 +17,21 @@ import { WindowFocusService } from '~/service/focus'
 import { MultiplayerMenu } from '~/ui/menu/multiplayer'
 import { injector, inject } from '~/utils/inject'
 import type { EngineOptions, EngineHandlers } from '~/engine/types'
+import { Paws } from '~/ui/loader/paws'
 
-const autoStartScene: TSceneName | null = null//'autumn'
+const autoStartScene: TSceneName | null = null  //'desert'
 
 type TErrorSource = 'assets' | 'api'
 
 export class AppView {
   protected root: HTMLDivElement
   protected game: HTMLElement
-  protected loader?: HTMLDivElement
-  protected loaderBar?: HTMLDivElement
-  protected loaderValue?: HTMLDivElement
+  private loader?: HTMLDivElement
+  private loaderBar?: HTMLDivElement
+  private loaderValue?: HTMLDivElement
   protected message?: HTMLDivElement
   protected errors: { source: TErrorSource, message: string, lapse: number }[] = []
+  private paws: Paws
 
   constructor() {
     const root = document.querySelector<HTMLDivElement>('#app')
@@ -48,6 +50,8 @@ export class AppView {
     } else {
       throw new Error('Root element not found')
     }
+
+    this.paws = new Paws()
   }
 
   protected loaderInit() {
@@ -65,10 +69,11 @@ export class AppView {
     this.message = document.createElement('div')
     this.message.classList.add('loader__message')
 
-    this.game.append(this.loader, this.message)
+    this.game.append(this.loader, this.message, this.paws.element)
   }
 
   protected loaderRemove() {
+    this.paws.destroy()
     if (this.loader) this.loader.remove()
     if (this.message) {
       if (!this.errors.length) {
@@ -141,7 +146,7 @@ export class App extends AppView {
   public init = async (): Promise<void> => {
     this.loaderInit()
     this.root.addEventListener('contextmenu', (event) => {
-      // event.preventDefault()
+      event.preventDefault()
       return false
     })
 
@@ -218,8 +223,10 @@ export class App extends AppView {
     if (autoStartScene) {
       this.initGame().then(() => {
         this.engineStart!(
-          { sceneName: autoStartScene, multiplayer: 'top' },
-          { sceneName: autoStartScene, multiplayer: 'bottom', control: 'keyboard' })
+          { sceneName: autoStartScene },
+          // { sceneName: autoStartScene, multiplayer: 'top' },
+          // { sceneName: autoStartScene, multiplayer: 'bottom', control: 'keyboard' }
+        )
       })
       return
     }
