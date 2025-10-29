@@ -7,6 +7,7 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     start: 'Start',
     restart: 'Restart',
     pause: 'Pause',
+    continue: 'Continue',
     settings: 'Settings',
     about: 'About',
     level: 'Level',
@@ -20,15 +21,14 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     firstAnimal: 'Need to jump on target',
     firstBarrier: 'Need to jump over the target',
     firstTimeout: 'The animal can run away',
-
-    continue: 'Continue',
+    // multiplayer
     twoPlayers: '2 Players',
     connectGamepad: 'Please connect your gamepad and press any button to activate.',
     go: 'GO!',
     win: 'Win',
     replay: 'Are you ready to replay?',
     finish: 'Finish!',
-    winText: 'cat win!',
+    winText: 'cat wins!',
     time: 'Time',
     upper: 'Upper',
     bottom: 'Bottom'
@@ -38,6 +38,7 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     start: 'Старт',
     restart: 'Заново',
     pause: 'Пауза',
+    continue: 'Продолжить',
     settings: 'Настройки',
     about: 'О программе',
     level: 'Уровень',
@@ -51,12 +52,24 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     firstAnimal: 'Для поимки нужно прыгать на цель',
     firstBarrier: 'Через препятствие нужно перепрыгивать',
     firstTimeout: 'Животное может убежать',
+    // multiplayer
+    twoPlayers: '2 Игрока',
+    connectGamepad: 'Пожалуйста, подключите геймпад и нажмите любую кнопку для активации.',
+    go: 'ВПЕРЁД!',
+    win: 'Победа',
+    replay: 'Готовы сыграть ещё раз?',
+    finish: 'Финиш!',
+    winText: 'кот победил!',
+    time: 'Время',
+    upper: 'Верхний',
+    bottom: 'Нижний'
   },
   tr: {
     // ui
     start: 'Başlat',
     restart: 'Yeniden Başlat',
     pause: 'Duraklat',
+    continue: 'Devam Et',
     settings: 'Ayarlar',
     about: 'Hakkında',
     level: 'Seviye',
@@ -70,12 +83,24 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     firstAnimal: 'Hedefin üzerine zıplanmalı',
     firstBarrier: 'Hedefin üzerinden atlanmalı',
     firstTimeout: 'Hayvan kaçabilir',
+    // multiplayer
+    twoPlayers: '2 Oyuncu',
+    connectGamepad: 'Lütfen gamepad\'inizi bağlayın ve etkinleştirmek için herhangi bir düğmeye basın.',
+    go: 'BAŞLA!',
+    win: 'Kazan',
+    replay: 'Yeniden oynamaya hazır mısınız?',
+    finish: 'Bitiş!',
+    winText: 'kedi kazandı!',
+    time: 'Zaman',
+    upper: 'Üst',
+    bottom: 'Alt'
   },
   de: {
     // ui
     start: 'Start',
     restart: 'Neustart',
     pause: 'Pause',
+    continue: 'Weiter',
     settings: 'Einstellungen',
     about: 'Über',
     level: 'Level',
@@ -89,12 +114,24 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     firstAnimal: 'Muss auf das Ziel springen',
     firstBarrier: 'Muss über das Ziel springen',
     firstTimeout: 'Das Tier kann weglaufen',
+    // multiplayer
+    twoPlayers: '2 Spieler',
+    connectGamepad: 'Bitte Gamepad anschließen und eine Taste drücken zur Aktivierung.',
+    go: 'LOS!',
+    win: 'Sieg',
+    replay: 'Bereit für eine Wiederholung?',
+    finish: 'Ziel!',
+    winText: 'Katze gewinnt!',
+    time: 'Zeit',
+    upper: 'Obere',
+    bottom: 'Untere'
   },
   fr: {
     // ui
     start: 'Commencer',
     restart: 'Recommencer',
     pause: 'Pause',
+    continue: 'Continuer',
     settings: 'Paramètres',
     about: 'À propos',
     level: 'Niveau',
@@ -108,5 +145,16 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     firstAnimal: 'Doit sauter sur la cible',
     firstBarrier: 'Doit sauter par-dessus la cible',
     firstTimeout: 'L\'animal peut s\'échapper',
+    // multiplayer
+    twoPlayers: '2 Joueurs',
+    connectGamepad: 'Veuillez connecter votre manette et appuyer sur n\'importe quel bouton pour l\'activer.',
+    go: 'ALLEZ!',
+    win: 'Victoire',
+    replay: 'Prêt à rejouer?',
+    finish: 'Terminé!',
+    winText: 'le chat gagne!',
+    time: 'Temps',
+    upper: 'Supérieur',
+    bottom: 'Inférieur'
   }
 }

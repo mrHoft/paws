@@ -34,7 +34,6 @@ interface MusicTrack {
 
 @Injectable
 export class Audio {
-  static _instance: Audio
   private _sound = { volume: 0.5, muted: false }
   private _music = { volume: 0.5, muted: true }
   private audioContext!: AudioContext
