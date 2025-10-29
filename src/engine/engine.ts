@@ -4,6 +4,7 @@ import { Resource } from './resource'
 import { Backdrop } from './backdrop'
 import { FlyingValues } from './flyingValues'
 import { EventsService } from './events'
+import { GamepadService } from '~/service/gamepad'
 import { Tooltip } from './tooltip'
 import { PerformanceMeter } from './meter'
 import { TargetService } from './target'
@@ -45,7 +46,8 @@ export class Engine {
     score: 0,
     caught: { ...caughtDefault },
     progress: 0,
-    timestamp: 0
+    timestamp: 0,
+    control: 'any'
   }
   private cat: TCat = {
     source: {} as GifObject,
@@ -75,6 +77,7 @@ export class Engine {
   private tone: ShepardTone
   private flyingValues: FlyingValues
   private events: EventsService
+  private gamepadService: GamepadService
   private targetService: TargetService
   private tooltip: Tooltip
   private backdrop: Backdrop
@@ -97,6 +100,7 @@ export class Engine {
     this.audio = inject(Audio)
     this.tone = inject(ShepardTone)
     this.targetService = inject(TargetService)
+    this.gamepadService = inject(GamepadService)
     this.resource = inject(Resource)
     this.cat.source = this.resource.sprite.cat as GifObject
     this.meter = new PerformanceMeter(this.ctx)
@@ -136,8 +140,6 @@ export class Engine {
         return
       }
     */
-    this.tooltip.show(reason || (this.target.isBarrier ? 'barrier' : 'animal'))
-    if (this.target.isBarrier) this.audio.use('impact')
 
     this.game.combo = 0
     this.handlers.updateCombo(this.game.combo, this.game.multiplayer)
@@ -145,8 +147,16 @@ export class Engine {
     if (reason != 'timeout') {
       this.game.action = 'return'
     }
+
     this.updateScore(TARGET_SCORE[this.target.nameCurr].fail)
-    if (!this.target.isBarrier) this.levelPrepare()
+    this.tooltip.show(reason || (this.target.isBarrier ? 'barrier' : 'animal'))
+
+    if (this.target.isBarrier) {
+      this.audio.use('impact')
+      this.gamepadService.vibrate(this.game.control == 'any' || this.game.control === 'gamepad1' ? 0 : 1)
+    } else {
+      this.levelPrepare()
+    }
   }
 
   private commitSuccess = () => {
@@ -428,6 +438,7 @@ export class Engine {
     this.audio.play(0, true)  // TODO: level music
 
     this.target.nameCurr = 'none'
+    this.game.control = control
     this.game.progress = 0
     this.game.sceneName = sceneName
     this.game.stopped = false

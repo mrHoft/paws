@@ -108,7 +108,7 @@ class MenuMultiplayerView {
       el.classList.add(styles.shake)
       setTimeout(() => {
         el.classList.remove(styles.shake)
-      }), 600
+      }, 300)
     }
   }
 

@@ -30,6 +30,7 @@ export type TGame = {
   sceneName: TSceneName
   level: number
   multiplayer?: 'top' | 'bottom'
+  control: TControl
   successHeightModifier: number
   updateTime: number
   action: TAction

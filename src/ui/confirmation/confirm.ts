@@ -25,7 +25,7 @@ export class ConfirmationModalView {
     const header = document.createElement('h3')
     this.loc.register('confirmation', header)
     this.inner = document.createElement('div')
-    this.inner.className = modal.inner
+    this.inner.classList.add(modal.inner, modal.small)
     const btnClose = buttonClose()
     btnClose.addEventListener('click', () => {
       this.container.setAttribute('style', 'display: none;')

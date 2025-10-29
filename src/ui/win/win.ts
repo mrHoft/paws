@@ -29,7 +29,7 @@ class WinView {
     this.container.setAttribute('style', `display: none;`)
 
     this.inner = document.createElement('div')
-    this.inner.classList.add(modal.inner)
+    this.inner.classList.add(modal.inner, modal.small)
     const h3 = document.createElement('h3')
     this.loc.register('win', h3)
 

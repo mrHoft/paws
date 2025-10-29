@@ -16,7 +16,7 @@ interface LayersData {
   src: string
   dx: number
   fromTop?: boolean
-  scale?: number
+  scale?: number  // 0-1 from canvas height
 }
 
 const layersData: Record<TSceneName, LayersData[]> = {
@@ -51,14 +51,14 @@ const layersData: Record<TSceneName, LayersData[]> = {
     { src: 'lake.layer3', dx: -1 },
   ],
   jungle: [
-    { src: 'jungle.layer1', dx: -0.1, fromTop: true },
+    { src: 'jungle.layer1', dx: 0, fromTop: true },
     { src: 'jungle.layer2', dx: -0.5, fromTop: true },
     { src: 'jungle.layer3', dx: -1 },
   ],
   forest: [
     { src: 'forest.layer1', dx: -0.15, fromTop: true },
     { src: 'forest.layer2', dx: -0.35 },
-    { src: 'forest.layer3', dx: -1, fromTop: true },
+    { src: 'forest.layer3', dx: -1 },
   ]
 }
 
