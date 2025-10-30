@@ -1,4 +1,5 @@
 import { Localization } from '~/service/localization'
+import { SoundService } from "~/service/sound";
 import { inject } from '~/utils/inject'
 
 import styles from './ui.module.css'
@@ -112,8 +113,11 @@ class MultiplayerView {
 }
 
 export class MultiplayerUI extends MultiplayerView {
+  private soundService: SoundService
+
   constructor() {
     super()
+    this.soundService = new SoundService()
   }
 
   public startCount = () => {
@@ -123,6 +127,7 @@ export class MultiplayerUI extends MultiplayerView {
     const count = () => {
       const value = sequence.shift()
       if (value) {
+        this.soundService.play('pum')
         this.sequence.innerText = value
         this.bounce(this.sequence)
         setTimeout(count, 1000)

@@ -44,7 +44,7 @@ export const GAME = {
   defaultAnimalHeight: 160,
   defaultRunAwayDelay: 8000, // The time after which the target will escape
 
-  roundLength: 2,
+  roundLength: 25,
   fullscreenControl: true
 }
 

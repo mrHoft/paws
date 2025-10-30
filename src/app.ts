@@ -19,7 +19,7 @@ import { injector, inject } from '~/utils/inject'
 import type { EngineOptions, EngineHandlers } from '~/engine/types'
 import { Paws } from '~/ui/loader/paws'
 
-const autoStartScene: TSceneName | null = null  //'jungle'
+const autoStartScene: TSceneName | null = null  // 'lake'
 
 type TErrorSource = 'assets' | 'api'
 
