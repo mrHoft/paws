@@ -1,4 +1,4 @@
-import { GAME, CANVAS } from "~/const"
+import { GAME, GENERAL } from "~/const"
 import { Queue } from "~/utils/queue"
 
 export class PerformanceMeter {
@@ -19,6 +19,6 @@ export class PerformanceMeter {
     if (duration > 0) this.meterStack.enqueue(duration)
     const fps = Math.floor(10000 / this.meterStack.average(this.stackSize))
     this.ctx.fillStyle = '#cedbf0'
-    this.ctx.fillText(`fps: ${fps}`, CANVAS.width * .75, 32)
+    this.ctx.fillText(`fps: ${fps}`, GENERAL.canvas.width * .75, 32)
   }
 }

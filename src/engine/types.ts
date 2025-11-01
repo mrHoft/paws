@@ -50,6 +50,7 @@ export type TGame = {
   caught: TCaught
   progress: number
   timestamp: number
+  rendered: boolean // Used for the renderCallback to call on first render
 }
 
 export type TCat = {
@@ -75,7 +76,7 @@ export interface EngineOptions {
 
 export interface EngineHandlers {
   handlePause: (_state: boolean) => void,
-  handleGameOver: () => void,
+  handleGameOver?: () => void,  // Disabled mechanic
   updateLevel: (_value: number) => void,
   updateCombo: (_value: number, _player?: 'top' | 'bottom') => void,
   updateScore: (_value: number, _player?: 'top' | 'bottom') => void,
@@ -83,6 +84,7 @@ export interface EngineHandlers {
   updateCaught: (_id: string) => void,
   showTooltip: (_id: string) => void,
   handleFinish?: (_result: { score: number, time: number, player: 'top' | 'bottom' }) => void
+  renderCallback?: () => void // Will be called on first render after start or each pause
 }
 
 export interface EngineSettings {

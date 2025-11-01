@@ -1,5 +1,5 @@
 import { Resource } from '~/engine/resource'
-import { CANVAS, type TSceneName } from '~/const'
+import { GENERAL, type TSceneName } from '~/const'
 import { Weather } from '~/ui/weather/weather'
 import { PauseModal } from '~/ui/pause/pause'
 import { ConfirmationModal } from './ui/confirmation/confirm'
@@ -11,13 +11,15 @@ import { MainMenu } from '~/ui/menu/main'
 import { AboutUI } from '~/ui/about/about'
 import { Storage } from '~/service/storage'
 import { Audio } from '~/service/audio'
-import { ShepardTone, type ShepardToneConfig } from './service/shepardTone'
+import { ShepardTone, type ShepardToneConfig } from '~/service/shepardTone'
 import { Localization } from '~/service/localization'
 import { WindowFocusService } from '~/service/focus'
+import { YaGamesService } from '~/service/ysdk/ysdk'
 import { MultiplayerMenu } from '~/ui/menu/multiplayer'
 import { injector, inject } from '~/utils/inject'
 import type { EngineOptions, EngineHandlers } from '~/engine/types'
 import { Paws } from '~/ui/loader/paws'
+import { throttle } from '~/utils/throttle'
 
 const autoStartScene: TSceneName | null = null  // 'lake'
 
@@ -25,7 +27,7 @@ type TErrorSource = 'assets' | 'api'
 
 export class AppView {
   protected root: HTMLDivElement
-  protected game: HTMLElement
+  protected game: HTMLDivElement
   private loader?: HTMLDivElement
   private loaderBar?: HTMLDivElement
   private loaderValue?: HTMLDivElement
@@ -39,11 +41,11 @@ export class AppView {
       this.root = root
       const main = document.createElement('main')
       main.className = 'main'
-      main.setAttribute('style', `max-width: ${CANVAS.width}px; max-height: ${CANVAS.height}px;`)
+      main.setAttribute('style', `max-width: ${GENERAL.canvas.width}px; max-height: ${GENERAL.canvas.height}px;`)
 
       this.game = document.createElement('div')
       this.game.className = 'game'
-      this.game.setAttribute('style', `aspect-ratio: ${CANVAS.aspectRatio};`)
+      this.game.setAttribute('style', `aspect-ratio: ${GENERAL.canvas.aspectRatio};`)
       main.append(this.game)
 
       this.root.append(main)
@@ -92,6 +94,7 @@ export class AppView {
 
 export class App extends AppView {
   private loading = { start: 0 }
+  private loc: Localization
   private pauseModal?: PauseModal
   private confirmationModal?: ConfirmationModal
   private winModal?: WinModal
@@ -103,6 +106,7 @@ export class App extends AppView {
   private mainMenu?: MainMenu
   private storage: Storage
   private focusService: WindowFocusService
+  private yaGames?: YaGamesService
   private engineStart?: (options1?: EngineOptions, options2?: EngineOptions) => void
   private enginePause?: (state: boolean, force?: boolean) => void
   private engineStop?: () => void
@@ -112,7 +116,7 @@ export class App extends AppView {
   constructor() {
     super()
     this.storage = inject(Storage)
-    injector.createInstance(Localization, this.storage.get('language'))
+    this.loc = injector.createInstance(Localization, this.storage.get('language'))
 
     const musicVolume = Math.max(0, Math.min(this.storage.get<number>('music'), 1))
     const music = {
@@ -141,6 +145,10 @@ export class App extends AppView {
       focusLoss: () => { this.audio.mute = true },
       focusGain: () => { this.audio.mute = false }
     })
+
+    if (GENERAL.sdk === 'ya-games') {
+      this.yaGames = new YaGamesService()
+    }
   }
 
   public init = async (): Promise<void> => {
@@ -173,6 +181,8 @@ export class App extends AppView {
 
     const resource = injector.createInstance(Resource)
     resource.registerCallbacks({ progressCallback: onProgress, errorCallback: () => onError({ source: 'assets' }) })
+
+    this.registerEvents()
   }
 
   private handleLoadComplete = () => {
@@ -193,8 +203,8 @@ export class App extends AppView {
     })
     this.canvas = Array.from({ length: 2 }, (_, i) => {
       const el = document.createElement('canvas')
-      el.width = CANVAS.width
-      el.height = CANVAS.height
+      el.width = GENERAL.canvas.width
+      el.height = GENERAL.canvas.height
       el.className = `game_layer${i + 1}`
       el.setAttribute('style', 'display: none;')
       return el
@@ -220,10 +230,20 @@ export class App extends AppView {
       this.confirmationModal.element,
     )
 
+    this.yaGames?.registerCallback((sdk) => {
+      sdk.features.LoadingAPI.ready()
+
+      const lang = sdk.environment.i18n.lang
+      if (lang) {
+        this.loc.language = lang
+        this.settingsUI?.setLanguage(lang)
+      }
+    })
+
     if (autoStartScene) {
       this.initGame().then(() => {
         this.engineStart!(
-          { sceneName: autoStartScene },
+          { sceneName: autoStartScene, initialScore },
           // { sceneName: autoStartScene, multiplayer: 'top' },
           // { sceneName: autoStartScene, multiplayer: 'bottom', control: 'keyboard' }
         )
@@ -238,11 +258,25 @@ export class App extends AppView {
     this.handleMenuShow()
   }
 
+  private registerEvents = () => {
+    const resizeCallback = throttle(() => {
+      const { width, height } = this.root.getBoundingClientRect()
+      let newWidth = Math.min(width, GENERAL.canvas.width)
+      const newHeight = Math.floor(Math.min(height, GENERAL.canvas.height, newWidth / GENERAL.canvas.aspectRatio))
+      if (newHeight * GENERAL.canvas.aspectRatio < newWidth) {
+        newWidth = Math.floor(newHeight * GENERAL.canvas.aspectRatio)
+      }
+
+      this.game.setAttribute('style', `width: ${newWidth}px; height: ${newHeight}px;`)
+    })
+    window.addEventListener('resize', resizeCallback)
+    resizeCallback()
+  }
+
   private initGame = async () => {
     const { Engine } = await import('./engine/engine');
     const handlers: EngineHandlers = {
-      handlePause: (state: boolean) => { this.pauseModal?.show(state); this.weather?.pause(state) },
-      handleGameOver: () => console.log('Handle game over'),
+      handlePause: (state: boolean) => { this.pauseModal?.show(state); this.weather?.pause(state); this.handleSdkApiState(!state) },
       updateLevel: (value: number) => this.singlePlayerUI?.handleLevel(value),
       updateCombo: this.handleUpdateCombo,
       updateScore: this.handleUpdateScore,
@@ -252,7 +286,8 @@ export class App extends AppView {
       handleFinish: (result: { score: number, time: number, player: 'top' | 'bottom' }) => {
         this.enginePause!(true, true)
         this.winModal?.handleFinish(result)
-      }
+      },
+      renderCallback: () => { this.handleSdkApiState(true) }
     }
     const engines = Array.from({ length: 2 }, (_, i) => new Engine({ ctx: this.canvas[i].getContext('2d')!, handlers }))
 
@@ -260,6 +295,7 @@ export class App extends AppView {
       engines.forEach((engine) => {
         engine.pause(state, force)
       })
+      this.handleSdkApiState(!state)
     }
 
     this.engineStart = (options1?: EngineOptions, options2?: EngineOptions) => {
@@ -284,6 +320,7 @@ export class App extends AppView {
       engines.forEach((engine) => {
         engine.stop()
       })
+      this.handleSdkApiState(false)
     }
 
     this.settingsUI?.registerCallback({
@@ -371,6 +408,16 @@ export class App extends AppView {
     this.multiplayer = null
     this.weather?.pause(true)
     this.weather?.element.setAttribute('style', 'display: none;')
-    this.mainMenu?.show();
+    this.mainMenu?.show()
   }
+
+  private handleSdkApiState = (state: boolean) => {
+    console.log('Gameplay API:', state ? 'start' : 'stop')
+    if (state) {
+      this.yaGames?.sdk?.features.GameplayAPI.start()
+    } else {
+      this.yaGames?.sdk?.features.GameplayAPI.stop()
+    }
+  }
+
 }

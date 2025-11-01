@@ -315,14 +315,18 @@ export class SettingsUI extends SettingsView {
     }
   }
 
-  private handleLanguageSelect = (lang: string) => () => {
+  public setLanguage = (lang: string) => {
     if (!LANGUAGES.includes(lang as TLanguage)) return
-    this.storage.set('language', lang)
     this.loc.language = lang
     this.opt.language.input.value = lang
     const list = this.flags.children
     for (const flag of list) {
       flag.classList.toggle(styles.selected, (flag as HTMLImageElement).alt === lang)
     }
+  }
+
+  private handleLanguageSelect = (lang: string) => () => {
+    this.storage.set('language', lang)
+    this.setLanguage(lang)
   }
 }

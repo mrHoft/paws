@@ -1,4 +1,4 @@
-import { ANIMALS, OBSTACLES, CANVAS, GAME, TARGET_SCORE, type TAnimalName } from '~/const'
+import { GENERAL, ANIMALS, OBSTACLES, GAME, TARGET_SCORE, type TAnimalName } from '~/const'
 import { Draw } from './draw'
 import { Resource } from './resource'
 import { Backdrop } from './backdrop'
@@ -47,7 +47,8 @@ export class Engine {
     caught: { ...caughtDefault },
     progress: 0,
     timestamp: 0,
-    control: 'any'
+    control: 'any',
+    rendered: false
   }
   private cat: TCat = {
     source: {} as GifObject,
@@ -61,7 +62,7 @@ export class Engine {
   private target: Target = {
     nameCurr: 'none',
     nameLast: 'none',
-    xCurr: this.cat.x + CANVAS.width / 2,
+    xCurr: this.cat.x + GENERAL.canvas.width / 2,
     yCurr: GAME.defaultTargetY,
     xLast: GAME.defaultTargetX,
     yLast: GAME.defaultTargetY,
@@ -275,7 +276,7 @@ export class Engine {
         this.target.heightLast,
         !this.game.success
       )
-      if (this.target.xLast < 0 || this.target.xLast > CANVAS.width) this.target.nameLast = 'none'
+      if (this.target.xLast < 0 || this.target.xLast > GENERAL.canvas.width) this.target.nameLast = 'none'
     }
 
     // Move current target
@@ -324,7 +325,7 @@ export class Engine {
 
   private render = () => {
     performance.mark(this.meter.begin)
-    this.ctx.clearRect(0, 0, CANVAS.width, CANVAS.height)
+    this.ctx.clearRect(0, 0, GENERAL.canvas.width, GENERAL.canvas.height)
     if (!this.target.atPosition && (this.game.action == 'return' || this.game.action == 'scene')) {
       this.backdrop.move(this.scrollSpeed())
     } else {
@@ -361,6 +362,11 @@ export class Engine {
     if (!this.game.paused && (this.game.definingTrajectory || this.updateIsNeeded())) {
       setTimeout(this.render, this.game.updateTime)
     }
+
+    if (!this.game.rendered && this.handlers.renderCallback) {
+      this.game.rendered = true
+      this.handlers.renderCallback()
+    }
   }
 
   private updateIsNeeded = (): boolean => {
@@ -382,8 +388,8 @@ export class Engine {
     this.target.heightLast = this.target.heightCurr
     this.target.xLast = this.target.xCurr
     this.target.yLast = this.target.yCurr
-    this.target.xCurr = Math.floor(Math.max(this.cat.x + CANVAS.width / 2, CANVAS.width))
-    this.target.yCurr = GAME.defaultTargetY / (this.game.multiplayer ? 2 : 1) + (this.game.multiplayer === 'bottom' ? CANVAS.height / 2 : 0)
+    this.target.xCurr = Math.floor(Math.max(this.cat.x + GENERAL.canvas.width / 2, GENERAL.canvas.width))
+    this.target.yCurr = GAME.defaultTargetY / (this.game.multiplayer ? 2 : 1) + (this.game.multiplayer === 'bottom' ? GENERAL.canvas.height / 2 : 0)
     this.target.nameCurr = this.targetService.getTarget(this.game.multiplayer)
     this.target.isBarrier = OBSTACLES.includes(this.target.nameCurr)
     this.target.positionX = this.target.isBarrier
@@ -415,9 +421,9 @@ export class Engine {
       this.target.yCurr = GAME.defaultTargetY / 2
       this.target.yLast = GAME.defaultTargetY / 2
       if (multiplayer === 'bottom') {
-        this.cat.y += CANVAS.height / 2
-        this.target.yCurr += CANVAS.height / 2
-        this.target.yLast += CANVAS.height / 2
+        this.cat.y += GENERAL.canvas.height / 2
+        this.target.yCurr += GENERAL.canvas.height / 2
+        this.target.yLast += GENERAL.canvas.height / 2
       }
     } else {
       this.cat.y = GAME.defaultCatY
@@ -474,6 +480,7 @@ export class Engine {
     window.clearTimeout(this.game.timer)
     this.audio.pause()
     this.game.stopped = true
+    this.game.rendered = false
   }
 
   public pause = (state: boolean, force = false) => {
@@ -485,6 +492,7 @@ export class Engine {
       if (!force) this.handlers.handlePause(true)
       window.clearTimeout(this.game.timer)
       this.audio.musicMute = true
+      this.game.rendered = false
     } else {
       requestAnimationFrame(this.render)
       this.audio.musicMute = false

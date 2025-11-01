@@ -1,9 +1,14 @@
-export const CANVAS = {
-  width: 1280,
-  height: 720,
-  get aspectRatio(): number {
-    return Math.round(this.width / this.height * 100) / 100
-  },
+export const GENERAL = {
+  outerLinks: true,
+  fullscreenControl: true,
+  sdk: null, // 'ya-games' | null
+  canvas: {
+    width: 1280,
+    height: 720,
+    get aspectRatio(): number {
+      return Math.round(this.width / this.height * 100) / 100
+    },
+  }
 }
 
 export const SpriteSize = {
@@ -28,15 +33,15 @@ export const GAME = {
   movementSpeed: 4,
   trajectoryStep: 1.5,
 
-  actionPositionVertical: Math.floor(CANVAS.height * 0.88),
+  actionPositionVertical: Math.floor(GENERAL.canvas.height * 0.88),
   jumpHeightMin: Math.floor(SpriteSize.cat.height / 1.5),
   jumpHeightMax: SpriteSize.cat.height * 2.25,
-  defaultCatX: Math.floor(CANVAS.width / 3),
+  defaultCatX: Math.floor(GENERAL.canvas.width / 3),
   get defaultCatY(): number {
     return this.actionPositionVertical + SpriteSize.cat.height * .05
   },
-  defaultTargetX: CANVAS.width / 2,
-  animalPositionDelta: CANVAS.width / 8,
+  defaultTargetX: GENERAL.canvas.width / 2,
+  animalPositionDelta: GENERAL.canvas.width / 8,
   get defaultTargetY(): number {
     return this.actionPositionVertical
   },
@@ -44,8 +49,7 @@ export const GAME = {
   defaultAnimalHeight: 160,
   defaultRunAwayDelay: 8000, // The time after which the target will escape
 
-  roundLength: 25,
-  fullscreenControl: true
+  roundLength: 15,
 }
 
 export type TAnimalName = 'butterfly1' | 'butterfly2' | 'grasshopper' | 'frog' | 'bird' | 'mouse'

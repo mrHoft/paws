@@ -1,4 +1,4 @@
-import { CANVAS, type TSceneName } from '~/const'
+import { GENERAL, type TSceneName } from '~/const'
 import { Resource } from './resource'
 import { getValue } from '~/utils/data'
 import { inject } from '~/utils/inject'
@@ -66,8 +66,8 @@ export class Backdrop {
   private ctx: CanvasRenderingContext2D | null = null
   private timer: number | null = null
   private layersArr: Layer[] = []
-  private clearX = CANVAS.width
-  private clearY = CANVAS.height
+  private clearX = GENERAL.canvas.width
+  private clearY = GENERAL.canvas.height
   private resource: Resource
 
   constructor({ ctx }: { ctx: CanvasRenderingContext2D }) {
@@ -80,17 +80,17 @@ export class Backdrop {
     layersData[sceneName].forEach(data => {
       const img = getValue(this.resource.sprite, data.src) as HTMLImageElement
       const aspectRatio = img.width / img.height
-      let height = CANVAS.height * (data.scale || 1)
+      let height = GENERAL.canvas.height * (data.scale || 1)
       if (multiplayer) height = height / 2
-      const width = (height * aspectRatio) > CANVAS.width ? height * aspectRatio : CANVAS.width
+      const width = (height * aspectRatio) > GENERAL.canvas.width ? height * aspectRatio : GENERAL.canvas.width
 
       let y = 0
       if (multiplayer === 'top') {
-        y = data.fromTop ? 0 : CANVAS.height / 2 - height
+        y = data.fromTop ? 0 : GENERAL.canvas.height / 2 - height
       } else if (multiplayer === 'bottom') {
-        y = data.fromTop ? CANVAS.height / 2 : CANVAS.height - height
+        y = data.fromTop ? GENERAL.canvas.height / 2 : GENERAL.canvas.height - height
       } else {
-        y = data.fromTop ? 0 : CANVAS.height - height
+        y = data.fromTop ? 0 : GENERAL.canvas.height - height
       }
 
       const layer: Layer = {
