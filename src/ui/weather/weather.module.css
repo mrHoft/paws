@@ -1,4 +1,4 @@
-.weather {
+.container {
   position: absolute;
   top: 0;
   left: 0;
@@ -8,7 +8,7 @@
   pointer-events: none;
 }
 
-.weather__leaf {
+.leaf {
   position: absolute;
   will-change: transform;
   left: 0;

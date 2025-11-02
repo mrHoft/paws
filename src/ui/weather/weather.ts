@@ -28,7 +28,7 @@ export class Weather {
     const { leafCount = 3 } = options;
 
     this.container = document.createElement('div');
-    this.container.classList.add(layer.weather, styles.weather);
+    this.container.classList.add(layer.weather, styles.container);
 
     for (let i = 0; i < leafCount; i++) {
       this.addLeaf();
@@ -38,7 +38,7 @@ export class Weather {
   private createWeatherLeaf(): WeatherLeaf {
     const leaf = document.createElement('img') as WeatherLeaf;
     leaf.src = leafSrc;
-    leaf.className = styles.weather__leaf;
+    leaf.className = styles.leaf;
 
     leaf.animationData = {
       horizontalSpeed: Math.floor(10000 + Math.random() * 10000), // 10-20 seconds in milliseconds

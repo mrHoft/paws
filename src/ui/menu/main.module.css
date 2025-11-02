@@ -81,6 +81,8 @@
 
 .level__thumb {
   position: absolute;
+  aspect-ratio: 4/3;
+  background-color: var(--color-orange80);
   border-radius: 20% 20% 20% 20% / 18% 18% 18% 18%;
   border: 2px solid var(--color-orange70);
   box-sizing: border-box;

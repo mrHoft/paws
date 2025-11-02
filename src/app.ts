@@ -7,6 +7,7 @@ import { WinModal } from './ui/win/win'
 import { SinglePlayerUI } from '~/ui/game-ui/singlePlayer'
 import { MultiplayerUI } from './ui/game-ui/multiplayer'
 import { SettingsUI } from '~/ui/settings/settings'
+import { LoaderUI } from '~/ui/loader/loader'
 import { MainMenu } from '~/ui/menu/main'
 import { AboutUI } from '~/ui/about/about'
 import { Storage } from '~/service/storage'
@@ -19,7 +20,6 @@ import { YaGamesService } from '~/service/ysdk/ysdk'
 import { MultiplayerMenu } from '~/ui/menu/multiplayer'
 import { injector, inject } from '~/utils/inject'
 import type { EngineOptions, EngineHandlers } from '~/engine/types'
-import { Paws } from '~/ui/loader/paws'
 import { throttle } from '~/utils/throttle'
 
 const autoStartScene: TSceneName | null = null  // 'lake'
@@ -29,12 +29,7 @@ type TErrorSource = 'assets' | 'api'
 export class AppView {
   protected root: HTMLDivElement
   protected game: HTMLDivElement
-  private loader?: HTMLDivElement
-  private loaderBar?: HTMLDivElement
-  private loaderValue?: HTMLDivElement
-  protected message?: HTMLDivElement
   protected errors: { source: TErrorSource, message: string, lapse: number }[] = []
-  private paws: Paws
 
   constructor() {
     const root = document.querySelector<HTMLDivElement>('#app')
@@ -53,43 +48,6 @@ export class AppView {
     } else {
       throw new Error('Root element not found')
     }
-
-    this.paws = new Paws()
-  }
-
-  protected loaderInit() {
-    this.loader = document.createElement('div')
-    this.loader.classList.add('loader_layer')
-    const container = document.createElement('div')
-    container.classList.add('loader')
-    this.loaderBar = document.createElement('div')
-    this.loaderBar.classList.add('loader__bar')
-    this.loaderValue = document.createElement('div')
-    this.loaderValue.classList.add('loader__value')
-    container.append(this.loaderBar, this.loaderValue)
-    this.loader.append(container)
-
-    this.message = document.createElement('div')
-    this.message.classList.add('loader__message')
-
-    this.game.append(this.loader, this.message, this.paws.element)
-  }
-
-  protected loaderRemove() {
-    this.paws.destroy()
-    if (this.loader) this.loader.remove()
-    if (this.message) {
-      if (!this.errors.length) {
-        this.message.remove()
-      }
-    }
-  }
-
-  protected loaderUpdate(progress: number) {
-    if (this.loaderValue && this.loaderBar) {
-      this.loaderValue.innerText = `${progress}%`
-      this.loaderBar.setAttribute('style', `width: ${progress}%;`)
-    }
   }
 }
 
@@ -102,6 +60,7 @@ export class App extends AppView {
   private singlePlayerUI?: SinglePlayerUI
   private multiplayerUI?: MultiplayerUI
   private settingsUI?: SettingsUI
+  private loaderUI?: LoaderUI
   private weather?: Weather
   private audio: Audio
   private mainMenu?: MainMenu
@@ -155,16 +114,14 @@ export class App extends AppView {
   }
 
   public init = async (): Promise<void> => {
-    this.loaderInit()
-    this.root.addEventListener('contextmenu', (event) => {
-      event.preventDefault()
-      return false
-    })
+    this.loaderUI = new LoaderUI()
+    this.game.append(this.loaderUI.element)
 
     this.loading.start = Date.now()
 
     const onProgress = (progress: number) => {
-      this.loaderUpdate(progress)
+      this.loaderUI?.progressUpdate(progress)
+
       if (progress === 100) {
         console.log(`\x1b[33m${resource.total}\x1b[0m assets loaded in \x1b[33m${Date.now() - this.loading.start}ms\x1b[0m`)
         this.handleLoadComplete()
@@ -175,21 +132,21 @@ export class App extends AppView {
       const lapse = Date.now() - this.loading.start
       this.errors.push({ source, message, lapse })
       console.error(message, `(${lapse}ms)`)
-      if (this.message) {
-        const msgEl = document.createElement('div')
-        msgEl.innerText = message
-        this.message.appendChild(msgEl)
-      }
+
+      const msgEl = document.createElement('div')
+      msgEl.innerText = message
+      this.loaderUI?.addMessage(msgEl)
     }
 
     const resource = injector.createInstance(Resource)
-    resource.registerCallbacks({ progressCallback: onProgress, errorCallback: () => onError({ source: 'assets' }) })
+    resource.registerCallbacks({ progressCallback: onProgress, errorCallback: onError({ source: 'assets' }) })
 
     this.registerEvents()
   }
 
   private handleLoadComplete = () => {
-    this.loaderRemove()
+    if (this.errors.length) return
+    this.loaderUI?.destroy()
 
     const initialScore = this.storage.get<number>('data.score')
     this.singlePlayerUI = injector.createInstance(SinglePlayerUI, { enginePause: this.handleEnginePause, initialScore })
@@ -254,14 +211,15 @@ export class App extends AppView {
       return
     }
 
-    if (this.errors.length) {
-      return
-    }
-
     this.handleMenuShow()
   }
 
   private registerEvents = () => {
+    this.root.addEventListener('contextmenu', (event) => {
+      event.preventDefault()
+      return false
+    })
+
     const resizeCallback = throttle(() => {
       const { width, height } = this.root.getBoundingClientRect()
       let newWidth = Math.min(width, GENERAL.canvas.width)
