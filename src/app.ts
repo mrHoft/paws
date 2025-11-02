@@ -12,6 +12,7 @@ import { AboutUI } from '~/ui/about/about'
 import { Storage } from '~/service/storage'
 import { Audio } from '~/service/audio'
 import { ShepardTone, type ShepardToneConfig } from '~/service/shepardTone'
+import { SoundService } from "~/service/sound";
 import { Localization } from '~/service/localization'
 import { WindowFocusService } from '~/service/focus'
 import { YaGamesService } from '~/service/ysdk/ysdk'
@@ -138,12 +139,14 @@ export class App extends AppView {
       volume: soundVolume,
       direction: 'ascending'
     }
-    injector.createInstance(ShepardTone, config)
+    const tone = injector.createInstance(ShepardTone, config)
+
+    const soundService = injector.createInstance(SoundService)
 
     this.focusService = new WindowFocusService()
     this.focusService.registerCallback({
-      focusLoss: () => { this.audio.mute = true },
-      focusGain: () => { this.audio.mute = false }
+      focusLoss: () => { this.audio.mute = true; soundService.mute = true; tone.stop() },
+      focusGain: () => { this.audio.mute = false; soundService.mute = false }
     })
 
     if (GENERAL.sdk === 'ya-games') {
@@ -276,7 +279,11 @@ export class App extends AppView {
   private initGame = async () => {
     const { Engine } = await import('./engine/engine');
     const handlers: EngineHandlers = {
-      handlePause: (state: boolean) => { this.pauseModal?.show(state); this.weather?.pause(state); this.handleSdkApiState(!state) },
+      handlePause: (state: boolean) => {
+        this.enginePause!(true, true)
+        this.pauseModal?.show(state)
+        this.weather?.pause(state)
+      },
       updateLevel: (value: number) => this.singlePlayerUI?.handleLevel(value),
       updateCombo: this.handleUpdateCombo,
       updateScore: this.handleUpdateScore,

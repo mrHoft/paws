@@ -5,7 +5,7 @@ import { inject } from "~/utils/inject";
 
 import styles from './caught.module.css'
 
-const slots = ['butterfly', 'mouse', 'bird', 'frog']
+const slots = ['butterfly', 'mouse', 'bird', 'frog', 'star']
 
 export class Caught {
   private static _instance: Caught
@@ -13,12 +13,12 @@ export class Caught {
   private container!: HTMLDivElement
   private count: Record<string, number> = {
     butterfly: 0,
-    grasshopper: 0,
     frog: 0,
     mouse: 0,
     bird: 0,
+    star: 0,
   }
-  private slot: Partial<Record<string, { icon: HTMLImageElement, value: HTMLSpanElement }>> = {}
+  private slot: Record<string, { icon: HTMLImageElement, value: HTMLSpanElement }> = {}
 
   constructor() {
     if (Caught._instance) return Caught._instance
@@ -26,7 +26,7 @@ export class Caught {
 
     this.storage = inject(Storage)
     const initialCaught = this.storage.get<Record<string, number>>('data.caught')
-    if (initialCaught) this.count = { ...initialCaught }
+    if (initialCaught) this.count = { ...this.count, ...initialCaught }
 
     this.container = document.createElement('div')
     this.container.className = styles.caught
@@ -38,7 +38,7 @@ export class Caught {
   }
 
   public setCount(value: Record<TAnimalName, number>) {
-    this.count = { ...value }
+    this.count = { ...this.count, ...value }
   }
 
   public handleUpdate = (name: string) => {
@@ -47,7 +47,11 @@ export class Caught {
     if (slots.includes(n)) {
       this.count[n] += 1
       this.slot[n]!.value.innerText = this.count[n].toString()
-      this.storage.set(`data.caught.${n}`, this.count[n])
+      if (name === 'star') {
+        this.storage.set('data.stars', this.count[n])
+      } else {
+        this.storage.set(`data.caught.${n}`, this.count[n])
+      }
 
       this.slot[n]!.icon.classList.add(styles.bounce)
       setTimeout(() => {

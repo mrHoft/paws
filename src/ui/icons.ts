@@ -3,6 +3,7 @@ export const spoilSrc: Record<string, string> = {
   frog: './spoil/frog.svg',
   mouse: './spoil/mouse.svg',
   bird: './spoil/bird.svg',
+  star: './icons/star.svg',
 }
 
 export const iconSrc: Record<string, string> = {

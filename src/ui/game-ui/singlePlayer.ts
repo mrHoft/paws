@@ -1,4 +1,4 @@
-import { GAME } from '~/const'
+import { GENERAL } from '~/const'
 import { Audio } from '~/service/audio'
 import { iconSrc } from "~/ui/icons"
 import { buttonIcon } from '~/ui/button/icon'
@@ -108,7 +108,7 @@ export class SinglePlayerUI extends SinglePlayerView {
     bottomLeft.append(this.btnPause)
     this.bottom.append(bottomLeft)
 
-    if (GAME.fullscreenControl) {
+    if (GENERAL.fullscreenControl) {
       this.btnFullscreen = buttonIcon({ src: iconSrc.fullscreen })
       const fullscreenIconElement = this.btnFullscreen.children[0] as HTMLImageElement
       this.btnFullscreen.addEventListener('mousedown', (event) => {

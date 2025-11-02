@@ -117,7 +117,7 @@ export class MultiplayerUI extends MultiplayerView {
 
   constructor() {
     super()
-    this.soundService = new SoundService()
+    this.soundService = inject(SoundService)
   }
 
   public startCount = () => {
@@ -127,7 +127,7 @@ export class MultiplayerUI extends MultiplayerView {
     const count = () => {
       const value = sequence.shift()
       if (value) {
-        this.soundService.play('pum')
+        this.soundService.play('pum', sequence.length === 0)
         this.sequence.innerText = value
         this.bounce(this.sequence)
         setTimeout(count, 1000)

@@ -479,6 +479,7 @@ export class Engine {
     this.events.unregisterControls()
     window.clearTimeout(this.game.timer)
     this.audio.pause()
+    this.tone.stop()
     this.game.stopped = true
     this.game.rendered = false
   }

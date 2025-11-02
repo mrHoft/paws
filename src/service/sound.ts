@@ -1,3 +1,5 @@
+import { Injectable } from "~/utils/inject";
+
 interface SoundConfig {
   frequency: number;
   duration: number;
@@ -6,10 +8,12 @@ interface SoundConfig {
   fadeOut?: boolean;
 }
 
+@Injectable
 export class SoundService {
   private audioContext: AudioContext;
   private sounds: Map<string, SoundConfig>;
   private masterGain: GainNode;
+  private _mute = false
 
   constructor() {
     this.audioContext = new AudioContext();
@@ -26,7 +30,9 @@ export class SoundService {
     ]);
   }
 
-  public async play(soundName: string): Promise<void> {
+  public async play(soundName: string, long = false): Promise<void> {
+    if (this._mute) return
+
     if (this.audioContext.state === 'suspended') {
       await this.audioContext.resume();
     }
@@ -45,21 +51,26 @@ export class SoundService {
     gainNode.gain.value = config.volume;
 
     const now = this.audioContext.currentTime;
+    const duration = config.duration * (long ? 3 : 1)
 
     if (config.fadeOut) {
       gainNode.gain.setValueAtTime(config.volume, now);
-      gainNode.gain.exponentialRampToValueAtTime(0.001, now + config.duration);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration);
     } else {
       gainNode.gain.setValueAtTime(config.volume, now);
-      gainNode.gain.setValueAtTime(config.volume, now + config.duration - 0.01);
-      gainNode.gain.linearRampToValueAtTime(0.001, now + config.duration);
+      gainNode.gain.setValueAtTime(config.volume, now + duration - 0.01);
+      gainNode.gain.linearRampToValueAtTime(0.001, now + duration);
     }
 
     oscillator.start(now);
-    oscillator.stop(now + config.duration);
+    oscillator.stop(now + duration);
   }
 
   public set volume(volume: number) {
     this.masterGain.gain.value = Math.max(0, Math.min(1, volume));
+  }
+
+  public set mute(value: boolean) {
+    this._mute = value
   }
 }

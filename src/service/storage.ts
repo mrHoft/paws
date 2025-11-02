@@ -3,6 +3,7 @@ import { Injectable } from "~/utils/inject"
 
 interface GameData {
   score: number
+  stars: number
   caught: Record<string, number>
 }
 
@@ -20,6 +21,7 @@ const defaultUserData: UserData & { data: GameData } = {
   language: navigator.language || 'en',
   data: {
     score: 0,
+    stars: 0,
     caught: {
       butterfly: 0,
       grasshopper: 0,
