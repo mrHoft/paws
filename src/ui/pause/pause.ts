@@ -33,11 +33,11 @@ export class PauseModal {
     this.loc = inject(Localization)
 
     this.container = document.createElement('div')
-    this.container.classList.add(layer.pause, styles.pause)
+    this.container.classList.add(layer.pause, styles.container)
     this.container.setAttribute('style', `display: none;`)
 
     const btnContinue = document.createElement('div')
-    btnContinue.className = styles.button
+    btnContinue.className = modal.button
     const continueLabel = document.createElement('span')
     this.loc.register('continue', continueLabel)
     const continueIcon = document.createElement('img')

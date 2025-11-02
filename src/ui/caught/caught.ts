@@ -2,6 +2,7 @@ import type { TAnimalName } from "~/const"
 import { spoilSrc } from "~/ui/icons";
 import { Storage } from '~/service/storage'
 import { inject } from "~/utils/inject";
+import { caughtNameTransform } from "~/utils/caught";
 
 import styles from './caught.module.css'
 
@@ -42,8 +43,7 @@ export class Caught {
   }
 
   public handleUpdate = (name: string) => {
-    let n = name.replace(/\d/, '')
-    if (n === 'grasshopper') n = 'butterfly'
+    const n = caughtNameTransform(name)
     if (slots.includes(n)) {
       this.count[n] += 1
       this.slot[n]!.value.innerText = this.count[n].toString()

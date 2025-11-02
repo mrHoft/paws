@@ -14,6 +14,7 @@ export const iconSrc: Record<string, string> = {
   menu: './icons/menu.svg',
   play: './icons/play.svg',
   start: './icons/play-circle.svg',
+  star: './icons/star.svg',
   about: './icons/about.svg',
   fullscreen: './icons/fullscreen.svg',
   fullscreenExit: './icons/fullscreen-exit.svg',

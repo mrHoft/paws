@@ -16,6 +16,9 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     confirmation: 'Confirmation',
     confirmationDefault: 'Are you sure?',
     restartDesc: 'This will reset all your progress. Are you sure want to restart?',
+    stageComplete: 'Stage complete!',
+    caught: 'Caught',
+    backToMenu: 'Menu',
     // tooltip
     startNewGame: 'Hold space/tap to jump',
     firstAnimal: 'Need to jump on target',

@@ -1,23 +1,22 @@
-import { buttonCircle } from '~/ui/button/circle'
 import { iconSrc } from "~/ui/icons"
 import { Localization } from '~/service/localization'
-import { ConfirmationModal } from '../confirmation/confirm'
 import { GamepadService } from '~/service/gamepad'
 import { inject } from '~/utils/inject'
 
-import styles from './win.module.css'
+import styles from './stageComplete.module.css'
 import modal from '~/ui/modal.module.css'
 import layer from '~/ui/layers.module.css'
 
-class WinView {
+class StageCompleteView {
   protected loc: Localization
   protected container: HTMLDivElement
   protected inner: HTMLDivElement
-  protected button: { replay: HTMLDivElement, menu: HTMLDivElement }
+  protected button: HTMLDivElement
   protected result: {
-    winner: HTMLSpanElement,
+    stars: HTMLDivElement,
     score: HTMLSpanElement,
     time: HTMLSpanElement,
+    caught: HTMLSpanElement
   }
   protected isActive = false
 
@@ -31,27 +30,29 @@ class WinView {
     this.inner = document.createElement('div')
     this.inner.classList.add(modal.inner, modal.small)
     const h3 = document.createElement('h3')
-    this.loc.register('win', h3)
+    this.loc.register('stageComplete', h3)
 
-    this.button = {
-      replay: buttonCircle({ src: iconSrc.restart }),
-      menu: buttonCircle({ src: iconSrc.menu })
-    }
-
-    const btns = document.createElement('div')
-    btns.className = modal.btns
-    btns.append(this.button.replay, this.button.menu)
+    this.button = document.createElement('div')
+    this.button.className = modal.button
+    const continueLabel = document.createElement('span')
+    this.loc.register('backToMenu', continueLabel)
+    const continueIcon = document.createElement('img')
+    continueIcon.src = iconSrc.menu
+    this.button.append(continueIcon, continueLabel)
 
     this.result = {
-      winner: document.createElement('span'),
+      stars: document.createElement('div'),
       score: document.createElement('span'),
       time: document.createElement('span'),
+      caught: document.createElement('span'),
     }
-    const winner = document.createElement('div')
-    winner.className = 'text-center'
-    const winText = document.createElement('span')
-    this.loc.register('winText', winText)
-    winner.append(this.result.winner, ' ', winText)
+
+    this.result.stars.className = styles.stars
+    for (let i = 0; i < 3; i += 1) {
+      const img = document.createElement('img')
+      img.src = iconSrc.star
+      this.result.stars.append(img)
+    }
 
     const score = document.createElement('div')
     const scoreLabel = document.createElement('span')
@@ -63,11 +64,16 @@ class WinView {
     this.loc.register('time', timeLabel)
     time.append(timeLabel, ': ', this.result.time)
 
-    const result = document.createElement('div')
-    // result.classList.add('text-shadow')
-    result.append(winner, score, time)
+    const caught = document.createElement('div')
+    const caughtLabel = document.createElement('span')
+    this.loc.register('caught', caughtLabel)
+    caught.append(caughtLabel, ': ', this.result.caught)
 
-    this.inner.append(h3, result, btns)
+    const results = document.createElement('div')
+    results.className = styles.results
+    results.append(this.result.stars, score, time, caught)
+
+    this.inner.append(h3, results, this.button)
     this.container.append(this.inner)
   }
 
@@ -86,32 +92,26 @@ class WinView {
   }
 }
 
-export class WinModal extends WinView {
-  private confirmationModal: ConfirmationModal
-  private restart: () => void
+export class StageCompleteModal extends StageCompleteView {
   private menu: () => void
   private gamepadService: GamepadService
 
-  constructor({ restart, menu }: { restart: () => void, menu: () => void }) {
+  constructor({ menu }: { menu: () => void }) {
     super()
-    this.restart = restart
     this.menu = menu
-    this.confirmationModal = inject(ConfirmationModal)
 
     this.gamepadService = inject(GamepadService)
     this.gamepadService.registerCallbacks({ onButtonUp: this.onGamepadButtonUp })
 
-    this.button.replay.addEventListener('click', this.handleReplay)
-    this.button.menu.addEventListener('click', this.handleMenu)
+    this.button.addEventListener('click', this.handleMenu)
   }
 
-  public handleFinish = (result: { score: number, time: number, player?: 'top' | 'bottom' }) => {
-    const name = result.player === 'top' ? this.loc.get('upper') : this.loc.get('bottom')
-    this.result.winner.innerText = name
+  public handleComplete = (result: { score: number, time: number, caught?: number }) => {
     this.result.score.innerText = result.score.toString()
     const m = Math.floor(result.time / 60000)
     const s = Math.floor(result.time / 1000 - m * 60)
     this.result.time.innerText = `${m}:${s}`
+    this.result.caught.innerText = (result.caught || 0).toString()
 
     this.show(true)
   }
@@ -122,18 +122,6 @@ export class WinModal extends WinView {
     if (buttonIndex === 9) {  // Start button
       this.handleMenu()
     }
-    if (buttonIndex === 1 || buttonIndex === 8) {  // Accept button
-      this.handleReplay()
-    }
-  }
-
-  private handleReplay = () => {
-    this.confirmationModal?.show({
-      text: this.loc.get('replay'), acceptCallback: () => {
-        this.show(false)
-        this.restart()
-      }
-    })
   }
 
   private handleMenu = () => {

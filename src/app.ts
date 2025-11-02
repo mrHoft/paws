@@ -2,10 +2,11 @@ import { Resource } from '~/engine/resource'
 import { GENERAL, type TSceneName } from '~/const'
 import { Weather } from '~/ui/weather/weather'
 import { PauseModal } from '~/ui/pause/pause'
-import { ConfirmationModal } from './ui/confirmation/confirm'
-import { WinModal } from './ui/win/win'
+import { ConfirmationModal } from '~/ui/confirmation/confirm'
+import { StageCompleteModal } from '~/ui/stage-complete/stageComplete'
+import { WinModal } from '~/ui/win/win'
 import { SinglePlayerUI } from '~/ui/game-ui/singlePlayer'
-import { MultiplayerUI } from './ui/game-ui/multiplayer'
+import { MultiplayerUI } from '~/ui/game-ui/multiplayer'
 import { SettingsUI } from '~/ui/settings/settings'
 import { LoaderUI } from '~/ui/loader/loader'
 import { MainMenu } from '~/ui/menu/main'
@@ -57,6 +58,7 @@ export class App extends AppView {
   private pauseModal?: PauseModal
   private confirmationModal?: ConfirmationModal
   private winModal?: WinModal
+  private stageCompleteModal?: StageCompleteModal
   private singlePlayerUI?: SinglePlayerUI
   private multiplayerUI?: MultiplayerUI
   private settingsUI?: SettingsUI
@@ -171,6 +173,7 @@ export class App extends AppView {
     })
     this.weather = new Weather()
     this.weather?.element.setAttribute('style', 'display: none;')
+    this.stageCompleteModal = new StageCompleteModal({ menu: this.handleMenuShow })
     this.winModal = new WinModal({
       restart: this.handleEngineRestart,
       menu: this.handleMenuShow
@@ -185,6 +188,7 @@ export class App extends AppView {
       multiplayerMenu.element,
       aboutUI.element,
       this.settingsUI.element,
+      this.stageCompleteModal.element,
       this.winModal.element,
       this.pauseModal.element,
       this.confirmationModal.element,
@@ -216,7 +220,7 @@ export class App extends AppView {
 
   private registerEvents = () => {
     this.root.addEventListener('contextmenu', (event) => {
-      event.preventDefault()
+      // event.preventDefault()
       return false
     })
 
@@ -248,9 +252,13 @@ export class App extends AppView {
       updateProgress: this.handleUpdateProgress,
       updateCaught: (value: string) => this.singlePlayerUI?.caught.handleUpdate(value),
       showTooltip: (value: string) => this.singlePlayerUI?.handleTooltip(value),
-      handleFinish: (result: { score: number, time: number, player: 'top' | 'bottom' }) => {
+      handleFinish: (result: { score: number, time: number, caught?: number, player?: 'top' | 'bottom' }) => {
         this.enginePause!(true, true)
-        this.winModal?.handleFinish(result)
+        if (result.player) {
+          this.winModal?.handleFinish(result)
+        } else {
+          this.stageCompleteModal?.handleComplete(result)
+        }
       },
       renderCallback: () => { this.handleSdkApiState(true) }
     }

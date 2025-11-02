@@ -20,7 +20,6 @@ export type Target = {
 
 export type TCaught = {
   butterfly: number
-  grasshopper: number
   frog: number
   bird: number
   mouse: number
@@ -83,7 +82,7 @@ export interface EngineHandlers {
   updateProgress: (_value: number, _player?: 'top' | 'bottom') => void,
   updateCaught: (_id: string) => void,
   showTooltip: (_id: string) => void,
-  handleFinish?: (_result: { score: number, time: number, player: 'top' | 'bottom' }) => void
+  handleFinish?: (_result: { score: number, time: number, caught?: number, player?: 'top' | 'bottom' }) => void
   renderCallback?: () => void // Will be called on first render after start or each pause
 }
 

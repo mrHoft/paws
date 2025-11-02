@@ -13,10 +13,10 @@ import type { GifObject } from '~/utils/gif'
 import { Audio } from '~/service/audio'
 import { ShepardTone } from '~/service/shepardTone'
 import { inject } from '~/utils/inject'
+import { caughtNameTransform } from "~/utils/caught";
 
 const caughtDefault: TCaught = {
   butterfly: 0,
-  grasshopper: 0,
   frog: 0,
   bird: 0,
   mouse: 0,
@@ -122,11 +122,12 @@ export class Engine {
   }
 
   private handleFinish = () => {
-    if (this.game.multiplayer && this.handlers.handleFinish) {
+    if (this.handlers.handleFinish) {
       this.handlers.handleFinish({
         player: this.game.multiplayer,
         score: this.game.score,
-        time: Date.now() - this.game.timestamp
+        time: Date.now() - this.game.timestamp,
+        caught: Object.values(this.game.caught).reduce((acc, value) => acc + value, 0)
       })
     }
   }
@@ -173,6 +174,7 @@ export class Engine {
         }
       }
       const name: TAnimalName = this.target.nameCurr as TAnimalName
+      this.game.caught[caughtNameTransform(name)] += 1
 
       if (!this.game.multiplayer) this.handlers.updateCaught(name)
       this.audio.use('catch')
@@ -182,7 +184,7 @@ export class Engine {
     this.game.progress += 1
     const percent = Math.min(this.game.progress / GAME.roundLength * 100, 100)
     this.handlers.updateProgress(percent, this.game.multiplayer)
-    if (percent === 100 && this.game.multiplayer) {
+    if (percent === 100) {
       this.handleFinish()
     } else {
       this.levelPrepare()
@@ -444,6 +446,7 @@ export class Engine {
     this.audio.play(0, true)  // TODO: level music
 
     this.target.nameCurr = 'none'
+    this.game.caught = { ...caughtDefault }
     this.game.control = control
     this.game.progress = 0
     this.game.sceneName = sceneName
@@ -490,10 +493,12 @@ export class Engine {
     // console.log(`Game ${this.game.multiplayer || ''} ${this.game.paused ? 'paused' : 'continued'}`)
 
     if (this.game.paused) {
-      if (!force) this.handlers.handlePause(true)
+      if (!force) {
+        this.game.rendered = false
+        this.handlers.handlePause(true)
+      }
       window.clearTimeout(this.game.timer)
       this.audio.musicMute = true
-      this.game.rendered = false
     } else {
       requestAnimationFrame(this.render)
       this.audio.musicMute = false
