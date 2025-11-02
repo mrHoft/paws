@@ -43,13 +43,13 @@ export class SinglePlayerUI extends SinglePlayerView {
   private btnSound: HTMLDivElement
   private btnPause: HTMLDivElement
   private btnFullscreen?: HTMLDivElement
-  public readonly caught: Caught
+  private caught: Caught
 
   constructor({ enginePause, initialScore }: { enginePause: (_show: boolean) => void, initialScore?: number }) {
     super()
     this.loc = inject(Localization)
     this.audio = inject(Audio)
-    this.caught = new Caught()
+    this.caught = inject(Caught)
 
     const level = document.createElement('div')
     const levelLabel = document.createElement('span')

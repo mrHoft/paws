@@ -1,6 +1,7 @@
 import { Storage } from '~/service/storage'
 import { Audio } from '~/service/audio'
 import { ShepardTone } from '~/service/shepardTone'
+import { SoundService } from '~/service/sound'
 import { iconSrc } from '~/ui/icons'
 import { LANGUAGES, type TLanguage } from '~/i18n'
 import { Localization } from '~/service/localization'
@@ -59,6 +60,7 @@ export class SettingsUI extends SettingsView {
   private storage: Storage
   private audio: Audio
   private tone: ShepardTone
+  private soundService: SoundService
   private list: HTMLUListElement
   private opt: Record<string, { element: HTMLLIElement, label: HTMLLabelElement, icon: HTMLImageElement, input: HTMLInputElement }> = {}
   private flags: HTMLDivElement
@@ -74,6 +76,7 @@ export class SettingsUI extends SettingsView {
     this.storage = inject(Storage)
     this.audio = inject(Audio)
     this.tone = inject(ShepardTone)
+    this.soundService = inject(SoundService)
 
     this.list = document.createElement('ul')
     this.list.className = styles.list
@@ -302,9 +305,11 @@ export class SettingsUI extends SettingsView {
     value = Math.round(value * 10) / 10
     this.storage.set('sound', value)
     this.audio.soundVolume = value
-    this.audio.use('catch')
     this.tone.volume = value
+    this.soundService.volume = value
     this.opt.sound.input.value = value.toString()
+
+    this.soundService.play('tone-high')
   }
 
   private handleFpsCheckedChange = (checked: boolean) => {

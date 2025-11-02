@@ -40,7 +40,7 @@ export class FlyingValues {
     let color = 'yellow'
     let Y = y || txtStartY
     if (typeof value == 'number') {
-      if (value > 0) text = '+ ' + text
+      if (value > 0) text = `+ ${text}`
       color = value < 0 ? 'red' : 'green'
       Y = y || numStartY
     }

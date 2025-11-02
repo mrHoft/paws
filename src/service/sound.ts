@@ -26,7 +26,7 @@ export class SoundService {
       ['ta', { frequency: 800, duration: 0.5, volume: 0.4, type: 'square', fadeOut: true }],
       ['block', { frequency: 150, duration: 0.2, volume: 0.4, type: 'sawtooth' }],
       ['tone-low', { frequency: 300, duration: 0.15, volume: 0.3, type: 'triangle' }],
-      ['tone-high', { frequency: 400, duration: 0.05, volume: 0.2, type: 'square' }],
+      ['tone-high', { frequency: 350, duration: 0.07, volume: 0.2, type: 'square' }],
     ]);
   }
 

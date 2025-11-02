@@ -1,15 +1,15 @@
 import type { TAnimalName } from "~/const"
 import { spoilSrc } from "~/ui/icons";
 import { Storage } from '~/service/storage'
-import { inject } from "~/utils/inject";
+import { Injectable, inject } from "~/utils/inject";
 import { caughtNameTransform } from "~/utils/caught";
 
 import styles from './caught.module.css'
 
 const slots = ['butterfly', 'mouse', 'bird', 'frog', 'star']
 
+@Injectable
 export class Caught {
-  private static _instance: Caught
   private storage!: Storage
   private container!: HTMLDivElement
   private count: Record<string, number> = {
@@ -22,12 +22,10 @@ export class Caught {
   private slot: Record<string, { icon: HTMLImageElement, value: HTMLSpanElement }> = {}
 
   constructor() {
-    if (Caught._instance) return Caught._instance
-    Caught._instance = this
-
     this.storage = inject(Storage)
     const initialCaught = this.storage.get<Record<string, number>>('data.caught')
-    if (initialCaught) this.count = { ...this.count, ...initialCaught }
+    const initialStars = this.storage.get<number>('data.stars')
+    if (initialCaught) this.count = { ...this.count, ...initialCaught, star: initialStars || 0 }
 
     this.container = document.createElement('div')
     this.container.className = styles.caught

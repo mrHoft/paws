@@ -4,6 +4,7 @@ import { Localization } from '~/service/localization'
 import { ConfirmationModal } from '../confirmation/confirm'
 import { GamepadService } from '~/service/gamepad'
 import { inject } from '~/utils/inject'
+import { formatTime } from "~/utils/time"
 
 import styles from './win.module.css'
 import modal from '~/ui/modal.module.css'
@@ -109,9 +110,7 @@ export class WinModal extends WinView {
     const name = result.player === 'top' ? this.loc.get('upper') : this.loc.get('bottom')
     this.result.winner.innerText = name
     this.result.score.innerText = result.score.toString()
-    const m = Math.floor(result.time / 60000)
-    const s = Math.floor(result.time / 1000 - m * 60)
-    this.result.time.innerText = `${m}:${s}`
+    this.result.time.innerText = formatTime(result.time)
 
     this.show(true)
   }

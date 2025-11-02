@@ -22,6 +22,13 @@ const caughtDefault: TCaught = {
   mouse: 0,
 }
 
+const prophecyDefault = {
+  total: GAME.roundLength,
+  fails: 0,
+  multiplied: 0,
+  speed: 1
+}
+
 export class Engine {
   private audio: Audio
   private ctx: CanvasRenderingContext2D
@@ -45,6 +52,7 @@ export class Engine {
     combo: 0, // Combo multiplier for score
     score: 0,
     caught: { ...caughtDefault },
+    prophecy: { ...prophecyDefault },
     progress: 0,
     timestamp: 0,
     control: 'any',
@@ -123,11 +131,19 @@ export class Engine {
 
   private handleFinish = () => {
     if (this.handlers.handleFinish) {
+      const succeed = Math.max(this.game.prophecy.total - this.game.prophecy.fails, 0)
+      const multiplier = Math.floor((1 + this.game.prophecy.multiplied / this.game.prophecy.total) * 100) / 100
+      const prophecy = (succeed * (1 + (this.game.prophecy.speed - 1) * 0.1) * multiplier) / (this.game.prophecy.total * 2)
+      console.log(this.game.prophecy)
+      console.log('succeed:', succeed)
+      console.log('multiplier:', multiplier)
+      console.log('prophecy:', prophecy)
       this.handlers.handleFinish({
         player: this.game.multiplayer,
         score: this.game.score,
         time: Date.now() - this.game.timestamp,
-        caught: Object.values(this.game.caught).reduce((acc, value) => acc + value, 0)
+        caught: Object.values(this.game.caught).reduce((acc, value) => acc + value, 0),
+        prophecy
       })
     }
   }
@@ -144,6 +160,7 @@ export class Engine {
     */
 
     this.game.combo = 0
+    this.game.prophecy.fails += 1
     this.handlers.updateCombo(this.game.combo, this.game.multiplayer)
     this.game.success = false
     if (reason != 'timeout') {
@@ -175,6 +192,7 @@ export class Engine {
       }
       const name: TAnimalName = this.target.nameCurr as TAnimalName
       this.game.caught[caughtNameTransform(name)] += 1
+      if (multiplier) this.game.prophecy.multiplied += 1
 
       if (!this.game.multiplayer) this.handlers.updateCaught(name)
       this.audio.use('catch')
@@ -412,7 +430,7 @@ export class Engine {
   }
 
   public start(options: EngineOptions = {}) {
-    const { sceneName = this.game.sceneName, initialScore, restart, fps, multiplayer, control = 'any' } = options
+    const { sceneName = this.game.sceneName, initialScore, fps, multiplayer, control = 'any' } = options
     if (fps !== undefined) this.game.fps = fps
     if (initialScore !== undefined) this.game.score = initialScore
 
@@ -447,6 +465,7 @@ export class Engine {
 
     this.target.nameCurr = 'none'
     this.game.caught = { ...caughtDefault }
+    this.game.prophecy = { ...prophecyDefault }
     this.game.control = control
     this.game.progress = 0
     this.game.sceneName = sceneName
@@ -456,13 +475,8 @@ export class Engine {
     this.game.timestamp = Date.now()
     this.game.combo = 0
     this.handlers.updateCombo(this.game.combo, multiplayer)
-
-    if (restart || multiplayer) {
-      // console.log('Game restarted')
-      this.game.score = 0
-      this.game.caught = { ...caughtDefault }
-      this.updateScore(this.game.score)
-    }
+    this.game.score = 0
+    this.updateScore(this.game.score)
 
     this.levelPrepare()
     if (multiplayer) {

@@ -19,6 +19,7 @@ import { Localization } from '~/service/localization'
 import { WindowFocusService } from '~/service/focus'
 import { YaGamesService } from '~/service/ysdk/ysdk'
 import { MultiplayerMenu } from '~/ui/menu/multiplayer'
+import { Caught } from '~/ui/caught/caught'
 import { injector, inject } from '~/utils/inject'
 import type { EngineOptions, EngineHandlers } from '~/engine/types'
 import { throttle } from '~/utils/throttle'
@@ -69,6 +70,7 @@ export class App extends AppView {
   private storage: Storage
   private focusService: WindowFocusService
   private yaGames?: YaGamesService
+  private caught?: Caught
   private engineStart?: (options1?: EngineOptions, options2?: EngineOptions) => void
   private enginePause?: (state: boolean, force?: boolean) => void
   private engineStop?: () => void
@@ -78,6 +80,7 @@ export class App extends AppView {
   constructor() {
     super()
     this.storage = inject(Storage)
+    // console.log("Saved score:", this.storage.get<number>('data.score'))
     this.loc = injector.createInstance(Localization, this.storage.get('language'))
 
     const musicVolume = Math.max(0, Math.min(this.storage.get<number>('music'), 1))
@@ -103,6 +106,7 @@ export class App extends AppView {
     const tone = injector.createInstance(ShepardTone, config)
 
     const soundService = injector.createInstance(SoundService)
+    soundService.volume = soundVolume
 
     this.focusService = new WindowFocusService()
     this.focusService.registerCallback({
@@ -119,18 +123,19 @@ export class App extends AppView {
     this.loaderUI = new LoaderUI()
     this.game.append(this.loaderUI.element)
 
-    this.loading.start = Date.now()
-
-    const onProgress = (progress: number) => {
-      this.loaderUI?.progressUpdate(progress)
-
-      if (progress === 100) {
-        console.log(`\x1b[33m${resource.total}\x1b[0m assets loaded in \x1b[33m${Date.now() - this.loading.start}ms\x1b[0m`)
-        this.handleLoadComplete()
-      }
+    let repeats = 10 // 500ms to each
+    let apiReady = true
+    if (GENERAL.sdk === 'ya-games') {
+      apiReady = false
+      this.yaGames?.registerCallback((sdk) => {
+        sdk.features.LoadingAPI.ready()
+        apiReady = true
+      })
     }
 
-    const onError = ({ source }: { source: TErrorSource }) => (message: string) => {
+    this.loading.start = Date.now()
+
+    const handleError = ({ source }: { source: TErrorSource }) => (message: string) => {
       const lapse = Date.now() - this.loading.start
       this.errors.push({ source, message, lapse })
       console.error(message, `(${lapse}ms)`)
@@ -140,18 +145,43 @@ export class App extends AppView {
       this.loaderUI?.addMessage(msgEl)
     }
 
+    const handleReady = () => {
+      if (!apiReady && repeats > 0) {
+        repeats -= 1
+        if (repeats > 0) {
+          setTimeout(handleReady, 500)
+          return
+        } else {
+          if (GENERAL.sdk === 'ya-games') {
+            handleError({ source: 'api' })('Yandex games api initialization timeout.')
+          }
+        }
+      }
+
+      this.start()
+    }
+
+    const handleProgress = (progress: number) => {
+      this.loaderUI?.progressUpdate(progress)
+
+      if (progress === 100) {
+        console.log(`\x1b[33m${resource.total}\x1b[0m assets loaded in \x1b[33m${Date.now() - this.loading.start}ms\x1b[0m`)
+        handleReady()
+      }
+    }
+
     const resource = injector.createInstance(Resource)
-    resource.registerCallbacks({ progressCallback: onProgress, errorCallback: onError({ source: 'assets' }) })
+    resource.registerCallbacks({ progressCallback: handleProgress, errorCallback: handleError({ source: 'assets' }) })
 
     this.registerEvents()
   }
 
-  private handleLoadComplete = () => {
+  private start = () => {
     if (this.errors.length) return
     this.loaderUI?.destroy()
 
-    const initialScore = this.storage.get<number>('data.score')
-    this.singlePlayerUI = injector.createInstance(SinglePlayerUI, { enginePause: this.handleEnginePause, initialScore })
+    this.caught = inject(Caught)
+    this.singlePlayerUI = injector.createInstance(SinglePlayerUI, { enginePause: this.handleEnginePause })
     this.multiplayerUI = new MultiplayerUI()
     this.confirmationModal = injector.createInstance(ConfirmationModal)
     const aboutUI = injector.createInstance(AboutUI)
@@ -195,8 +225,6 @@ export class App extends AppView {
     )
 
     this.yaGames?.registerCallback((sdk) => {
-      sdk.features.LoadingAPI.ready()
-
       const lang = sdk.environment.i18n.lang
       if (lang) {
         this.loc.language = lang
@@ -207,7 +235,7 @@ export class App extends AppView {
     if (autoStartScene) {
       this.initGame().then(() => {
         this.engineStart!(
-          { sceneName: autoStartScene, initialScore },
+          { sceneName: autoStartScene },
           // { sceneName: autoStartScene, multiplayer: 'top' },
           // { sceneName: autoStartScene, multiplayer: 'bottom', control: 'keyboard' }
         )
@@ -220,7 +248,7 @@ export class App extends AppView {
 
   private registerEvents = () => {
     this.root.addEventListener('contextmenu', (event) => {
-      // event.preventDefault()
+      event.preventDefault()
       return false
     })
 
@@ -235,7 +263,7 @@ export class App extends AppView {
       this.game.setAttribute('style', `width: ${newWidth}px; height: ${newHeight}px;`)
     })
     window.addEventListener('resize', resizeCallback)
-    resizeCallback()
+    setTimeout(resizeCallback, 0);
   }
 
   private initGame = async () => {
@@ -250,7 +278,7 @@ export class App extends AppView {
       updateCombo: this.handleUpdateCombo,
       updateScore: this.handleUpdateScore,
       updateProgress: this.handleUpdateProgress,
-      updateCaught: (value: string) => this.singlePlayerUI?.caught.handleUpdate(value),
+      updateCaught: (value: string) => this.caught?.handleUpdate(value),
       showTooltip: (value: string) => this.singlePlayerUI?.handleTooltip(value),
       handleFinish: (result: { score: number, time: number, caught?: number, player?: 'top' | 'bottom' }) => {
         this.enginePause!(true, true)
@@ -344,7 +372,7 @@ export class App extends AppView {
       }
       this.weather?.pause(false);
       if (!this.multiplayer) {
-        this.singlePlayerUI?.caught.handleReset()
+        this.caught?.handleReset()
       }
     }
   }
@@ -358,9 +386,6 @@ export class App extends AppView {
   private handleUpdateScore = (value: number, player?: 'top' | 'bottom') => {
     this.singlePlayerUI?.handleScore(value)
     this.multiplayerUI?.handleScore(value, player)
-    if (!player) {
-      this.storage.set('data.score', value)
-    }
   }
 
   private handleUpdateCombo = (value: number, player?: 'top' | 'bottom') => {
@@ -392,5 +417,4 @@ export class App extends AppView {
       this.yaGames?.sdk?.features.GameplayAPI.stop()
     }
   }
-
 }

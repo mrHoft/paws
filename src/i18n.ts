@@ -4,11 +4,13 @@ export const LANGUAGES: TLanguage[] = ['en', 'ru', 'tr', 'de', 'fr']
 export const i18n: Record<TLanguage, Record<string, string>> = {
   en: {
     // ui
+    menu: 'Menu',
     start: 'Start',
     restart: 'Restart',
     pause: 'Pause',
     continue: 'Continue',
     settings: 'Settings',
+    upgrade: 'Upgrade',
     about: 'About',
     level: 'Level',
     score: 'Score',
@@ -18,7 +20,6 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     restartDesc: 'This will reset all your progress. Are you sure want to restart?',
     stageComplete: 'Stage complete!',
     caught: 'Caught',
-    backToMenu: 'Menu',
     // tooltip
     startNewGame: 'Hold space/tap to jump',
     firstAnimal: 'Need to jump on target',
@@ -38,11 +39,13 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
   },
   ru: {
     // ui
+    menu: 'Меню',
     start: 'Старт',
     restart: 'Заново',
     pause: 'Пауза',
     continue: 'Продолжить',
     settings: 'Настройки',
+    upgrade: 'Улучшение',
     about: 'О программе',
     level: 'Уровень',
     score: 'Счёт',
@@ -50,6 +53,8 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     confirmation: 'Подтверждение',
     confirmationDefault: 'Вы уверены?',
     restartDesc: 'Это сбросит весь ваш прогресс. Вы точно хотите начать заново?',
+    stageComplete: 'Этап завершён!',
+    caught: 'Поймано',
     // tooltip
     startNewGame: 'Удерживайте пробел/тап для прыжка',
     firstAnimal: 'Для поимки нужно прыгать на цель',
@@ -69,11 +74,13 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
   },
   tr: {
     // ui
+    menu: 'Menü',
     start: 'Başlat',
     restart: 'Yeniden Başlat',
     pause: 'Duraklat',
     continue: 'Devam Et',
     settings: 'Ayarlar',
+    upgrade: 'Geliştirme',
     about: 'Hakkında',
     level: 'Seviye',
     score: 'Skor',
@@ -81,6 +88,8 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     confirmation: 'Onay',
     confirmationDefault: 'Emin misiniz?',
     restartDesc: 'Bu, tüm ilerlemenizi sıfırlayacak. Yeniden başlatmak istediğinizden emin misiniz?',
+    stageComplete: 'Aşama tamamlandı!',
+    caught: 'Yakalandı',
     // tooltip
     startNewGame: 'Zıplamak için boşluk tuşunu basılı tutun/dokunun',
     firstAnimal: 'Hedefin üzerine zıplanmalı',
@@ -100,11 +109,13 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
   },
   de: {
     // ui
+    menu: 'Menü',
     start: 'Start',
     restart: 'Neustart',
     pause: 'Pause',
     continue: 'Weiter',
     settings: 'Einstellungen',
+    upgrade: 'Upgrade',
     about: 'Über',
     level: 'Level',
     score: 'Punkte',
@@ -112,6 +123,8 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     confirmation: 'Bestätigung',
     confirmationDefault: 'Sind Sie sicher?',
     restartDesc: 'Dies wird Ihren gesamten Fortschritt zurücksetzen. Möchten Sie wirklich neu starten?',
+    stageComplete: 'Stufe abgeschlossen!',
+    caught: 'Gefangen',
     // tooltip
     startNewGame: 'Leertaste gedrückt halten/tippen zum Springen',
     firstAnimal: 'Muss auf das Ziel springen',
@@ -131,11 +144,13 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
   },
   fr: {
     // ui
+    menu: 'Menu',
     start: 'Commencer',
     restart: 'Recommencer',
     pause: 'Pause',
     continue: 'Continuer',
     settings: 'Paramètres',
+    upgrade: 'Amélioration',
     about: 'À propos',
     level: 'Niveau',
     score: 'Score',
@@ -143,6 +158,8 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     confirmation: 'Confirmation',
     confirmationDefault: 'Êtes-vous sûr?',
     restartDesc: 'Cela réinitialisera toute votre progression. Êtes-vous sûr de vouloir recommencer?',
+    stageComplete: 'Niveau terminé!',
+    caught: 'Attrapé',
     // tooltip
     startNewGame: 'Maintenez espace/touchez pour sauter',
     firstAnimal: 'Doit sauter sur la cible',

@@ -49,7 +49,7 @@ export const GAME = {
   defaultAnimalHeight: 160,
   defaultRunAwayDelay: 8000, // The time after which the target will escape
 
-  roundLength: 30,
+  roundLength: 3,
 }
 
 export type TAnimalName = 'butterfly1' | 'butterfly2' | 'grasshopper' | 'frog' | 'bird' | 'mouse'

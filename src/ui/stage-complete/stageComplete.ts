@@ -2,6 +2,10 @@ import { iconSrc } from "~/ui/icons"
 import { Localization } from '~/service/localization'
 import { GamepadService } from '~/service/gamepad'
 import { inject } from '~/utils/inject'
+import { formatTime } from "~/utils/time"
+import { SoundService } from "~/service/sound"
+import { Caught } from '~/ui/caught/caught'
+import { Storage } from "~/service/storage"
 
 import styles from './stageComplete.module.css'
 import modal from '~/ui/modal.module.css'
@@ -35,7 +39,7 @@ class StageCompleteView {
     this.button = document.createElement('div')
     this.button.className = modal.button
     const continueLabel = document.createElement('span')
-    this.loc.register('backToMenu', continueLabel)
+    this.loc.register('menu', continueLabel)
     const continueIcon = document.createElement('img')
     continueIcon.src = iconSrc.menu
     this.button.append(continueIcon, continueLabel)
@@ -93,27 +97,60 @@ class StageCompleteView {
 }
 
 export class StageCompleteModal extends StageCompleteView {
+  private storage: Storage
   private menu: () => void
   private gamepadService: GamepadService
+  private soundService: SoundService
+  private caught: Caught
+  private timer: ReturnType<typeof setTimeout> | null = null
 
   constructor({ menu }: { menu: () => void }) {
     super()
     this.menu = menu
 
+    this.storage = inject(Storage)
+    this.caught = inject(Caught)
+    this.soundService = inject(SoundService)
     this.gamepadService = inject(GamepadService)
     this.gamepadService.registerCallbacks({ onButtonUp: this.onGamepadButtonUp })
 
     this.button.addEventListener('click', this.handleMenu)
   }
 
-  public handleComplete = (result: { score: number, time: number, caught?: number }) => {
+  public handleComplete = (result: { score: number, time: number, caught?: number, prophecy?: number }) => {
     this.result.score.innerText = result.score.toString()
-    const m = Math.floor(result.time / 60000)
-    const s = Math.floor(result.time / 1000 - m * 60)
-    this.result.time.innerText = `${m}:${s}`
+    this.result.time.innerText = formatTime(result.time)
     this.result.caught.innerText = (result.caught || 0).toString()
+    this.showStars(result.prophecy)
+
+    this.storage.set('data.score', (this.storage.get<number>('data.score') || 0) + result.score)
 
     this.show(true)
+  }
+
+  private showStars = (prophecy = 0.3) => {
+    const stars = this.result.stars.children
+    for (const star of stars) {
+      star.setAttribute('style', 'display: none;')
+      star.classList.remove(styles.bounce)
+    }
+
+    let i = 0
+    const count = () => {
+      const star = stars[i]
+      if ((i + 1) / stars.length <= prophecy + 0.01) {
+        star.removeAttribute('style')
+        star.classList.add(styles.bounce)
+        this.soundService.play('tone-high')
+        this.caught.handleUpdate('star')
+      }
+      i += 1
+      if (i < stars.length) {
+        this.timer = setTimeout(count, 500)
+      }
+    }
+
+    count()
   }
 
   private onGamepadButtonUp = (_gamepadIndex: number, buttonIndex: number) => {
@@ -125,6 +162,10 @@ export class StageCompleteModal extends StageCompleteView {
   }
 
   private handleMenu = () => {
+    if (this.timer) {
+      clearTimeout(this.timer)
+      this.timer = null
+    }
     this.show(false)
     this.menu()
   }

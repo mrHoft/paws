@@ -4,15 +4,17 @@ import { App } from './app'
 new App().init()
 
 
-/* Sound testing
+/* // Sound testing
 import { SoundService } from "~/service/sound";
 const soundService = new SoundService()
-const soundNames = ['tap',
+const soundNames = [
+  'tap',
   'pum',
   'ta',
   'block',
   'tone-low',
-  'tone-high',]
+  'tone-high'
+]
 
 document.addEventListener('keyup', event => {
   const soundName = soundNames[Number(event.code.replace('Digit', ''))]
