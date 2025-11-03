@@ -15,8 +15,12 @@ class SinglePlayerView {
   protected upper: HTMLDivElement
   protected middle: HTMLDivElement
   protected bottom: HTMLDivElement
+  protected player: { element: HTMLDivElement, progress: HTMLDivElement, score: HTMLSpanElement, combo: HTMLSpanElement }
+  private loc: Localization
 
   constructor() {
+    this.loc = inject(Localization)
+
     this.container = document.createElement('div')
     this.container.classList.add(layer['single-ui'], styles.ui, 'text-shadow')
 
@@ -28,43 +32,19 @@ class SinglePlayerView {
     this.bottom = document.createElement('div')
     this.bottom.className = styles.row
 
-    this.container.append(this.upper, this.middle, blank, this.bottom)
-  }
-
-  public get element() {
-    return this.container
-  }
-}
-
-export class SinglePlayerUI extends SinglePlayerView {
-  private loc: Localization
-  private audio: Audio
-  private player: Record<'level' | 'score' | 'combo', { element: HTMLDivElement, value: HTMLSpanElement }> & { element: HTMLDivElement }
-  private btnSound: HTMLDivElement
-  private btnPause: HTMLDivElement
-  private btnFullscreen?: HTMLDivElement
-  private caught: Caught
-
-  constructor({ enginePause, initialScore }: { enginePause: (_show: boolean) => void, initialScore?: number }) {
-    super()
-    this.loc = inject(Localization)
-    this.audio = inject(Audio)
-    this.caught = inject(Caught)
-
-    const level = document.createElement('div')
-    const levelLabel = document.createElement('span')
-    this.loc.register('level', levelLabel)
-    const levelValue = document.createElement('span')
-    level.className = styles.level
-    levelValue.innerText = '1'
-    level.append(levelLabel, ': ', levelValue)
+    const progress = document.createElement('div')
+    progress.classList.add(styles.progress)
+    const progressBar = document.createElement('div')
+    progressBar.classList.add(styles.progress__bar)
+    progressBar.setAttribute('style', `width: 0;`)
+    progress.append(progressBar)
 
     const score = document.createElement('div')
     const scoreLabel = document.createElement('span')
     this.loc.register('score', scoreLabel)
     const scoreValue = document.createElement('span')
     score.className = styles.score
-    scoreValue.innerText = (initialScore || 0).toString()
+    scoreValue.innerText = '0'
     score.append(scoreLabel, ': ', scoreValue)
 
     const combo = document.createElement('div')
@@ -77,13 +57,33 @@ export class SinglePlayerUI extends SinglePlayerView {
     combo.append(comboLabel, ': ', comboValue)
 
     const player = document.createElement('div')
-    player.append(level, score, combo)
+    player.append(progress, score, combo)
     this.player = {
       element: player,
-      level: { element: level, value: levelValue },
-      score: { element: score, value: scoreValue },
-      combo: { element: combo, value: comboValue }
+      progress: progressBar,
+      score: scoreValue,
+      combo: comboValue,
     }
+
+    this.container.append(this.upper, this.middle, blank, this.bottom)
+  }
+
+  public get element() {
+    return this.container
+  }
+}
+
+export class SinglePlayerUI extends SinglePlayerView {
+  private audio: Audio
+  private btnSound: HTMLDivElement
+  private btnPause: HTMLDivElement
+  private btnFullscreen?: HTMLDivElement
+  private caught: Caught
+
+  constructor({ enginePause }: { enginePause: (_show: boolean) => void }) {
+    super()
+    this.audio = inject(Audio)
+    this.caught = inject(Caught)
 
     this.btnSound = buttonIcon({ src: this.audio.muted ? iconSrc.soundOn : iconSrc.soundOff })
     const soundIconElement = this.btnSound.children[0] as HTMLImageElement
@@ -93,7 +93,7 @@ export class SinglePlayerUI extends SinglePlayerView {
     })
 
     const upperLeft = document.createElement('div')
-    upperLeft.append(player)
+    upperLeft.append(this.player.element)
     const upperRight = document.createElement('div')
     upperRight.append(this.btnSound)
     this.upper.append(upperLeft, this.caught.element, upperRight)
@@ -145,32 +145,22 @@ export class SinglePlayerUI extends SinglePlayerView {
     }
   }
 
-  public handleLevel = (value: number) => {
-    this.player.level.value.innerText = value >= 5 ? 'MAX' : (value + 1).toString()
-    this.player.level.element.classList.add(styles.bounce)
-    setTimeout(() => {
-      this.player.level.element.classList.remove(styles.bounce)
-    }, 325)
+  public handleProgress = (value: number) => {
+    this.player.progress.setAttribute('style', `width: ${value}%;`)
   }
 
   public handleScore = (value: number) => {
-    this.player.score.value.innerText = value.toString()
-    this.player.score.element.classList.add(styles.bounce)
-    setTimeout(() => {
-      this.player.score.element.classList.remove(styles.bounce)
-    }, 325)
+    this.player.score.innerText = value.toString()
+    this.bounce(this.player.score.parentElement)
   }
 
   public handleCombo = (value: number) => {
-    this.player.combo.value.innerText = `x${value}`
+    this.player.combo.innerText = `x${value}`
     if (value) {
-      this.player.combo.element.setAttribute('style', 'display: block;')
-      this.player.combo.element.classList.add(styles.bounce)
-      setTimeout(() => {
-        this.player.combo.element.classList.remove(styles.bounce)
-      }, 325)
+      this.player.combo.parentElement?.removeAttribute('style')
+      this.bounce(this.player.combo.parentElement)
     } else {
-      this.player.combo.element.setAttribute('style', 'display: none;')
+      this.player.combo.parentElement?.setAttribute('style', 'display: none;')
     }
   }
 
@@ -190,6 +180,16 @@ export class SinglePlayerUI extends SinglePlayerView {
     if (element) {
       fullscreenSwitch(!active, element)
       iconElement.src = active ? iconSrc.fullscreen : iconSrc.fullscreenExit
+    }
+  }
+
+  private bounce(element: HTMLElement | null) {
+    if (element) {
+      element.setAttribute('style', 'display: block;')
+      element.classList.add(styles.bounce)
+      setTimeout(() => {
+        element.classList.remove(styles.bounce)
+      }, 325)
     }
   }
 }

@@ -401,7 +401,6 @@ export class Engine {
       this.game.level = level
       const speed = Math.min(0.5 + level * 0.1, 1)
       this.game.updateTime = Math.floor(GAME.updateTime / GAME.updateModifier / speed)
-      this.handlers.updateLevel(level)
     }
 
     this.target.nameLast = this.target.nameCurr
@@ -423,7 +422,6 @@ export class Engine {
     this.game.fullJump = this.target.nameCurr == 'puddle' || ANIMALS.includes(this.target.nameCurr as TAnimalName)
     this.cat.atPosition = false
     this.target.atPosition = false
-    // console.log(`Level ${level}:`, {speed: this.game.SPEED, rand: `${rand}/${targets.length}`, target: this.target})
 
     if (!this.updateIsNeeded()) requestAnimationFrame(this.render)
     this.game.action = 'scene'

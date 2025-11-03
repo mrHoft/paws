@@ -274,7 +274,6 @@ export class App extends AppView {
         this.pauseModal?.show(state)
         this.weather?.pause(state)
       },
-      updateLevel: (value: number) => this.singlePlayerUI?.handleLevel(value),
       updateCombo: this.handleUpdateCombo,
       updateScore: this.handleUpdateScore,
       updateProgress: this.handleUpdateProgress,
@@ -394,7 +393,7 @@ export class App extends AppView {
   }
 
   private handleUpdateProgress = (value: number, player?: 'top' | 'bottom') => {
-    // this.singlePlayerUI?.handleProgress(value)
+    this.singlePlayerUI?.handleProgress(value)
     this.multiplayerUI?.handleProgress(value, player)
   }
 

@@ -82,7 +82,6 @@ export interface EngineOptions {
 export interface EngineHandlers {
   handlePause: (_state: boolean) => void,
   handleGameOver?: () => void,  // Disabled mechanic
-  updateLevel: (_value: number) => void,
   updateCombo: (_value: number, _player?: 'top' | 'bottom') => void,
   updateScore: (_value: number, _player?: 'top' | 'bottom') => void,
   updateProgress: (_value: number, _player?: 'top' | 'bottom') => void,
