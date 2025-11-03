@@ -1,7 +1,7 @@
 import styles from './weather.module.css'
 import layer from '~/ui/layers.module.css'
 
-const leafSrc = './images/leaf_brown.svg'
+const leafSrc = './images/leaf.svg'
 
 interface LeafAnimationData {
   horizontalSpeed: number;

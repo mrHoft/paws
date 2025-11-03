@@ -31,6 +31,11 @@ class MenuMultiplayerView {
     this.container.classList.add(layer.two_players, modal.outer)
     this.container.setAttribute('style', 'display: none;')
 
+    const border = document.createElement('div')
+    border.classList.add(modal.inner__border, modal.inner__mask)
+    const bg = document.createElement('div')
+    bg.classList.add(modal.inner__bg, modal.inner__mask, modal.inner__shadow)
+
     this.inner = document.createElement('div')
     this.inner.className = modal.inner
 
@@ -59,7 +64,11 @@ class MenuMultiplayerView {
 
     this.close = buttonClose()
 
-    this.inner.append(header, menu, message, this.close)
+    const content = document.createElement('div')
+    content.className = modal.inner__content
+    content.append(header, menu, message)
+
+    this.inner.append(border, bg, content, this.close)
     this.container.append(this.inner)
   }
 

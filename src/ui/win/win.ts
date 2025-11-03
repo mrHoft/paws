@@ -29,6 +29,11 @@ class WinView {
     this.container.classList.add(layer.win, styles.container)
     this.container.setAttribute('style', `display: none;`)
 
+    const border = document.createElement('div')
+    border.classList.add(modal.inner__border, modal.inner__mask)
+    const bg = document.createElement('div')
+    bg.classList.add(modal.inner__bg, modal.inner__mask, modal.inner__shadow)
+
     this.inner = document.createElement('div')
     this.inner.classList.add(modal.inner, modal.small)
     const h3 = document.createElement('h3')
@@ -65,10 +70,13 @@ class WinView {
     time.append(timeLabel, ': ', this.result.time)
 
     const result = document.createElement('div')
-    // result.classList.add('text-shadow')
     result.append(winner, score, time)
 
-    this.inner.append(h3, result, btns)
+    const content = document.createElement('div')
+    content.className = modal.inner__content
+    content.append(h3, result, btns)
+
+    this.inner.append(border, bg, content)
     this.container.append(this.inner)
   }
 

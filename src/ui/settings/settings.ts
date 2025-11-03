@@ -21,6 +21,7 @@ class SettingsView {
   protected loc: Localization
   protected container: HTMLDivElement
   protected inner: HTMLDivElement
+  protected content: HTMLDivElement
   protected close: HTMLDivElement
   protected isActive = false
 
@@ -30,13 +31,21 @@ class SettingsView {
     this.container = document.createElement('div')
     this.container.classList.add(layer.settings, modal.outer)
     this.container.setAttribute('style', 'display: none;')
+    const border = document.createElement('div')
+    border.classList.add(modal.inner__border, modal.inner__mask)
+    const bg = document.createElement('div')
+    bg.classList.add(modal.inner__bg, modal.inner__mask, modal.inner__shadow)
 
-    const header = document.createElement('h3')
-    this.loc.register('settings', header)
+    this.content = document.createElement('div')
+    this.content.className = modal.inner__content
     this.inner = document.createElement('div')
     this.inner.className = modal.inner
     this.close = buttonClose()
-    this.inner.append(header, this.close)
+    const header = document.createElement('h3')
+    this.loc.register('settings', header)
+    this.content.append(header)
+    this.inner.append(border, bg, this.content, this.close)
+
     this.container.append(this.inner)
   }
 
@@ -184,7 +193,7 @@ export class SettingsUI extends SettingsView {
     this.list.append(...Object.values(this.opt).map(opt => opt.element))
     const dummy = document.createElement('div')
     dummy.className = modal.dummy
-    this.inner.append(this.list, dummy)
+    this.content.append(this.list, dummy)
 
     this.gamepadService.registerCallbacks({ onButtonUp: this.onGamepadButtonUp })
 

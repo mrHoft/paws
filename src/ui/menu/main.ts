@@ -5,9 +5,9 @@ import { AboutUI } from "~/ui/about/about"
 import { iconSrc, spoilSrc } from "~/ui/icons"
 import { Localization } from '~/service/localization'
 import { ConfirmationModal } from "~/ui/confirmation/confirm"
-import { SinglePlayerUI } from "../game-ui/singlePlayer"
 import { MultiplayerMenu } from "~/ui/menu/multiplayer"
 import { GamepadService } from '~/service/gamepad'
+import { Caught } from "~/ui/caught/caught"
 import { inject } from "~/utils/inject"
 import type { EngineOptions } from '~/engine/types'
 
@@ -24,8 +24,8 @@ class MenuView {
   protected container: HTMLDivElement
   protected menu: HTMLDivElement
   protected menuItems: { element: HTMLDivElement, props: MenuItem, index: number }[] = []
-  protected thumbs: { img: HTMLImageElement, name: TSceneName }[] = []
-  protected scene: { element: HTMLDivElement, inner: HTMLDivElement, btn: HTMLDivElement, spoil: Record<string, HTMLImageElement>, name: TSceneName }
+  protected thumbs: { element: HTMLDivElement, thumb: HTMLDivElement, name: TSceneName }[] = []
+  protected scene: { element: HTMLDivElement, inner: HTMLDivElement, bg: HTMLDivElement, btn: HTMLDivElement, spoil: Record<string, HTMLImageElement>, name: TSceneName }
   protected gamepadSupport: HTMLDivElement
   protected isVisible = false
   protected isActive = false
@@ -36,24 +36,29 @@ class MenuView {
     this.container.classList.add(layer.menu, styles.container)
     this.container.setAttribute('style', `display: none;`)
 
-    const level = document.createElement('div')
-    level.className = styles.level
+    const levels = document.createElement('div')
+    levels.className = styles.levels
     const h = Math.floor(100 / (SCENE_NAMES.length - 1) * 2)
-    level.setAttribute('style', `height: ${100 - h * .75}%;`)
+    levels.setAttribute('style', `height: ${100 - h * .75}%;`)
 
     const shift = Math.PI / 2 / (SCENE_NAMES.length - 1)
     for (let i = SCENE_NAMES.length - 1; i >= 0; i -= 1) {
+      const element = document.createElement('div')
+      element.classList.add(styles.level)
+      const border = document.createElement('div')
+      border.classList.add(modal.inner__border, modal.inner__mask)
       const name = SCENE_NAMES[i]
-      const img = document.createElement('img')
-      img.className = styles.level__thumb
-      img.src = `${PATH}/${name}.jpg`
+      const thumb = document.createElement('div')
+      thumb.classList.add(modal.inner__bg, modal.inner__mask)
+      thumb.setAttribute('style', `background-image: url(${PATH}/${name}.jpg);`)
 
       const r = Math.PI * 1 - i * shift
       const x = 50 + Math.floor(Math.cos(r) * 50)
       const y = Math.floor(Math.sin(r) * 100)
-      img.setAttribute('style', `height: ${h}%; top: ${y}%; left: ${x}%;`)
-      this.thumbs.push({ img, name })
-      level.append(img)
+      element.setAttribute('style', `height: ${h}%; top: ${y}%; left: ${x}%;`)
+      element.append(border, thumb)
+      this.thumbs.push({ element, thumb, name })
+      levels.append(element)
     }
 
     const version = document.createElement('div')
@@ -72,7 +77,7 @@ class MenuView {
     this.gamepadSupport.append(check)
 
     this.scene = this.sceneCreate()
-    this.container.append(version, this.gamepadSupport, level, this.menu, this.scene.element)
+    this.container.append(version, this.gamepadSupport, levels, this.menu, this.scene.element)
   }
 
   private sceneCreate = () => {
@@ -82,6 +87,10 @@ class MenuView {
 
     const sceneInner = document.createElement('div')
     sceneInner.classList.add(modal.inner, styles.scene)
+    const sceneBorder = document.createElement('div')
+    sceneBorder.classList.add(modal.inner__border, modal.inner__mask)
+    const sceneBg = document.createElement('div')
+    sceneBg.classList.add(modal.inner__bg, modal.inner__mask, modal.inner__shadow)
     const sceneClose = buttonClose()
     sceneClose.addEventListener('click', () => {
       this.scene.element.setAttribute('style', 'display: none;')
@@ -105,9 +114,9 @@ class MenuView {
       }
     })
 
-    sceneInner.append(btn, spoilContainer, sceneClose)
+    sceneInner.append(sceneBorder, sceneBg, btn, spoilContainer, sceneClose)
     sceneContainer.append(sceneInner)
-    return { element: sceneContainer, inner: sceneInner, btn, spoil, name: ('default' as TSceneName) }
+    return { element: sceneContainer, inner: sceneInner, bg: sceneBg, btn, spoil, name: ('default' as TSceneName) }
   }
 
   protected menuCreate(menuItems: MenuItem[]) {
@@ -158,7 +167,7 @@ export class MainMenu extends MenuView {
   private activeMenuItemId: string | null = null
   private settingsUI: SettingsUI
   private aboutUI: AboutUI
-  private singlePlayerUI: SinglePlayerUI
+  private caught: Caught
 
   constructor({ startSinglePlayerGame }: { startSinglePlayerGame: (options?: EngineOptions) => void }) {
     super()
@@ -166,7 +175,7 @@ export class MainMenu extends MenuView {
     const onClose = () => {
       if (this.isVisible) this.isActive = true
     }
-    this.singlePlayerUI = inject(SinglePlayerUI)
+    this.caught = inject(Caught)
     this.confirmationModal = inject(ConfirmationModal)
     this.confirmationModal.registerCallback({ onClose })
     this.multiplayerMenu = inject(MultiplayerMenu)
@@ -196,7 +205,7 @@ export class MainMenu extends MenuView {
 
   private registerEvents = () => {
     this.thumbs.forEach(el => {
-      el.img.addEventListener('click', this.handleSceneClick(el.name))
+      el.element.addEventListener('click', this.handleSceneClick(el.name))
     })
 
     this.scene.btn.addEventListener('click', this.handleSceneStart)
@@ -281,7 +290,7 @@ export class MainMenu extends MenuView {
       text: this.loc.get('restartDesc'),
       acceptCallback: () => {
         this.startSinglePlayerGame({ sceneName: SCENE_NAMES[0], restart: true })
-        this.singlePlayerUI?.caught.handleReset()
+        this.caught.handleReset()
       }
     })
   }
@@ -296,7 +305,7 @@ export class MainMenu extends MenuView {
 
     this.scene.name = name
     this.scene.element.setAttribute('style', 'display: flex;')
-    this.scene.inner.setAttribute('style', `background-image: url(${PATH}/${name}.jpg)`)
+    this.scene.bg.setAttribute('style', `background-image: url(${PATH}/${name}.jpg)`)
     this.scene.inner.classList.add(modal.bounce)
 
     const spoil: string[] = SCENE_TARGETS[name]

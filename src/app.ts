@@ -248,7 +248,7 @@ export class App extends AppView {
 
   private registerEvents = () => {
     this.root.addEventListener('contextmenu', (event) => {
-      event.preventDefault()
+      // event.preventDefault()
       return false
     })
 

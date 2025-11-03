@@ -73,19 +73,15 @@
   }
 }
 
-.level {
+.levels {
   position: relative;
   width: 75%;
   height: 100%;
 }
 
-.level__thumb {
+.level {
   position: absolute;
   aspect-ratio: 4/3;
-  background-color: var(--color-orange80);
-  border-radius: 20% 20% 20% 20% / 18% 18% 18% 18%;
-  border: 2px solid var(--color-orange70);
-  box-sizing: border-box;
   transition: transform 0.25s ease-in;
 
   &:hover {

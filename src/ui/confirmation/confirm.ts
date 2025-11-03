@@ -22,6 +22,11 @@ export class ConfirmationModalView {
     this.container.classList.add(layer.confirmation, modal.outer)
     this.container.setAttribute('style', 'display: none;')
 
+    const border = document.createElement('div')
+    border.classList.add(modal.inner__border, modal.inner__mask)
+    const bg = document.createElement('div')
+    bg.classList.add(modal.inner__bg, modal.inner__mask, modal.inner__shadow)
+
     const header = document.createElement('h3')
     this.loc.register('confirmation', header)
     this.inner = document.createElement('div')
@@ -40,7 +45,11 @@ export class ConfirmationModalView {
     }
     btns.append(this.button.confirm, this.button.cancel)
 
-    this.inner.append(header, this.message, btns, btnClose)
+    const content = document.createElement('div')
+    content.className = modal.inner__content
+    content.append(header, this.message, btns)
+
+    this.inner.append(border, bg, content, btnClose)
     this.container.append(this.inner)
   }
 

@@ -36,15 +36,23 @@ class AboutView {
     this.container.classList.add(layer.about, modal.outer)
     this.container.setAttribute('style', 'display: none;')
 
+    const border = document.createElement('div')
+    border.classList.add(modal.inner__border, modal.inner__mask)
+    const bg = document.createElement('div')
+    bg.classList.add(modal.inner__bg, modal.inner__mask, modal.inner__shadow)
+
     this.inner = document.createElement('div')
     this.inner.className = modal.inner
 
+    const content = document.createElement('div')
+    content.className = modal.inner__content
     const header = document.createElement('h3')
     this.loc.register('about', header)
+    content.append(header, ...about())
 
     this.close = buttonClose()
 
-    this.inner.append(header, ...about(), this.close)
+    this.inner.append(border, bg, content, this.close)
     this.container.append(this.inner)
   }
 

@@ -31,6 +31,11 @@ class StageCompleteView {
     this.container.classList.add(layer.win, styles.container)
     this.container.setAttribute('style', `display: none;`)
 
+    const border = document.createElement('div')
+    border.classList.add(modal.inner__border, modal.inner__mask)
+    const bg = document.createElement('div')
+    bg.classList.add(modal.inner__bg, modal.inner__mask, modal.inner__shadow)
+
     this.inner = document.createElement('div')
     this.inner.classList.add(modal.inner, modal.small)
     const h3 = document.createElement('h3')
@@ -77,7 +82,11 @@ class StageCompleteView {
     results.className = styles.results
     results.append(this.result.stars, score, time, caught)
 
-    this.inner.append(h3, results, this.button)
+    const content = document.createElement('div')
+    content.className = modal.inner__content
+    content.append(h3, results, this.button)
+
+    this.inner.append(border, bg, content)
     this.container.append(this.inner)
   }
 
