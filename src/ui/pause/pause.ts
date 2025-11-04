@@ -50,14 +50,16 @@ export class PauseModal {
     /*
     const btnResume = buttonCircle({ src: iconSrc.play })
     btnResume.addEventListener('click', this.handleResume)
-     */
+    */
     const btnSettings = buttonCircle({ src: iconSrc.settings })
     btnSettings.addEventListener('click', this.handleSettings)
 
     const btnRestart = buttonCircle({ src: iconSrc.restart })
     btnRestart.addEventListener('click', this.handleRestart)
+
     const btnMenu = buttonCircle({ src: iconSrc.menu })
     btnMenu.addEventListener('click', this.handleMenu)
+
     btns.append(/* btnResume, */ btnRestart, btnSettings, btnMenu)
 
     this.inner = document.createElement('div')

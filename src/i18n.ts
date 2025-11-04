@@ -17,7 +17,7 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     combo: 'Combo',
     confirmation: 'Confirmation',
     confirmationDefault: 'Are you sure?',
-    restartDesc: 'This will reset all your progress. Are you sure want to restart?',
+    restartDesc: 'Are you sure want to restart?',
     stageComplete: 'Stage complete!',
     caught: 'Caught',
     // tooltip
@@ -35,7 +35,12 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     winText: 'cat wins!',
     time: 'Time',
     upper: 'Upper',
-    bottom: 'Bottom'
+    bottom: 'Bottom',
+    // upgrades
+    jumpDesc: 'Stronger jump (helpful with obstacles)',
+    preciseDesc: 'Precise jump (helpful with animals)',
+    clawsDesc: 'Sharper claws (catch radius)',
+    speedDesc: 'Run speed (gain more score and stars)'
   },
   ru: {
     // ui
@@ -52,7 +57,7 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     combo: 'Комбо',
     confirmation: 'Подтверждение',
     confirmationDefault: 'Вы уверены?',
-    restartDesc: 'Это сбросит весь ваш прогресс. Вы точно хотите начать заново?',
+    restartDesc: 'Вы уверены что хотите начать заново?',
     stageComplete: 'Этап завершён!',
     caught: 'Поймано',
     // tooltip
@@ -87,7 +92,7 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     combo: 'Kombo',
     confirmation: 'Onay',
     confirmationDefault: 'Emin misiniz?',
-    restartDesc: 'Bu, tüm ilerlemenizi sıfırlayacak. Yeniden başlatmak istediğinizden emin misiniz?',
+    restartDesc: 'Yeniden başlatmak istediğinizden emin misiniz?',
     stageComplete: 'Aşama tamamlandı!',
     caught: 'Yakalandı',
     // tooltip
@@ -122,7 +127,7 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     combo: 'Combo',
     confirmation: 'Bestätigung',
     confirmationDefault: 'Sind Sie sicher?',
-    restartDesc: 'Dies wird Ihren gesamten Fortschritt zurücksetzen. Möchten Sie wirklich neu starten?',
+    restartDesc: 'Möchten Sie wirklich neu starten?',
     stageComplete: 'Stufe abgeschlossen!',
     caught: 'Gefangen',
     // tooltip
@@ -157,7 +162,7 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     combo: 'Combo',
     confirmation: 'Confirmation',
     confirmationDefault: 'Êtes-vous sûr?',
-    restartDesc: 'Cela réinitialisera toute votre progression. Êtes-vous sûr de vouloir recommencer?',
+    restartDesc: 'Êtes-vous sûr de vouloir recommencer?',
     stageComplete: 'Niveau terminé!',
     caught: 'Attrapé',
     // tooltip

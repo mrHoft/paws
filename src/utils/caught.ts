@@ -1,4 +1,4 @@
-import type { TCaught } from "~/engine/types"
+import type { TCaught } from "~/const"
 
 export const caughtNameTransform = (name: string) => {
   let n = name.replace(/\d/, '')

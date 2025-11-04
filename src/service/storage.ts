@@ -5,6 +5,7 @@ interface GameData {
   score: number
   stars: number
   caught: Record<string, number>
+  upgrades: Record<string, number>
 }
 
 interface UserData {
@@ -24,10 +25,15 @@ const defaultUserData: UserData & { data: GameData } = {
     stars: 0,
     caught: {
       butterfly: 0,
-      grasshopper: 0,
       frog: 0,
       mouse: 0,
       bird: 0,
+    },
+    upgrades: {
+      jump: 0,
+      sneak: 0,
+      claws: 0,
+      speed: 0
     }
   }
 }

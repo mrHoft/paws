@@ -1,4 +1,3 @@
-import type { TAnimalName } from "~/const"
 import { spoilSrc } from "~/ui/icons";
 import { Storage } from '~/service/storage'
 import { Injectable, inject } from "~/utils/inject";
@@ -36,25 +35,30 @@ export class Caught {
     }
   }
 
-  public setCount(value: Record<TAnimalName, number>) {
-    this.count = { ...this.count, ...value }
+  public setCount(value: Record<string, number>) {
+    for (const key of Object.keys(this.slot)) {
+      if (value[key] !== undefined) {
+        if (this.count[key] !== value[key]) {
+          this.count[key] = value[key]
+          this.slot[key]!.value.innerText = value[key].toString()
+          this.bounce(this.slot[key].icon)
+        }
+      }
+    }
   }
 
   public handleUpdate = (name: string) => {
-    const n = caughtNameTransform(name)
-    if (slots.includes(n)) {
-      this.count[n] += 1
-      this.slot[n]!.value.innerText = this.count[n].toString()
+    const key = caughtNameTransform(name)
+    if (slots.includes(key)) {
+      this.count[key] += 1
+      this.slot[key]!.value.innerText = this.count[key].toString()
       if (name === 'star') {
-        this.storage.set('data.stars', this.count[n])
+        this.storage.set('data.stars', this.count[key])
       } else {
-        this.storage.set(`data.caught.${n}`, this.count[n])
+        this.storage.set(`data.caught.${key}`, this.count[key])
       }
 
-      this.slot[n]!.icon.classList.add(styles.bounce)
-      setTimeout(() => {
-        this.slot[n]!.icon.classList.remove(styles.bounce)
-      }, 325)
+      this.bounce(this.slot[key].icon)
     }
   }
 
@@ -79,6 +83,16 @@ export class Caught {
     // value.setAttribute('style', 'vertical-align: text-bottom; margin-left: 0.25rem; margin-right: 0.5rem;')
     slot.append(spoil, value)
     return { slot, icon, value }
+  }
+
+  private bounce(element: HTMLElement | null) {
+    if (element) {
+      element.setAttribute('style', 'display: block;')
+      element.classList.add(styles.bounce)
+      setTimeout(() => {
+        element.classList.remove(styles.bounce)
+      }, 325)
+    }
   }
 
   public get element() {

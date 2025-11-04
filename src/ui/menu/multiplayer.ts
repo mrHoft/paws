@@ -2,6 +2,7 @@ import { SCENE_NAMES } from "~/const"
 import { buttonClose } from "~/ui/button"
 import { Localization } from '~/service/localization'
 import { GamepadService } from "~/service/gamepad"
+import { SoundService } from "~/service/sound"
 import { Injectable, inject } from "~/utils/inject"
 import { iconSrc } from "../icons"
 import type { TControl, EngineOptions } from "~/engine/types"
@@ -129,13 +130,15 @@ class MenuMultiplayerView {
 @Injectable
 export class MultiplayerMenu extends MenuMultiplayerView {
   private gamepadService: GamepadService
+  private soundService: SoundService
   private onClose?: () => void
   private startMultiplayerGame: (options1: EngineOptions, options2: EngineOptions) => void
-  private selectedMenuItemIndex = 0
+  private selectedOptionIndex = 0
 
   constructor({ startMultiplayerGame }: { startMultiplayerGame: (options1: EngineOptions, options2: EngineOptions) => void }) {
     super()
     this.startMultiplayerGame = startMultiplayerGame
+    this.soundService = inject(SoundService)
     this.gamepadService = inject(GamepadService)
     this.gamepadService.registerCallbacks({
       onGamepadConnected: this.handleGamepadConnected,
@@ -147,8 +150,10 @@ export class MultiplayerMenu extends MenuMultiplayerView {
 
     for (const item of this.menuItems) {
       item.element.addEventListener('mouseenter', () => {
-        this.selectedMenuItemIndex = item.index
-        this.menuItems.forEach(({ element }, i) => { element.classList.toggle(styles.hover, i === item.index) })
+        if (this.selectedOptionIndex !== item.index) {
+          this.selectedOptionIndex = item.index
+          this.handleOptionSelect()
+        }
       })
       item.element.addEventListener('click', this.handleStart)
     }
@@ -172,7 +177,7 @@ export class MultiplayerMenu extends MenuMultiplayerView {
   }
 
   private handleStart = () => {
-    const { controls } = this.menuItems[this.selectedMenuItemIndex]
+    const { controls } = this.menuItems[this.selectedOptionIndex]
     let ready = true
     for (const control of controls) {
       if (control === 'gamepad1' || control === 'gamepad2') {
@@ -193,6 +198,8 @@ export class MultiplayerMenu extends MenuMultiplayerView {
         { sceneName, multiplayer: 'top', control: controls[0] },
         { sceneName, multiplayer: 'bottom', control: controls[1] }
       )
+    } else {
+      this.soundService.play('error')
     }
   }
 
@@ -201,12 +208,13 @@ export class MultiplayerMenu extends MenuMultiplayerView {
 
     if (buttonIndex === 12 || buttonIndex === 13) {
       if (buttonIndex === 12) {
-        this.selectedMenuItemIndex = this.selectedMenuItemIndex > 0 ? this.selectedMenuItemIndex - 1 : 0
+        this.selectedOptionIndex = this.selectedOptionIndex > 0 ? this.selectedOptionIndex - 1 : 0
       }
       if (buttonIndex === 13) {
-        this.selectedMenuItemIndex = this.selectedMenuItemIndex < this.menuItems.length - 1 ? this.selectedMenuItemIndex + 1 : this.menuItems.length - 1
+        this.selectedOptionIndex = this.selectedOptionIndex < this.menuItems.length - 1 ? this.selectedOptionIndex + 1 : this.menuItems.length - 1
       }
-      this.menuItems.forEach((item, i) => { item.element.classList.toggle(styles.hover, i === this.selectedMenuItemIndex) })
+
+      this.handleOptionSelect()
     }
 
     if (buttonIndex === 1 || buttonIndex === 8) { // Accept
@@ -222,5 +230,10 @@ export class MultiplayerMenu extends MenuMultiplayerView {
   private handleGamepadConnected = () => {
     const total = this.gamepadService.gamepadCount
     this.setGamepadActive(Math.min(total, 2))
+  }
+
+  private handleOptionSelect = (silent = false) => {
+    this.menuItems.forEach((item, i) => { item.element.classList.toggle(styles.hover, i === this.selectedOptionIndex) })
+    if (!silent) this.soundService.play('tap')
   }
 }

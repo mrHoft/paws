@@ -1,5 +1,5 @@
 import { GENERAL } from '~/const'
-import { Audio } from '~/service/audio'
+import { AudioService } from '~/service/audio'
 import { iconSrc } from "~/ui/icons"
 import { buttonIcon } from '~/ui/button/icon'
 import { Caught } from '~/ui/caught/caught'
@@ -74,7 +74,7 @@ class SinglePlayerView {
 }
 
 export class SinglePlayerUI extends SinglePlayerView {
-  private audio: Audio
+  private audioService: AudioService
   private btnSound: HTMLDivElement
   private btnPause: HTMLDivElement
   private btnFullscreen?: HTMLDivElement
@@ -82,10 +82,10 @@ export class SinglePlayerUI extends SinglePlayerView {
 
   constructor({ enginePause }: { enginePause: (_show: boolean) => void }) {
     super()
-    this.audio = inject(Audio)
+    this.audioService = inject(AudioService)
     this.caught = inject(Caught)
 
-    this.btnSound = buttonIcon({ src: this.audio.muted ? iconSrc.soundOn : iconSrc.soundOff })
+    this.btnSound = buttonIcon({ src: this.audioService.muted ? iconSrc.soundOn : iconSrc.soundOff })
     const soundIconElement = this.btnSound.children[0] as HTMLImageElement
     this.btnSound.addEventListener('mousedown', (event) => {
       event.stopPropagation()
@@ -169,8 +169,8 @@ export class SinglePlayerUI extends SinglePlayerView {
   }
 
   private handleSoundToggle = (iconElement: HTMLImageElement) => {
-    const muted = this.audio.muted
-    this.audio.mute = !muted
+    const muted = this.audioService.muted
+    this.audioService.mute = !muted
     iconElement.src = muted ? iconSrc.soundOff : iconSrc.soundOn
   }
 

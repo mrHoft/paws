@@ -23,8 +23,7 @@ export const SpriteSize = {
 
 // Core game constants
 export const GAME = {
-  version: 'beta.0.5.15',
-  scorePerLevel: 1000,
+  version: 'beta.0.5.16',
   catchRange: 24, // A range where an animal can be caught
   shadowsEnable: false,
 
@@ -49,7 +48,7 @@ export const GAME = {
   defaultAnimalHeight: 160,
   defaultRunAwayDelay: 8000, // The time after which the target will escape
 
-  roundLength: 3,
+  roundLength: 5,
 }
 
 export type TAnimalName = 'butterfly1' | 'butterfly2' | 'grasshopper' | 'frog' | 'bird' | 'mouse'
@@ -90,4 +89,18 @@ export const TARGET_SCORE: Record<TTargetName, Record<'success' | 'fail', number
   cactus2: { success: 5, fail: -20 },
   hedgehog: { success: 10, fail: -20 },
   dog: { success: 10, fail: -20 },
+}
+
+export type TCaught = {
+  butterfly: number
+  frog: number
+  bird: number
+  mouse: number
+}
+
+export const caughtDefault: TCaught = {
+  butterfly: 0,
+  frog: 0,
+  bird: 0,
+  mouse: 0,
 }

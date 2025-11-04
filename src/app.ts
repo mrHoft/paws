@@ -11,8 +11,9 @@ import { SettingsUI } from '~/ui/settings/settings'
 import { LoaderUI } from '~/ui/loader/loader'
 import { MainMenu } from '~/ui/menu/main'
 import { AboutUI } from '~/ui/about/about'
+import { UpgradeUI } from '~/ui/upgrade/upgrade'
 import { Storage } from '~/service/storage'
-import { Audio } from '~/service/audio'
+import { AudioService } from '~/service/audio'
 import { ShepardTone, type ShepardToneConfig } from '~/service/shepardTone'
 import { SoundService } from "~/service/sound";
 import { Localization } from '~/service/localization'
@@ -65,7 +66,7 @@ export class App extends AppView {
   private settingsUI?: SettingsUI
   private loaderUI?: LoaderUI
   private weather?: Weather
-  private audio: Audio
+  private audioService: AudioService
   private mainMenu?: MainMenu
   private storage: Storage
   private focusService: WindowFocusService
@@ -93,7 +94,7 @@ export class App extends AppView {
       volume: soundVolume,
       muted: soundVolume === 0
     }
-    this.audio = injector.createInstance(Audio, { music, sound })
+    this.audioService = injector.createInstance(AudioService, { music, sound })
 
     const config: ShepardToneConfig = {
       baseFrequency: 220,
@@ -110,8 +111,8 @@ export class App extends AppView {
 
     this.focusService = new WindowFocusService()
     this.focusService.registerCallback({
-      focusLoss: () => { this.audio.mute = true; soundService.mute = true; tone.stop() },
-      focusGain: () => { this.audio.mute = false; soundService.mute = false }
+      focusLoss: () => { this.audioService.mute = true; soundService.mute = true; tone.stop() },
+      focusGain: () => { this.audioService.mute = false; soundService.mute = false }
     })
 
     if (GENERAL.sdk === 'ya-games') {
@@ -186,6 +187,7 @@ export class App extends AppView {
     this.confirmationModal = injector.createInstance(ConfirmationModal)
     const aboutUI = injector.createInstance(AboutUI)
     this.settingsUI = injector.createInstance(SettingsUI)
+    const upgradeUI = injector.createInstance(UpgradeUI)
     const multiplayerMenu = injector.createInstance(MultiplayerMenu, { startMultiplayerGame: this.startMultiplayerGame })
     this.mainMenu = new MainMenu({ startSinglePlayerGame: this.startSinglePlayerGame })
     this.pauseModal = new PauseModal({
@@ -215,6 +217,7 @@ export class App extends AppView {
       this.mainMenu.element,
       this.singlePlayerUI.element,
       this.multiplayerUI.element,
+      upgradeUI.element,
       multiplayerMenu.element,
       aboutUI.element,
       this.settingsUI.element,
@@ -367,7 +370,7 @@ export class App extends AppView {
       if (this.multiplayer) {
         this.engineStart(this.multiplayer.options1, this.multiplayer.options2)
       } else {
-        this.engineStart({ restart: true })
+        this.engineStart()
       }
       this.weather?.pause(false);
       if (!this.multiplayer) {

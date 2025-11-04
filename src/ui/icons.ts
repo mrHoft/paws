@@ -7,6 +7,7 @@ export const spoilSrc: Record<string, string> = {
 }
 
 export const iconSrc: Record<string, string> = {
+  cat: './icons/favicon.svg',
   check: './icons/check.svg',
   close: './icons/close.svg',
   restart: './icons/restart.svg',
@@ -16,6 +17,7 @@ export const iconSrc: Record<string, string> = {
   start: './icons/play-circle.svg',
   star: './icons/star.svg',
   about: './icons/about.svg',
+  tooltip: './icons/tooltip.svg',
   fullscreen: './icons/fullscreen.svg',
   fullscreenExit: './icons/fullscreen-exit.svg',
   pause: './icons/pause.svg',
@@ -29,6 +31,11 @@ export const iconSrc: Record<string, string> = {
   gamepad: './icons/gamepad.svg',
   pointer: './icons/mouse.svg',
   keyboard: './icons/keyboard.svg',
+  upgrade: './icons/upgrade.svg',
+  eye: './icons/eye.svg',
+  claws: './icons/claws.svg',
+  jump: './icons/jump.svg',
+  speed: './icons/speed.svg',
   en: './flag/en.svg',
   ru: './flag/ru.svg',
   de: './flag/de.svg',

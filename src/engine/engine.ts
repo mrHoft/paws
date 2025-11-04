@@ -1,4 +1,4 @@
-import { GENERAL, ANIMALS, OBSTACLES, GAME, TARGET_SCORE, type TAnimalName } from '~/const'
+import { GENERAL, ANIMALS, OBSTACLES, GAME, TARGET_SCORE, caughtDefault, type TAnimalName } from '~/const'
 import { Draw } from './draw'
 import { Resource } from './resource'
 import { Backdrop } from './backdrop'
@@ -8,19 +8,12 @@ import { GamepadService } from '~/service/gamepad'
 import { Tooltip } from './tooltip'
 import { PerformanceMeter } from './meter'
 import { TargetService } from './target'
-import type { Target, TCat, TCaught, TGame, EngineOptions, EngineHandlers, EngineSettings } from './types'
+import type { Target, TCat, TGame, EngineOptions, EngineHandlers, EngineSettings } from './types'
 import type { GifObject } from '~/utils/gif'
-import { Audio } from '~/service/audio'
+import { AudioService } from '~/service/audio'
 import { ShepardTone } from '~/service/shepardTone'
 import { inject } from '~/utils/inject'
 import { caughtNameTransform } from "~/utils/caught";
-
-const caughtDefault: TCaught = {
-  butterfly: 0,
-  frog: 0,
-  bird: 0,
-  mouse: 0,
-}
 
 const prophecyDefault = {
   total: GAME.roundLength,
@@ -28,13 +21,18 @@ const prophecyDefault = {
   multiplied: 0,
   speed: 1
 }
+const upgradesDefault = {
+  jump: 0,
+  precise: 0,
+  claws: 0,
+  speed: 0
+}
 
 export class Engine {
-  private audio: Audio
+  private audioService: AudioService
   private ctx: CanvasRenderingContext2D
   private game: TGame = {
     sceneName: 'default',
-    level: 0, // Game complexity level (normal: 0 fast: 5)
     movementSpeed: Math.floor(GAME.movementSpeed * GAME.updateModifier * 1000) / 1000,
     runAwaySpeed: Math.floor(GAME.movementSpeed * 1.2 * GAME.updateModifier * 1000) / 1000,
     jumpStep: Math.floor(5 / GAME.updateModifier * 1000) / 1000,
@@ -56,7 +54,8 @@ export class Engine {
     progress: 0,
     timestamp: 0,
     control: 'any',
-    rendered: false
+    rendered: false,
+    upgrades: { ...upgradesDefault }
   }
   private cat: TCat = {
     source: {} as GifObject,
@@ -106,12 +105,12 @@ export class Engine {
 
     if (initialScore) this.game.score = initialScore
 
-    this.audio = inject(Audio)
+    this.audioService = inject(AudioService)
     this.tone = inject(ShepardTone)
     this.targetService = inject(TargetService)
     this.gamepadService = inject(GamepadService)
     this.resource = inject(Resource)
-    this.cat.source = this.resource.sprite.cat as GifObject
+    this.cat.source = this.resource.sprite.cat1 as GifObject
     this.meter = new PerformanceMeter(this.ctx)
     this.draw = new Draw({ ctx })
     this.flyingValues = new FlyingValues(this.ctx)
@@ -134,10 +133,7 @@ export class Engine {
       const succeed = Math.max(this.game.prophecy.total - this.game.prophecy.fails, 0)
       const multiplier = Math.floor((1 + this.game.prophecy.multiplied / this.game.prophecy.total) * 100) / 100
       const prophecy = (succeed * (1 + (this.game.prophecy.speed - 1) * 0.1) * multiplier) / (this.game.prophecy.total * 2)
-      console.log(this.game.prophecy)
-      console.log('succeed:', succeed)
-      console.log('multiplier:', multiplier)
-      console.log('prophecy:', prophecy)
+      // console.log(this.game.prophecy); console.log('succeed:', succeed); console.log('multiplier:', multiplier); console.log('prophecy:', prophecy)
       this.handlers.handleFinish({
         player: this.game.multiplayer,
         score: this.game.score,
@@ -171,7 +167,7 @@ export class Engine {
     this.tooltip.show(reason || (this.target.isBarrier ? 'barrier' : 'animal'))
 
     if (this.target.isBarrier) {
-      this.audio.use('impact')
+      this.audioService.use('impact')
       this.gamepadService.vibrate(this.game.control == 'any' || this.game.control === 'gamepad1' ? 0 : 1)
     } else {
       this.levelPrepare()
@@ -187,7 +183,7 @@ export class Engine {
         if (this.game.combo > 1) {
           this.handlers.updateCombo(this.game.combo, this.game.multiplayer)
           this.flyingValues.throw('Combo:', this.game.combo, this.cat.x)
-          this.audio.use('combo')
+          this.audioService.use('combo')
         }
       }
       const name: TAnimalName = this.target.nameCurr as TAnimalName
@@ -195,7 +191,7 @@ export class Engine {
       if (multiplier) this.game.prophecy.multiplied += 1
 
       if (!this.game.multiplayer) this.handlers.updateCaught(name)
-      this.audio.use('catch')
+      this.audioService.use('catch')
       this.target.nameCurr = 'none'
     }
 
@@ -211,7 +207,7 @@ export class Engine {
 
   private prepareJumpStart = () => {
     if (this.game.stopped || this.game.paused) return
-    if (!this.audio.sound.muted) {
+    if (!this.audioService.sound.muted) {
       this.tone.direction = 'ascending'
       this.tone.start();
     }
@@ -229,7 +225,7 @@ export class Engine {
     this.game.definingTrajectory = false
     // Prevent accidental taps
     if (this.cat.jumpHeight > GAME.jumpHeightMin + GAME.trajectoryStep * 2) {
-      this.audio.use('jump')
+      this.audioService.use('jump')
       this.game.action = 'jump'
       this.cat.atPosition = false
       this.cat.jumpStage = -Math.PI
@@ -396,12 +392,8 @@ export class Engine {
   private levelPrepare = () => {
     window.clearTimeout(this.game.timer)
 
-    const level = Math.min(Math.floor(Math.max(this.game.score, 0) / GAME.scorePerLevel), 5)
-    if (level !== this.game.level) {
-      this.game.level = level
-      const speed = Math.min(0.5 + level * 0.1, 1)
-      this.game.updateTime = Math.floor(GAME.updateTime / GAME.updateModifier / speed)
-    }
+    const speed = Math.min(0.5 + this.game.upgrades.speed * 0.1, 1)
+    this.game.updateTime = Math.floor(GAME.updateTime / GAME.updateModifier / speed)
 
     this.target.nameLast = this.target.nameCurr
     this.target.heightLast = this.target.heightCurr
@@ -414,10 +406,7 @@ export class Engine {
     this.target.positionX = this.target.isBarrier
       ? GAME.defaultTargetX
       : GAME.defaultTargetX + Math.floor(Math.random() * GAME.animalPositionDelta)
-    this.target.heightCurr = this.target.isBarrier
-      ? GAME.defaultObstacleHeight * (1 + 0.1 * level)
-      : GAME.defaultAnimalHeight
-    this.target.runAwayDelay = GAME.defaultRunAwayDelay * (1 - 0.1 * level)
+    this.target.heightCurr = this.target.isBarrier ? GAME.defaultObstacleHeight : GAME.defaultAnimalHeight
     this.game.paused = false
     this.game.fullJump = this.target.nameCurr == 'puddle' || ANIMALS.includes(this.target.nameCurr as TAnimalName)
     this.cat.atPosition = false
@@ -428,12 +417,15 @@ export class Engine {
   }
 
   public start(options: EngineOptions = {}) {
-    const { sceneName = this.game.sceneName, initialScore, fps, multiplayer, control = 'any' } = options
+    const { sceneName = this.game.sceneName, initialScore, fps, multiplayer, control = 'any', upgrades } = options
     if (fps !== undefined) this.game.fps = fps
     if (initialScore !== undefined) this.game.score = initialScore
+    if (upgrades) this.game.upgrades = { ...upgradesDefault, ...upgrades }
 
     this.game.multiplayer = multiplayer
     if (multiplayer) {
+      this.game.upgrades = { ...upgradesDefault }
+      this.cat.source = (multiplayer === 'top' ? this.resource.sprite.cat1 : this.resource.sprite.cat2) as GifObject
       this.handlers.updateProgress(0, multiplayer)
       this.cat.y = GAME.defaultCatY / 2
       this.target.yCurr = GAME.defaultTargetY / 2
@@ -444,6 +436,7 @@ export class Engine {
         this.target.yLast += GENERAL.canvas.height / 2
       }
     } else {
+      this.cat.source = this.resource.sprite.cat1 as GifObject
       this.cat.y = GAME.defaultCatY
     }
 
@@ -458,8 +451,8 @@ export class Engine {
       pause: this.pause
     })
 
-    this.audio.musicMute = false
-    this.audio.play(0, true)  // TODO: level music
+    this.audioService.musicMute = false
+    this.audioService.play(0, true)  // TODO: level music
 
     this.target.nameCurr = 'none'
     this.game.caught = { ...caughtDefault }
@@ -493,7 +486,7 @@ export class Engine {
   public stop() {
     this.events.unregisterControls()
     window.clearTimeout(this.game.timer)
-    this.audio.pause()
+    this.audioService.pause()
     this.tone.stop()
     this.game.stopped = true
     this.game.rendered = false
@@ -510,10 +503,10 @@ export class Engine {
         this.handlers.handlePause(true)
       }
       window.clearTimeout(this.game.timer)
-      this.audio.musicMute = true
+      this.audioService.musicMute = true
     } else {
       requestAnimationFrame(this.render)
-      this.audio.musicMute = false
+      this.audioService.musicMute = false
     }
   }
 

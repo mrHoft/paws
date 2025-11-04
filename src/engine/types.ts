@@ -1,4 +1,4 @@
-import type { TTargetName, TSceneName } from '~/const'
+import type { TTargetName, TSceneName, TCaught } from '~/const'
 import type { GifObject } from '~/utils/gif'
 
 export type TAction = 'run' | 'stay' | 'jump' | 'path' | 'scene' | 'return' | null
@@ -18,16 +18,8 @@ export type Target = {
   atPosition: boolean
 }
 
-export type TCaught = {
-  butterfly: number
-  frog: number
-  bird: number
-  mouse: number
-}
-
 export type TGame = {
   sceneName: TSceneName
-  level: number
   multiplayer?: 'top' | 'bottom'
   control: TControl
   successHeightModifier: number
@@ -56,6 +48,7 @@ export type TGame = {
   progress: number
   timestamp: number
   rendered: boolean // Used for the renderCallback to call on first render
+  upgrades: TUpgrades
 }
 
 export type TCat = {
@@ -70,13 +63,15 @@ export type TCat = {
 
 export type TControl = 'pointer' | 'keyboard' | 'gamepad1' | 'gamepad2' | 'any'
 
+export type TUpgrades = Record<'jump' | 'precise' | 'claws' | 'speed', number>
+
 export interface EngineOptions {
-  sceneName?: TSceneName,
+  sceneName?: TSceneName
   initialScore?: number
-  restart?: boolean,
-  fps?: boolean,
-  multiplayer?: 'top' | 'bottom',
-  control?: TControl
+  fps?: boolean
+  multiplayer?: 'top' | 'bottom'
+  control?: TControl,
+  upgrades?: TUpgrades
 }
 
 export interface EngineHandlers {

@@ -1,5 +1,5 @@
 import { Storage } from '~/service/storage'
-import { Audio } from '~/service/audio'
+import { AudioService } from '~/service/audio'
 import { ShepardTone } from '~/service/shepardTone'
 import { SoundService } from '~/service/sound'
 import { iconSrc } from '~/ui/icons'
@@ -41,8 +41,16 @@ class SettingsView {
     this.inner = document.createElement('div')
     this.inner.className = modal.inner
     this.close = buttonClose()
-    const header = document.createElement('h3')
-    this.loc.register('settings', header)
+
+    const h3 = document.createElement('h3')
+    this.loc.register('settings', h3)
+    const icon = document.createElement('div')
+    icon.className = modal.icon
+    icon.setAttribute('style', `mask-image: url(${iconSrc.settings});`)
+    const header = document.createElement('div')
+    header.className = modal.header
+    header.append(icon, h3)
+
     this.content.append(header)
     this.inner.append(border, bg, this.content, this.close)
 
@@ -67,7 +75,7 @@ class SettingsView {
 @Injectable
 export class SettingsUI extends SettingsView {
   private storage: Storage
-  private audio: Audio
+  private audioService: AudioService
   private tone: ShepardTone
   private soundService: SoundService
   private list: HTMLUListElement
@@ -83,7 +91,7 @@ export class SettingsUI extends SettingsView {
     super()
     this.gamepadService = inject(GamepadService)
     this.storage = inject(Storage)
-    this.audio = inject(Audio)
+    this.audioService = inject(AudioService)
     this.tone = inject(ShepardTone)
     this.soundService = inject(SoundService)
 
@@ -106,8 +114,10 @@ export class SettingsUI extends SettingsView {
       this.opt[id].element.append(this.opt[id].label)
 
       this.opt[id].element.addEventListener('mouseenter', () => {
-        this.selectedOptionIndex = index
-        this.handleOptionSelect()
+        if (this.selectedOptionIndex !== index) {
+          this.selectedOptionIndex = index
+          this.handleOptionSelect()
+        }
       })
     })
 
@@ -197,7 +207,7 @@ export class SettingsUI extends SettingsView {
 
     this.gamepadService.registerCallbacks({ onButtonUp: this.onGamepadButtonUp })
 
-    this.handleOptionSelect()
+    this.handleOptionSelect(true)
     this.registerEvents()
   }
 
@@ -254,7 +264,7 @@ export class SettingsUI extends SettingsView {
     }
   }
 
-  private handleOptionSelect = () => {
+  private handleOptionSelect = (silent = false) => {
     OPTIONS.forEach((key, i) => {
       const item = this.opt[key]
       item.element.classList.toggle(styles.hover, i === this.selectedOptionIndex)
@@ -262,6 +272,7 @@ export class SettingsUI extends SettingsView {
         this.selectedOptionId = key
       }
     })
+    if (!silent) this.soundService.play('tap')
   }
 
   private handleChange = (delta: number) => {
@@ -305,15 +316,15 @@ export class SettingsUI extends SettingsView {
   private handleMusicVolumeChange = (value: number) => {
     value = Math.round(value * 10) / 10
     this.storage.set('music', value)
-    this.audio.musicVolume = value
-    this.audio.play(0)
+    this.audioService.musicVolume = value
+    this.audioService.play(0)
     this.opt.music.input.value = value.toString()
   }
 
   private handleSoundVolumeChange = (value: number) => {
     value = Math.round(value * 10) / 10
     this.storage.set('sound', value)
-    this.audio.soundVolume = value
+    this.audioService.soundVolume = value
     this.tone.volume = value
     this.soundService.volume = value
     this.opt.sound.input.value = value.toString()

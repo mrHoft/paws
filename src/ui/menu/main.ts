@@ -2,12 +2,13 @@ import { GAME, SCENE_NAMES, SCENE_TARGETS, ANIMALS, type TSceneName, type TAnima
 import { buttonCircle, buttonIcon, buttonClose } from "~/ui/button"
 import { SettingsUI } from "~/ui/settings/settings"
 import { AboutUI } from "~/ui/about/about"
+import { UpgradeUI } from "~/ui/upgrade/upgrade"
 import { iconSrc, spoilSrc } from "~/ui/icons"
 import { Localization } from '~/service/localization'
 import { ConfirmationModal } from "~/ui/confirmation/confirm"
 import { MultiplayerMenu } from "~/ui/menu/multiplayer"
 import { GamepadService } from '~/service/gamepad'
-import { Caught } from "~/ui/caught/caught"
+import { SoundService } from "~/service/sound"
 import { inject } from "~/utils/inject"
 import type { EngineOptions } from '~/engine/types'
 
@@ -162,20 +163,23 @@ export class MainMenu extends MenuView {
   private startSinglePlayerGame: (options?: EngineOptions) => void
   private confirmationModal: ConfirmationModal
   private gamepadService?: GamepadService
+  private soundService: SoundService
   private multiplayerMenu: MultiplayerMenu
-  private selectedMenuItemIndex = 0
+  private selectedOptionIndex = 0
   private activeMenuItemId: string | null = null
   private settingsUI: SettingsUI
   private aboutUI: AboutUI
-  private caught: Caught
+  private upgradeUI: UpgradeUI
 
   constructor({ startSinglePlayerGame }: { startSinglePlayerGame: (options?: EngineOptions) => void }) {
     super()
     this.startSinglePlayerGame = startSinglePlayerGame
+    this.soundService = inject(SoundService)
+
     const onClose = () => {
       if (this.isVisible) this.isActive = true
     }
-    this.caught = inject(Caught)
+
     this.confirmationModal = inject(ConfirmationModal)
     this.confirmationModal.registerCallback({ onClose })
     this.multiplayerMenu = inject(MultiplayerMenu)
@@ -185,13 +189,14 @@ export class MainMenu extends MenuView {
     this.settingsUI.registerCallback({ onClose })
     this.aboutUI = inject(AboutUI)
     this.aboutUI.registerCallback({ onClose })
+    this.upgradeUI = inject(UpgradeUI)
+    this.upgradeUI.registerCallback({ onClose })
 
     this.menuCreate([
       { id: 'start', icon: iconSrc.start, func: () => { this.activeMenuItemId = 'start'; this.handleStart() } },
-      { id: 'twoPlayers', icon: iconSrc.gamepad, func: () => { this.isActive = false; this.multiplayerMenu.show(true) } },
-      { id: 'restart', icon: iconSrc.restart, func: () => { this.activeMenuItemId = 'restart'; this.handleRestart() } },
-      { id: 'settings', icon: iconSrc.settings, func: () => { this.isActive = false; this.settingsUI.show(true) } },
-      // { id: 'about', icon: iconSrc.about, func: this.handleAbout },
+      { id: 'twoPlayers', icon: iconSrc.gamepad, func: () => { this.isActive = false; this.multiplayerMenu.show() } },
+      { id: 'upgrade', icon: iconSrc.upgrade, func: () => { this.isActive = false; this.upgradeUI.show() } },
+      { id: 'settings', icon: iconSrc.settings, func: () => { this.isActive = false; this.settingsUI.show() } },
     ])
     this.menuItems[0].element.classList.add(styles.hover)
 
@@ -215,8 +220,10 @@ export class MainMenu extends MenuView {
 
     for (const item of this.menuItems) {
       item.element.addEventListener('mouseenter', () => {
-        this.selectedMenuItemIndex = item.index
-        this.menuItems.forEach(({ element }, i) => { element.classList.toggle(styles.hover, i === item.index) })
+        if (this.selectedOptionIndex !== item.index) {
+          this.selectedOptionIndex = item.index
+          this.handleOptionSelect()
+        }
       })
     }
   }
@@ -230,17 +237,17 @@ export class MainMenu extends MenuView {
 
     if (buttonIndex === 12 || buttonIndex === 13) {
       if (buttonIndex === 12) {
-        this.selectedMenuItemIndex = this.selectedMenuItemIndex > 0 ? this.selectedMenuItemIndex - 1 : 0
+        this.selectedOptionIndex = this.selectedOptionIndex > 0 ? this.selectedOptionIndex - 1 : 0
       }
       if (buttonIndex === 13) {
-        this.selectedMenuItemIndex = this.selectedMenuItemIndex < this.menuItems.length - 1 ? this.selectedMenuItemIndex + 1 : this.menuItems.length - 1
+        this.selectedOptionIndex = this.selectedOptionIndex < this.menuItems.length - 1 ? this.selectedOptionIndex + 1 : this.menuItems.length - 1
       }
-      // console.log('selectedMenuItemIndex:', this.selectedMenuItemIndex)
-      this.menuItems.forEach((item, i) => { item.element.classList.toggle(styles.hover, i === this.selectedMenuItemIndex) })
+
+      this.handleOptionSelect()
     }
     if (buttonIndex === 1 || buttonIndex === 8) { // Accept
       if (!this.activeMenuItemId) {
-        this.menuItems[this.selectedMenuItemIndex].props.func()
+        this.menuItems[this.selectedOptionIndex].props.func()
       } else {
         switch (this.activeMenuItemId) {
           case ('start'): {
@@ -268,6 +275,11 @@ export class MainMenu extends MenuView {
     }
   }
 
+  private handleOptionSelect = (silent = false) => {
+    this.menuItems.forEach((item, i) => { item.element.classList.toggle(styles.hover, i === this.selectedOptionIndex) })
+    if (!silent) this.soundService.play('tap')
+  }
+
   private handleOutsideClick = (event: PointerEvent) => {
     const { target, currentTarget } = event;
     if (currentTarget && target === currentTarget) {
@@ -282,17 +294,6 @@ export class MainMenu extends MenuView {
   private handleStart = () => {
     const name = SCENE_NAMES[Math.floor(Math.random() * SCENE_NAMES.length)]
     this.handleSceneClick(name)()
-  }
-
-  private handleRestart = () => {
-    this.activeMenuItemId = 'confirmation'
-    this.confirmationModal.show({
-      text: this.loc.get('restartDesc'),
-      acceptCallback: () => {
-        this.startSinglePlayerGame({ sceneName: SCENE_NAMES[0], restart: true })
-        this.caught.handleReset()
-      }
-    })
   }
 
   private handleSceneClick = (name: TSceneName) => (event?: PointerEvent) => {

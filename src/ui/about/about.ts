@@ -3,6 +3,7 @@ import { buttonClose } from "~/ui/button"
 import { Localization } from '~/service/localization'
 import { GamepadService } from "~/service/gamepad"
 import { Injectable, inject } from "~/utils/inject"
+import { iconSrc } from "~/ui/icons"
 
 import modal from '~/ui/modal.module.css'
 import layer from '~/ui/layers.module.css'
@@ -44,10 +45,17 @@ class AboutView {
     this.inner = document.createElement('div')
     this.inner.className = modal.inner
 
+    const h3 = document.createElement('h3')
+    this.loc.register('about', h3)
+    const icon = document.createElement('div')
+    icon.className = modal.icon
+    icon.setAttribute('style', `mask-image: url(${iconSrc.about});`)
+    const header = document.createElement('div')
+    header.className = modal.header
+    header.append(icon, h3)
+
     const content = document.createElement('div')
     content.className = modal.inner__content
-    const header = document.createElement('h3')
-    this.loc.register('about', header)
     content.append(header, ...about())
 
     this.close = buttonClose()
