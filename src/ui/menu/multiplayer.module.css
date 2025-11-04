@@ -48,7 +48,7 @@
   border: 2px solid transparent;
   padding: 0.25em;
   box-sizing: border-box;
-  background-color: green;
+  background-color: red;
 
   &>img {
     width: calc(2em - 4px);
@@ -68,8 +68,8 @@
     transition: opacity 0.25s linear;
   }
 
-  &.inactive {
-    background-color: red;
+  &.active {
+    background-color: green;
   }
 }
 

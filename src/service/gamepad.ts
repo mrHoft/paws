@@ -76,7 +76,7 @@ export class GamepadService {
     const gamepad = this._gamepads.get(index)
     if (gamepad && 'vibrationActuator' in gamepad) {
       const vibration = gamepad.vibrationActuator
-      if (vibration.playEffect) {
+      if (vibration && vibration.playEffect) {
         vibration.playEffect('dual-rumble', {
           startDelay: 0,
           duration: 200,

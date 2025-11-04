@@ -2,13 +2,13 @@
   display: flex;
   align-items: center;
   column-gap: 0.5em;
+}
 
-  & .icon {
-    width: 1.5em;
-    height: 1.5em;
-    background-color: var(--color-blue10);
-    mask-size: cover;
-  }
+.icon {
+  width: 1.5em;
+  height: 1.5em;
+  background-color: var(--color-blue10);
+  mask-size: cover;
 }
 
 .outer {

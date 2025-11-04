@@ -22,7 +22,7 @@ import { YaGamesService } from '~/service/ysdk/ysdk'
 import { MultiplayerMenu } from '~/ui/menu/multiplayer'
 import { Caught } from '~/ui/caught/caught'
 import { injector, inject } from '~/utils/inject'
-import type { EngineOptions, EngineHandlers } from '~/engine/types'
+import type { EngineOptions, EngineHandlers, TUpgrades } from '~/engine/types'
 import { throttle } from '~/utils/throttle'
 
 const autoStartScene: TSceneName | null = null  // 'lake'
@@ -250,10 +250,7 @@ export class App extends AppView {
   }
 
   private registerEvents = () => {
-    this.root.addEventListener('contextmenu', (event) => {
-      // event.preventDefault()
-      return false
-    })
+    this.root.addEventListener('contextmenu', (event) => event.preventDefault())
 
     const resizeCallback = throttle(() => {
       const { width, height } = this.root.getBoundingClientRect()
@@ -312,8 +309,9 @@ export class App extends AppView {
         engines[0].start(options1)
         engines[1].start(options2)
       } else {
+        const upgrades = this.storage.get<TUpgrades>(`data.upgrades`)
         this.singlePlayerUI?.toggleView('single-player')
-        engines[0].start(options1)
+        engines[0].start({ ...options1, upgrades })
         this.canvas[0].removeAttribute('style')
         this.canvas[1].setAttribute('style', 'display: none;')
       }

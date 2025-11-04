@@ -10,6 +10,7 @@ export const iconSrc: Record<string, string> = {
   cat: './icons/favicon.svg',
   check: './icons/check.svg',
   close: './icons/close.svg',
+  reset: './icons/restart.svg',
   restart: './icons/restart.svg',
   settings: './icons/settings.svg',
   menu: './icons/menu.svg',

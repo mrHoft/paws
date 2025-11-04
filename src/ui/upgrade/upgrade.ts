@@ -8,6 +8,8 @@ import { Injectable, inject } from "~/utils/inject"
 import { iconSrc, spoilSrc } from "~/ui/icons"
 import { Storage } from "~/service/storage"
 import { Caught } from "~/ui/caught/caught"
+import { ConfirmationModal } from "../confirmation/confirm"
+import type { TUpgrades } from "~/engine/types"
 
 import styles from './upgrade.module.css'
 import modal from '~/ui/modal.module.css'
@@ -42,7 +44,7 @@ class UpgradeView {
     bg.classList.add(modal.inner__bg, modal.inner__mask, modal.inner__shadow)
 
     this.inner = document.createElement('div')
-    this.inner.classList.add(modal.inner/* , modal.large */)
+    this.inner.classList.add(modal.inner, modal.large)
 
     const content = document.createElement('div')
     content.className = modal.inner__content
@@ -69,6 +71,7 @@ class UpgradeView {
 
   private createUpgrades = () => {
     const container = document.createElement('ul')
+    container.className = styles.list
 
     Object.keys(upgrades).forEach(name => {
       const { icon, grades, cost } = upgrades[name]
@@ -118,6 +121,25 @@ class UpgradeView {
       container.append(element)
     })
 
+    // Reset
+    const element = document.createElement('li')
+    element.className = styles.list__element
+
+    const paw = document.createElement('img')
+    paw.src = iconSrc.paw
+    paw.className = styles.paw
+
+    const icon = document.createElement('div')
+    icon.className = modal.icon
+    icon.setAttribute('style', `mask-image: url(${iconSrc.reset});`)
+
+    const label = document.createElement('div')
+    this.loc.register('reset', label)
+
+    element.append(paw, icon, label)
+    container.append(element)
+    this.upgrades.push({ name: 'reset', element, grade: [], materials: {} })
+
     return container
   }
 
@@ -133,6 +155,7 @@ export class UpgradeUI extends UpgradeView {
   private storage: Storage
   private audioService: AudioService
   private caught: Caught
+  private confirmationModal: ConfirmationModal
   private onClose?: () => void
   private selectedOptionIndex = 0
   private upgradesTotal = Object.keys(upgrades).length
@@ -144,48 +167,88 @@ export class UpgradeUI extends UpgradeView {
     this.storage = inject(Storage)
     this.audioService = inject(AudioService)
     this.caught = inject(Caught)
+    this.confirmationModal = inject(ConfirmationModal)
+    this.confirmationModal.registerCallback({ onClose: () => { this.isActive = true } })
 
     this.registerEvents()
+
     /*
     this.storage.set('data.caught', {
-      butterfly: 500,
-      frog: 500,
-      mouse: 500,
-      bird: 500,
+      butterfly: 1500,
+      frog: 1500,
+      mouse: 1500,
+      bird: 1500,
     })
+    this.storage.set('data.stars', 1500)
     this.storage.set('data.upgrades', {})
     */
   }
 
   private updateMaterials = () => {
     this.upgrades.forEach(item => {
-      const grade = this.storage.get<number>(`data.upgrades.${item.name}`) || 0
-      item.grade.forEach((el, i) => {
-        if (grade >= i + 1) {
-          el.classList.add(styles.active)
-        }
-      })
-
-      if (grade >= upgrades[item.name].grades) {
-        item.materials.element.setAttribute('style', 'display: none;')
-      } else {
-        Object.keys(item.materials).forEach(key => {
-          if (key !== 'element') {
-            const count = key === 'star' ? this.storage.get<number>('data.stars') || 0 : this.storage.get<number>(`data.caught.${key}`) || 0
-            const value = this.getCost(upgrades[item.name].cost[key], grade)
-            item.materials[key].innerText = value.toString()
-            if (value <= count) {
-              item.materials[key].removeAttribute('style')
-            } else {
-              item.materials[key].setAttribute('style', 'color: red;')
-            }
-          }
+      if (item.name !== 'reset') {
+        const grade = this.storage.get<number>(`data.upgrades.${item.name}`) || 0
+        item.grade.forEach((el, i) => {
+          el.classList.toggle(styles.active, grade >= i + 1)
         })
+
+        if (grade >= upgrades[item.name].grades) {
+          item.materials.element.setAttribute('style', 'opacity: 0;')
+        } else {
+          item.materials.element.removeAttribute('style')
+          Object.keys(item.materials).forEach(key => {
+            if (key !== 'element') {
+              const count = key === 'star' ? this.storage.get<number>('data.stars') || 0 : this.storage.get<number>(`data.caught.${key}`) || 0
+              const value = this.getCost(upgrades[item.name].cost[key], grade)
+              item.materials[key].innerText = value.toString()
+              if (value <= count) {
+                item.materials[key].removeAttribute('style')
+              } else {
+                item.materials[key].setAttribute('style', 'color: red;')
+              }
+            }
+          })
+        }
       }
     })
   }
 
-  private upgrade = (name: string) => {
+  private handleReset = () => {
+    const savedUpgrades = this.storage.get<TUpgrades>('data.upgrades') || {}
+    const materials = this.storage.get<Record<string, number>>('data.caught') || {}
+    const stars = this.storage.get<number>('data.stars')
+    materials.star = stars || 0
+
+    for (const key of Object.keys(savedUpgrades)) {
+      const grade = savedUpgrades[key as keyof TUpgrades]
+      const upgrade = upgrades[key]
+      if (upgrade) {
+        for (const resource of Object.keys(upgrade.cost)) {
+          const value = upgrade.cost[resource]
+          for (let i = 1; i <= grade; i += 1) {
+            const cost = this.getCost(value, i - 1)
+            if (!materials[resource]) materials[resource] = 0
+            materials[resource] += Math.floor(cost / 2)
+          }
+        }
+      }
+    }
+
+    this.caught.setCount(materials)
+    this.storage.set('data.upgrades', {})
+    const { star: newStars, ...newCaught } = materials
+    this.storage.set('data.caught', newCaught)
+    this.storage.set('data.stars', newStars)
+    this.updateMaterials()
+  }
+
+  private handleUpgrade = (name: string) => {
+    if (name == 'reset') {
+      this.isActive = false
+      this.confirmationModal.show({ text: this.loc.get('resetDesc'), acceptCallback: this.handleReset })
+      return
+    }
+
     const grade = this.storage.get<number>(`data.upgrades.${name}`) || 0
     if (grade >= upgrades[name].grades) return
 
@@ -238,7 +301,7 @@ export class UpgradeUI extends UpgradeView {
           this.handleOptionSelect()
         }
       })
-      item.element.addEventListener('click', () => this.upgrade(item.name))
+      item.element.addEventListener('click', () => this.handleUpgrade(item.name))
     })
     this.handleOptionSelect(true)
   }
@@ -262,13 +325,13 @@ export class UpgradeUI extends UpgradeView {
         this.selectedOptionIndex = this.selectedOptionIndex > 0 ? this.selectedOptionIndex - 1 : 0
       }
       if (buttonIndex === 13) { // down
-        this.selectedOptionIndex = this.selectedOptionIndex < this.upgradesTotal - 1 ? this.selectedOptionIndex + 1 : this.upgradesTotal - 1
+        this.selectedOptionIndex = this.selectedOptionIndex < this.upgradesTotal ? this.selectedOptionIndex + 1 : this.upgradesTotal
       }
       this.handleOptionSelect()
     }
 
     if (buttonIndex === 1) {
-      this.upgrade(this.upgrades[this.selectedOptionIndex].name)
+      this.handleUpgrade(this.upgrades[this.selectedOptionIndex].name)
     }
 
     if (buttonIndex === 0) {

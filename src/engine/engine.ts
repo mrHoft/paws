@@ -18,8 +18,7 @@ import { caughtNameTransform } from "~/utils/caught";
 const prophecyDefault = {
   total: GAME.roundLength,
   fails: 0,
-  multiplied: 0,
-  speed: 1
+  multiplied: 0
 }
 const upgradesDefault = {
   jump: 0,
@@ -76,7 +75,7 @@ export class Engine {
     positionX: GAME.defaultTargetX, // A place where a target will stop
     heightCurr: GAME.defaultAnimalHeight,
     heightLast: GAME.defaultAnimalHeight,
-    isBarrier: false,
+    isObstacle: false,
     runAwayDelay: GAME.defaultRunAwayDelay,
     atPosition: false,
   }
@@ -132,8 +131,8 @@ export class Engine {
     if (this.handlers.handleFinish) {
       const succeed = Math.max(this.game.prophecy.total - this.game.prophecy.fails, 0)
       const multiplier = Math.floor((1 + this.game.prophecy.multiplied / this.game.prophecy.total) * 100) / 100
-      const prophecy = (succeed * (1 + (this.game.prophecy.speed - 1) * 0.1) * multiplier) / (this.game.prophecy.total * 2)
-      // console.log(this.game.prophecy); console.log('succeed:', succeed); console.log('multiplier:', multiplier); console.log('prophecy:', prophecy)
+      const prophecy = (succeed * (1 + (this.game.upgrades.speed) * 0.1) * multiplier) / (this.game.prophecy.total * 2)
+      // console.log({ ...this.game.prophecy, speed: this.game.upgrades.speed }); console.log('succeed:', succeed); console.log('multiplier:', multiplier); console.log('prophecy:', prophecy)
       this.handlers.handleFinish({
         player: this.game.multiplayer,
         score: this.game.score,
@@ -164,9 +163,9 @@ export class Engine {
     }
 
     this.updateScore(TARGET_SCORE[this.target.nameCurr].fail)
-    this.tooltip.show(reason || (this.target.isBarrier ? 'barrier' : 'animal'))
+    this.tooltip.show(reason || (this.target.isObstacle ? 'barrier' : 'animal'))
 
-    if (this.target.isBarrier) {
+    if (this.target.isObstacle) {
       this.audioService.use('impact')
       this.gamepadService.vibrate(this.game.control == 'any' || this.game.control === 'gamepad1' ? 0 : 1)
     } else {
@@ -177,7 +176,7 @@ export class Engine {
   private commitSuccess = () => {
     const multiplier = this.target.atPosition ? 1 : 2
     this.updateScore(TARGET_SCORE[this.target.nameCurr].success, multiplier)
-    if (!this.target.isBarrier) {
+    if (!this.target.isObstacle) {
       if (this.game.combo < 5) {
         this.game.combo += 1
         if (this.game.combo > 1) {
@@ -211,7 +210,7 @@ export class Engine {
       this.tone.direction = 'ascending'
       this.tone.start();
     }
-    this.cat.jumpHeight = GAME.jumpHeightMin
+    this.cat.jumpHeight = GAME.jumpHeightMin * (1 + (this.target.isObstacle ? this.game.upgrades.jump * 0.1 : 0))
     this.cat.trajectoryDirection = 1
     this.game.definingTrajectory = true
     if (!this.updateIsNeeded()) {
@@ -229,21 +228,25 @@ export class Engine {
       this.game.action = 'jump'
       this.cat.atPosition = false
       this.cat.jumpStage = -Math.PI
-      let successHeight = this.target.isBarrier
+      const successHeight = this.target.isObstacle
         ? Math.floor(
           this.target.heightCurr * this.game.successHeightModifier + (this.target.xCurr - this.target.positionX) / 2
         )
         : Math.floor((this.target.xCurr - this.cat.x) / 2)
       this.game.success =
-        (this.target.isBarrier && this.cat.jumpHeight > successHeight) ||
-        Math.abs(this.cat.jumpHeight - successHeight) < GAME.catchRange
-      // console.log('Jump height: ', this.cat.jumpHeight, '/', this.game.successHeight, this.game.success)	// Do not remove!
+        (this.target.isObstacle && this.cat.jumpHeight > successHeight) ||
+        Math.abs(this.cat.jumpHeight - successHeight) < GAME.catchRange * (1 + this.game.upgrades.claws * 0.1)
+      // console.log('Jump height: ', this.cat.jumpHeight, '/', this.game.successHeight, this.game.success)
     }
   }
 
   private defineTrajectory = () => {
     this.cat.jumpHeight += GAME.trajectoryStep * this.cat.trajectoryDirection
-    if (this.cat.jumpHeight >= GAME.jumpHeightMax) {
+
+    const successHeight = Math.floor((this.target.xCurr - this.cat.x) / 2)
+    const jumpHeightMax = this.target.isObstacle ? GAME.jumpHeightMax : successHeight + (GAME.jumpHeightMax - successHeight) * (1 - this.game.upgrades.precise * 0.1)
+    // this.game.upgrades.precise
+    if (this.cat.jumpHeight >= jumpHeightMax) {
       this.cat.trajectoryDirection = -1
       this.tone.direction = 'descending'
     }
@@ -255,11 +258,11 @@ export class Engine {
       this.tone.stop();
       return
     }
-    this.draw.drawTrajectory(this.cat.x, this.cat.y, this.cat.jumpHeight, !this.target.isBarrier)
+    this.draw.drawTrajectory(this.cat.x, this.cat.y, this.cat.jumpHeight, !this.target.isObstacle)
   }
 
   private defineJump = () => {
-    const modifier = this.target.isBarrier ? 1 : 0.6
+    const modifier = this.target.isObstacle ? 1 : 0.6
     const r = this.cat.jumpHeight // Trajectory curve radius
     const points = r / this.game.jumpStep // Position count
     const step = Math.PI / points / modifier
@@ -300,7 +303,7 @@ export class Engine {
     if (this.target.xCurr < this.target.positionX) {
       this.target.xCurr = this.target.positionX
       this.target.atPosition = true
-      if (!this.target.isBarrier) {
+      if (!this.target.isObstacle) {
         this.game.timer = window.setTimeout(() => this.commitFail('timeout'), this.target.runAwayDelay)
       }
     }
@@ -402,11 +405,11 @@ export class Engine {
     this.target.xCurr = Math.floor(Math.max(this.cat.x + GENERAL.canvas.width / 2, GENERAL.canvas.width))
     this.target.yCurr = GAME.defaultTargetY / (this.game.multiplayer ? 2 : 1) + (this.game.multiplayer === 'bottom' ? GENERAL.canvas.height / 2 : 0)
     this.target.nameCurr = this.targetService.getTarget(this.game.multiplayer)
-    this.target.isBarrier = OBSTACLES.includes(this.target.nameCurr)
-    this.target.positionX = this.target.isBarrier
+    this.target.isObstacle = OBSTACLES.includes(this.target.nameCurr)
+    this.target.positionX = this.target.isObstacle
       ? GAME.defaultTargetX
       : GAME.defaultTargetX + Math.floor(Math.random() * GAME.animalPositionDelta)
-    this.target.heightCurr = this.target.isBarrier ? GAME.defaultObstacleHeight : GAME.defaultAnimalHeight
+    this.target.heightCurr = this.target.isObstacle ? GAME.defaultObstacleHeight : GAME.defaultAnimalHeight
     this.game.paused = false
     this.game.fullJump = this.target.nameCurr == 'puddle' || ANIMALS.includes(this.target.nameCurr as TAnimalName)
     this.cat.atPosition = false

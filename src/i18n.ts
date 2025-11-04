@@ -6,6 +6,7 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     // ui
     menu: 'Menu',
     start: 'Start',
+    reset: 'Reset',
     restart: 'Restart',
     pause: 'Pause',
     continue: 'Continue',
@@ -18,6 +19,7 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     confirmation: 'Confirmation',
     confirmationDefault: 'Are you sure?',
     restartDesc: 'Are you sure want to restart?',
+    resetDesc: 'Only half of the spent resources will be returned. Are you sure?',
     stageComplete: 'Stage complete!',
     caught: 'Caught',
     // tooltip
@@ -46,6 +48,7 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     // ui
     menu: 'Меню',
     start: 'Старт',
+    reset: 'Сбросить',
     restart: 'Заново',
     pause: 'Пауза',
     continue: 'Продолжить',
@@ -58,6 +61,7 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     confirmation: 'Подтверждение',
     confirmationDefault: 'Вы уверены?',
     restartDesc: 'Вы уверены что хотите начать заново?',
+    resetDesc: 'Будет возвращена лишь половина потраченных ресурсов. Вы уверены?',
     stageComplete: 'Этап завершён!',
     caught: 'Поймано',
     // tooltip
@@ -75,12 +79,18 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     winText: 'кот победил!',
     time: 'Время',
     upper: 'Верхний',
-    bottom: 'Нижний'
+    bottom: 'Нижний',
+    // upgrades
+    jumpDesc: 'Сильный прыжок (помогает с препятствиями)',
+    preciseDesc: 'Точный прыжок (помогает при ловле)',
+    clawsDesc: 'Острые когти (радиус захвата)',
+    speedDesc: 'Скорость бега (больше очков и звёзд)'
   },
   tr: {
     // ui
     menu: 'Menü',
     start: 'Başlat',
+    reset: 'Sıfırla',
     restart: 'Yeniden Başlat',
     pause: 'Duraklat',
     continue: 'Devam Et',
@@ -93,6 +103,7 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     confirmation: 'Onay',
     confirmationDefault: 'Emin misiniz?',
     restartDesc: 'Yeniden başlatmak istediğinizden emin misiniz?',
+    resetDesc: 'Harcanan kaynakların sadece yarısı iade edilecek. Emin misiniz?',
     stageComplete: 'Aşama tamamlandı!',
     caught: 'Yakalandı',
     // tooltip
@@ -110,12 +121,18 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     winText: 'kedi kazandı!',
     time: 'Zaman',
     upper: 'Üst',
-    bottom: 'Alt'
+    bottom: 'Alt',
+    // upgrades
+    jumpDesc: 'Daha güçlü zıplama (engellerde yardımcı)',
+    preciseDesc: 'Hassas zıplama (hayvanlarda yardımcı)',
+    clawsDesc: 'Daha keskin pençeler (yakalama yarıçapı)',
+    speedDesc: 'Koşu hızı (daha fazla puan ve yıldız kazanın)'
   },
   de: {
     // ui
     menu: 'Menü',
     start: 'Start',
+    reset: 'Zurücksetzen',
     restart: 'Neustart',
     pause: 'Pause',
     continue: 'Weiter',
@@ -128,6 +145,7 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     confirmation: 'Bestätigung',
     confirmationDefault: 'Sind Sie sicher?',
     restartDesc: 'Möchten Sie wirklich neu starten?',
+    resetDesc: 'Nur die Hälfte der ausgegebenen Ressourcen wird zurückerstattet. Sind Sie sicher?',
     stageComplete: 'Stufe abgeschlossen!',
     caught: 'Gefangen',
     // tooltip
@@ -145,12 +163,18 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     winText: 'Katze gewinnt!',
     time: 'Zeit',
     upper: 'Obere',
-    bottom: 'Untere'
+    bottom: 'Untere',
+    // upgrades
+    jumpDesc: 'Stärkerer Sprung (hilfreich bei Hindernissen)',
+    preciseDesc: 'Präziser Sprung (hilfreich bei Tieren)',
+    clawsDesc: 'Scharfere Krallen (Fangradius)',
+    speedDesc: 'Laufgeschwindigkeit (mehr Punkte und Sterne erhalten)'
   },
   fr: {
     // ui
     menu: 'Menu',
     start: 'Commencer',
+    reset: 'Réinitialiser',
     restart: 'Recommencer',
     pause: 'Pause',
     continue: 'Continuer',
@@ -163,6 +187,7 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     confirmation: 'Confirmation',
     confirmationDefault: 'Êtes-vous sûr?',
     restartDesc: 'Êtes-vous sûr de vouloir recommencer?',
+    resetDesc: 'Seulement la moitié des ressources dépensées sera restituée. Êtes-vous sûr?',
     stageComplete: 'Niveau terminé!',
     caught: 'Attrapé',
     // tooltip
@@ -180,6 +205,11 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     winText: 'le chat gagne!',
     time: 'Temps',
     upper: 'Supérieur',
-    bottom: 'Inférieur'
+    bottom: 'Inférieur',
+    // upgrades
+    jumpDesc: 'Saut plus puissant (utile pour les obstacles)',
+    preciseDesc: 'Saut précis (utile pour les animaux)',
+    clawsDesc: 'Griffes plus affûtées (rayon de capture)',
+    speedDesc: 'Vitesse de course (obtenez plus de score et d\'étoiles)'
   }
 }

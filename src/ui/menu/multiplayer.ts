@@ -83,8 +83,9 @@ class MenuMultiplayerView {
     player.innerText = `P${i + 1}`
     device.append(img, player)
     if (control === 'gamepad1' || control === 'gamepad2') {
-      device.classList.add(styles.inactive)
       this.gamepads[control].push(device)
+    } else {
+      device.classList.add(styles.active)
     }
 
     return device
@@ -105,10 +106,13 @@ class MenuMultiplayerView {
   }
 
   protected setGamepadActive = (index: number) => {
-    const control = `gamepad${index}` as 'gamepad1' | 'gamepad2'
-    const arr = this.gamepads[control]
-    for (const el of arr) {
-      el.classList.remove(styles.inactive)
+    const controls: ('gamepad1' | 'gamepad2')[] = ['gamepad1', 'gamepad2']
+    for (const control of controls) {
+      const arr = this.gamepads[control]
+      for (const el of arr) {
+        const gamepadIndex = (Number(control.slice(-1)) || 0)
+        el.classList.toggle(styles.active, index >= gamepadIndex)
+      }
     }
   }
 
@@ -229,6 +233,7 @@ export class MultiplayerMenu extends MenuMultiplayerView {
 
   private handleGamepadConnected = () => {
     const total = this.gamepadService.gamepadCount
+    console.log('Gamepads:', total)
     this.setGamepadActive(Math.min(total, 2))
   }
 

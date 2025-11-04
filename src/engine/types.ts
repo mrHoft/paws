@@ -13,7 +13,7 @@ export type Target = {
   yLast: number
   heightCurr: number
   heightLast: number
-  isBarrier: boolean
+  isObstacle: boolean
   runAwayDelay: number
   atPosition: boolean
 }
@@ -43,7 +43,6 @@ export type TGame = {
     total: number
     fails: number
     multiplied: number
-    speed: number
   }
   progress: number
   timestamp: number
