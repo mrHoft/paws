@@ -9,6 +9,7 @@ export const buttonCircle = ({ src }: { src: string }) => {
   inner.className = styles.inner
   const img = document.createElement('img')
   img.src = src
+  img.setAttribute('draggable', 'false')
   inner.append(img)
   button.append(circle, inner)
 

@@ -53,6 +53,7 @@ class MenuMultiplayerView {
       const element = document.createElement('div')
       element.className = styles.item
       const paw = document.createElement('img')
+      paw.setAttribute('draggable', 'false')
       paw.className = styles.paw
       paw.src = iconSrc.paw
       const row = document.createElement('div')
@@ -77,6 +78,7 @@ class MenuMultiplayerView {
     const device = document.createElement('div')
     device.classList.add(styles.device)
     const img = document.createElement('img')
+    img.setAttribute('draggable', 'false')
     img.src = iconSrc[control.replace(/\d/, '')]
     const player = document.createElement('span')
     player.className = 'text-shadow'

@@ -37,6 +37,7 @@ export class Weather {
 
   private createWeatherLeaf(): WeatherLeaf {
     const leaf = document.createElement('img') as WeatherLeaf;
+    leaf.setAttribute('draggable', 'false')
     leaf.src = leafSrc;
     leaf.className = styles.leaf;
 

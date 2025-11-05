@@ -5,7 +5,7 @@ import { Injectable } from '~/utils/inject'
 const PATH = '.'
 
 const assets: Record<string, string> = {
-  cat1: 'sprites/cat-ginger1.gif',
+  cat1: 'sprites/cat-ginger3.gif',
   cat2: 'sprites/cat-ginger2.gif',
   // Animal
   bird: 'sprites/bird-yellow.gif',

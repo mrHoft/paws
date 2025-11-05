@@ -105,8 +105,10 @@ export class SettingsUI extends SettingsView {
         input: document.createElement('input'),
         icon: document.createElement('img')
       }
+      this.opt[id].icon.setAttribute('draggable', 'false')
 
       const paw = document.createElement('img')
+      paw.setAttribute('draggable', 'false')
       paw.src = iconSrc.paw
       paw.className = styles.paw
 
@@ -189,6 +191,7 @@ export class SettingsUI extends SettingsView {
     this.flags.className = styles.flag_list
     for (const lang of LANGUAGES) {
       const flag = document.createElement('img')
+      flag.setAttribute('draggable', 'false')
       flag.className = styles.flag
       flag.src = iconSrc[lang]
       flag.alt = lang

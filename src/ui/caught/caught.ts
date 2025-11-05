@@ -77,6 +77,7 @@ export class Caught {
     const icon = document.createElement('img')
     icon.src = spoilSrc[name]
     icon.alt = name
+    icon.setAttribute('draggable', 'false')
     spoil.append(icon)
     const value = document.createElement('span')
     value.innerText = this.count[name].toString()

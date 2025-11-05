@@ -80,10 +80,12 @@ class UpgradeView {
       element.className = styles.list__element
 
       const paw = document.createElement('img')
+      paw.setAttribute('draggable', 'false')
       paw.src = iconSrc.paw
       paw.className = styles.paw
 
       const img = document.createElement('img')
+      img.setAttribute('draggable', 'false')
       img.src = icon
       img.className = styles.icon
 
@@ -103,6 +105,7 @@ class UpgradeView {
       materialsContainer.className = styles.materials
       Object.keys(cost).forEach(key => {
         const spoil = document.createElement('img')
+        spoil.setAttribute('draggable', 'false')
         spoil.src = key === 'star' ? iconSrc[key] : spoilSrc[key]
         const value = document.createElement('span')
         value.innerText = cost[key].toString()
@@ -126,6 +129,7 @@ class UpgradeView {
     element.className = styles.list__element
 
     const paw = document.createElement('img')
+    paw.setAttribute('draggable', 'false')
     paw.src = iconSrc.paw
     paw.className = styles.paw
 

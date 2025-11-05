@@ -1,7 +1,7 @@
 export const GENERAL = {
-  outerLinks: true,
-  fullscreenControl: true,
-  sdk: null, // 'ya-games' | null
+  outerLinks: false,
+  fullscreenControl: false,
+  sdk: null, //'ya-games' | null
   canvas: {
     width: 1280,
     height: 720,

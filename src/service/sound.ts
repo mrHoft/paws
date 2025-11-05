@@ -23,6 +23,7 @@ export class SoundService {
     this.sounds = new Map([
       ['tap', { frequency: 200, duration: 0.1, volume: 0.3, type: 'sine' }],
       ['pum', { frequency: 600, duration: 0.3, volume: 0.4, type: 'sine', fadeOut: true }],
+      ['pup', { frequency: 350, duration: 0.08, volume: 0.3, type: 'sine' }],
       ['ta', { frequency: 800, duration: 0.5, volume: 0.4, type: 'square', fadeOut: true }],
       ['error', { frequency: 150, duration: 0.15, volume: 0.15, type: 'sawtooth' }],
       ['tone-low', { frequency: 300, duration: 0.15, volume: 0.3, type: 'triangle' }],

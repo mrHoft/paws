@@ -41,6 +41,7 @@ export class PauseModal {
     const continueLabel = document.createElement('span')
     this.loc.register('continue', continueLabel)
     const continueIcon = document.createElement('img')
+    continueIcon.setAttribute('draggable', 'false')
     continueIcon.src = iconSrc.start
     btnContinue.append(continueIcon, continueLabel)
     btnContinue.addEventListener('click', this.handleResume)

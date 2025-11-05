@@ -43,11 +43,12 @@ class StageCompleteView {
 
     this.button = document.createElement('div')
     this.button.className = modal.button
-    const continueLabel = document.createElement('span')
-    this.loc.register('menu', continueLabel)
-    const continueIcon = document.createElement('img')
-    continueIcon.src = iconSrc.menu
-    this.button.append(continueIcon, continueLabel)
+    const menuLabel = document.createElement('span')
+    this.loc.register('menu', menuLabel)
+    const menuIcon = document.createElement('img')
+    menuIcon.setAttribute('draggable', 'false')
+    menuIcon.src = iconSrc.menu
+    this.button.append(menuIcon, menuLabel)
 
     this.result = {
       stars: document.createElement('div'),
@@ -59,6 +60,7 @@ class StageCompleteView {
     this.result.stars.className = styles.stars
     for (let i = 0; i < 3; i += 1) {
       const img = document.createElement('img')
+      img.setAttribute('draggable', 'false')
       img.src = iconSrc.star
       this.result.stars.append(img)
     }
@@ -150,7 +152,7 @@ export class StageCompleteModal extends StageCompleteView {
       if ((i + 1) / stars.length <= prophecy + 0.01) {
         star.removeAttribute('style')
         star.classList.add(styles.bounce)
-        this.soundService.play('tone-high')
+        this.soundService.play('pum')
         this.caught.handleUpdate('star')
       }
       i += 1
@@ -159,7 +161,7 @@ export class StageCompleteModal extends StageCompleteView {
       }
     }
 
-    count()
+    setTimeout(count, 500)
   }
 
   private onGamepadButtonUp = (_gamepadIndex: number, buttonIndex: number) => {

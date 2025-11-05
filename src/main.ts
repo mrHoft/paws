@@ -10,6 +10,7 @@ const soundService = new SoundService()
 const soundNames = [
   'tap',
   'pum',
+  'pup',
   'ta',
   'block',
   'tone-low',
@@ -22,5 +23,4 @@ document.addEventListener('keyup', event => {
   if (soundName) {
     soundService.play(soundName)
   }
-})
- */
+}) */

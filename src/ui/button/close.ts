@@ -7,6 +7,7 @@ export const buttonClose = () => {
   button.className = styles.btn_close
   const img = document.createElement('img')
   img.src = iconSrc.close
+  img.setAttribute('draggable', 'false')
   button.append(img)
 
   return button

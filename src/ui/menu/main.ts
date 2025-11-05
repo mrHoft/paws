@@ -72,6 +72,7 @@ class MenuView {
     this.gamepadSupport = document.createElement('div')
     this.gamepadSupport.className = styles.gamepad_support
     const check = document.createElement('img')
+    check.setAttribute('draggable', 'false')
     check.src = iconSrc.check
     check.alt = 'check'
     check.className = 'green'
@@ -107,6 +108,7 @@ class MenuView {
       if (n === 'grasshopper') n = 'butterfly'
       if (!spoil[n]) {
         const icon = document.createElement('img')
+        icon.setAttribute('draggable', 'false')
         icon.src = spoilSrc[n]
         icon.alt = n
         icon.width = icon.height = 40
@@ -127,6 +129,7 @@ class MenuView {
 
       const button = document.createElement('button')
       const icon = document.createElement('img')
+      icon.setAttribute('draggable', 'false')
       icon.src = props.icon
       icon.alt = props.id
       const text = document.createElement('span')
@@ -135,6 +138,7 @@ class MenuView {
       button.onclick = props.func
 
       const paw = document.createElement('img')
+      paw.setAttribute('draggable', 'false')
       paw.src = iconSrc.paw
       paw.className = styles.paw
 

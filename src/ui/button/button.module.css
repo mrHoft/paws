@@ -52,6 +52,7 @@
   box-sizing: border-box;
   transition: opacity 0.25s linear;
   pointer-events: all;
+  user-select: none;
   cursor: pointer;
 
   & img {
