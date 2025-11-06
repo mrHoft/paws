@@ -64,7 +64,7 @@ export const SCENE_TARGETS: Record<TSceneName, TTargetName[]> = {
   cliff: ['butterfly1', 'grasshopper', 'bird', 'flowerpot', 'boulder', 'hedgehog'],
   desert: ['butterfly1', 'mouse', 'cactus1', 'cactus2',],
   forest: ['butterfly1', 'butterfly2', 'grasshopper', 'bird', 'puddle', 'boulder', 'hedgehog'],
-  jungle: ['butterfly2', 'grasshopper', 'bird', 'puddle', 'boulder', 'cactus1', 'hedgehog'],
+  jungle: ['butterfly2', 'frog', 'bird', 'puddle', 'boulder', 'cactus1', 'hedgehog'],
   lake: ['mouse', 'bird', 'frog', 'puddle', 'flowerpot', 'gnome', 'dog'],
   mountains: ['mouse', 'grasshopper', 'puddle', 'flowerpot', 'gnome'],
   default: [...ANIMALS, ...OBSTACLES], // Testing level

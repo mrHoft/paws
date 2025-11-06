@@ -115,7 +115,7 @@ export class WinModal extends WinView {
   }
 
   public handleFinish = (result: { score: number, time: number, player?: 'top' | 'bottom' }) => {
-    const name = result.player === 'top' ? this.loc.get('upper') : this.loc.get('bottom')
+    const name = result.player === 'top' ? this.loc.get('gingerCat') : this.loc.get('blackCat')
     this.result.winner.innerText = name
     this.result.score.innerText = result.score.toString()
     this.result.time.innerText = formatTime(result.time)

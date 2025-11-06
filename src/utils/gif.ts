@@ -18,7 +18,7 @@ interface Frame {
 }
 
 interface GifEvent {
-  type: string;
+  message: string;
   obj: GifObject;
 }
 
@@ -32,7 +32,7 @@ export interface GifObject {
   onload: ((event: GifEvent) => void) | null;
   onerror: ((event: GifEvent) => void) | null;
   onprogress: ((event: ProgressEvent) => void) | null;
-  onloadall: ((event: GifEvent) => void) | null;
+  onloadAll: ((event: GifEvent) => void) | null;
   paused: boolean;
   playing: boolean;
   waitTillDone: boolean;
@@ -313,41 +313,41 @@ export const GifFactory = function (): GifObject {
       ctx.drawImage(gif.lastFrame.image, 0, 0, gif.width!, gif.height!);
     }
 
-    const cData = ctx.getImageData(frame.leftPos, frame.topPos, frame.width, frame.height);
+    const imageData = ctx.getImageData(frame.leftPos, frame.topPos, frame.width, frame.height);
     const ti = frame.transparencyIndex;
-    const dat = cData.data;
+    const data = imageData.data;
     const pDat = frame.interlaced ? deInterlaceBuf : pixelBuf;
     const pixCount = pDat.length;
-    let ind = 0;
+    let index = 0;
 
     for (let i = 0; i < pixCount; i++) {
       const pixel = pDat[i];
       const col = ct[pixel];
       if (ti !== pixel) {
-        dat[ind++] = col[0];
-        dat[ind++] = col[1];
-        dat[ind++] = col[2];
-        dat[ind++] = 255;
+        data[index++] = col[0];
+        data[index++] = col[1];
+        data[index++] = col[2];
+        data[index++] = 255;
       } else if (useT) {
-        dat[ind + 3] = 0;
-        ind += 4;
+        data[index + 3] = 0;
+        index += 4;
       } else {
-        ind += 4;
+        index += 4;
       }
     }
 
-    ctx.putImageData(cData, frame.leftPos, frame.topPos);
+    ctx.putImageData(imageData, frame.leftPos, frame.topPos);
     gif.lastFrame = frame;
 
     if (!gif.waitTillDone && typeof gif.onload === 'function') {
-      doOnloadEvent();
+      handleOnload();
     }
   }
 
   function finished(): void {
     gif.loading = false;
     gif.frameCount = gif.frames.length;
-    gif.lastFrame = null;
+    // gif.lastFrame = null;
     st = undefined!;
     gif.complete = true;
     gif.disposalMethod = undefined!;
@@ -365,10 +365,10 @@ export const GifFactory = function (): GifObject {
       gif.image = gif.frames[0].image;
     }
 
-    doOnloadEvent();
+    handleOnload();
 
-    if (typeof gif.onloadall === 'function') {
-      gif.onloadall.bind(gif)({ type: 'loadall', obj: gif });
+    if (typeof gif.onloadAll === 'function') {
+      gif.onloadAll.bind(gif)({ message: 'load all', obj: gif });
     }
 
     if (gif.playOnLoad) {
@@ -379,7 +379,7 @@ export const GifFactory = function (): GifObject {
   function canceled(): void {
     finished();
     if (typeof gif.cancelCallback === 'function') {
-      gif.cancelCallback.bind(gif)({ type: 'canceled', obj: gif });
+      gif.cancelCallback.bind(gif)({ message: 'canceled', obj: gif });
     }
   }
 
@@ -439,18 +439,18 @@ export const GifFactory = function (): GifObject {
     return true;
   }
 
-  function error(type: string): void {
+  function error(message: string): void {
     if (typeof gif.onerror === 'function') {
-      gif.onerror.bind(gif)({ type: type, obj: gif });
+      gif.onerror.bind(gif)({ message, obj: gif });
     }
     gif.onload = gif.onerror = null;
     gif.loading = false;
   }
 
-  function doOnloadEvent(): void {
+  function handleOnload(): void {
     gif.currentFrame = 0;
     if (typeof gif.onload === 'function') {
-      gif.onload.bind(gif)({ type: 'load', obj: gif });
+      gif.onload.bind(gif)({ message: 'load', obj: gif });
     }
     gif.onerror = gif.onload = null;
   }
@@ -565,7 +565,7 @@ export const GifFactory = function (): GifObject {
     onload: null,
     onerror: null,
     onprogress: null,
-    onloadall: null,
+    onloadAll: null,
     paused: false,
     playing: false,
     waitTillDone: true,

@@ -462,6 +462,7 @@ export class Engine {
     this.game.prophecy = { ...prophecyDefault }
     this.game.control = control
     this.game.progress = 0
+    this.handlers.updateProgress(0, this.game.multiplayer)
     this.game.sceneName = sceneName
     this.game.stopped = false
     this.game.paused = false
@@ -506,10 +507,10 @@ export class Engine {
         this.handlers.handlePause(true)
       }
       window.clearTimeout(this.game.timer)
-      this.audioService.musicMute = true
+      // this.audioService.musicMute = true
     } else {
       requestAnimationFrame(this.render)
-      this.audioService.musicMute = false
+      // this.audioService.musicMute = false
     }
   }
 

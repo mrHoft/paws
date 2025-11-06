@@ -5,14 +5,14 @@ import { Injectable } from '~/utils/inject'
 const PATH = '.'
 
 const assets: Record<string, string> = {
-  cat1: 'sprites/cat-ginger3.gif',
-  cat2: 'sprites/cat-ginger2.gif',
+  cat1: 'sprites/cat-ginger.gif',
+  cat2: 'sprites/cat-black.gif',
   // Animal
   bird: 'sprites/bird-yellow.gif',
   butterfly1: 'sprites/butterfly-orange.gif',
   butterfly2: 'sprites/butterfly-purple.gif',
   grasshopper: 'sprites/grasshopper.gif',
-  mouse: 'sprites/mouse-brown.gif',
+  mouse: 'sprites/mouse.gif',
   frog: 'sprites/frog.gif',
   // Obstacle
   cactus1: 'sprites/cactus1.png',
@@ -73,20 +73,19 @@ export class Resource {
 
   private loadGif = (name: string, url: string) => {
     const self = this
-    // Timeout just waits till script has been parsed and executed then starts loading a gif
     setTimeout(() => {
       const newGif = GifFactory()
       newGif.onerror = function (err) {
-        console.log('Gif loading error ' + err.type)
+        console.log('Gif loading error ' + err.message)
         if (self._errorCallback) {
-          self._errorCallback(`Img loading error: ${err.type}`)
+          self._errorCallback(`Img loading error: ${err.message}`)
         }
       }
-      newGif.onloadall = (/* res */) => {
+      newGif.onloadAll = (/* response */) => {
         /*
         const dimensions = {
-          width: res.obj.width,
-          height: res.obj.height,
+          width: response.obj.width,
+          height: response.obj.height,
         }
         console.log('Loaded gif:', name, dimensions)
         */

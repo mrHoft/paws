@@ -137,7 +137,7 @@ export class Draw {
       this.ctx.drawImage(image, newX, newY, width, height)
     } else {
       // GifObject
-      const frame = animate ? image.image! : image.frames[image.frameCount - 1].image
+      const frame = animate ? image.image! : image.frames[0].image
       this.drawObject(frame, x, y + height / 8, height / 1.5)
     }
   }
