@@ -8,7 +8,8 @@ const assets: Record<string, string> = {
   cat1: 'sprites/cat-ginger.gif',
   cat2: 'sprites/cat-black.gif',
   // Animal
-  bird: 'sprites/bird-yellow.gif',
+  bird1: 'sprites/bird-blue.gif',
+  bird2: 'sprites/bird-yellow.gif',
   butterfly1: 'sprites/butterfly-orange.gif',
   butterfly2: 'sprites/butterfly-purple.gif',
   grasshopper: 'sprites/grasshopper.gif',

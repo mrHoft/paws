@@ -1,6 +1,6 @@
 export const GENERAL = {
-  outerLinks: false,
-  fullscreenControl: false,
+  outerLinks: true,
+  fullscreenControl: true,
   sdk: null, //'ya-games' | null
   canvas: {
     width: 1280,
@@ -48,24 +48,24 @@ export const GAME = {
   defaultAnimalHeight: 160,
   defaultRunAwayDelay: 8000, // The time after which the target will escape
 
-  roundLength: 5,
+  roundLength: 30,
 }
 
-export type TAnimalName = 'butterfly1' | 'butterfly2' | 'grasshopper' | 'frog' | 'bird' | 'mouse'
-export type TTargetName = TAnimalName | 'cactus1' | 'cactus2' | 'puddle' | 'boulder' | 'flowerpot' | 'gnome' | 'bucket' | 'hedgehog' | 'dog' | 'none'
-export const ANIMALS: TAnimalName[] = ['mouse', 'grasshopper', 'butterfly1', 'butterfly2', 'bird', 'frog']
-export const OBSTACLES: TTargetName[] = ['cactus1', 'cactus2', 'puddle', 'boulder', 'flowerpot', 'gnome', 'bucket', 'hedgehog', 'dog']
+export type TAnimalName = 'butterfly1' | 'butterfly2' | 'grasshopper' | 'frog' | 'bird1' | 'bird2' | 'mouse'
+export type TTargetName = TAnimalName | 'cactus1' | 'cactus2' | 'puddle' | 'boulder' | 'flowerpot' | 'gnome' | 'bucket' | 'hedgehog' | 'dog' | 'bucket' | 'none'
+export const ANIMALS: TAnimalName[] = ['mouse', 'grasshopper', 'butterfly1', 'butterfly2', 'bird1', 'bird2', 'frog']
+export const OBSTACLES: TTargetName[] = ['cactus1', 'cactus2', 'puddle', 'boulder', 'flowerpot', 'gnome', 'bucket', 'hedgehog', 'dog', 'bucket']
 
 export type TSceneName = 'autumn' | 'cliff' | 'desert' | 'forest' | 'jungle' | 'lake' | 'mountains' | 'default'
 export const SCENE_NAMES: TSceneName[] = ['autumn', 'cliff', 'desert', 'forest', 'jungle', 'lake', 'mountains']
 
 export const SCENE_TARGETS: Record<TSceneName, TTargetName[]> = {
-  autumn: ['mouse', 'bird', 'frog', 'puddle', 'flowerpot', 'boulder', 'dog'],
-  cliff: ['butterfly1', 'grasshopper', 'bird', 'flowerpot', 'boulder', 'hedgehog'],
-  desert: ['butterfly1', 'mouse', 'cactus1', 'cactus2',],
-  forest: ['butterfly1', 'butterfly2', 'grasshopper', 'bird', 'puddle', 'boulder', 'hedgehog'],
-  jungle: ['butterfly2', 'frog', 'bird', 'puddle', 'boulder', 'cactus1', 'hedgehog'],
-  lake: ['mouse', 'bird', 'frog', 'puddle', 'flowerpot', 'gnome', 'dog'],
+  autumn: ['mouse', 'bird1', 'frog', 'puddle', 'flowerpot', 'boulder', 'dog', 'bucket'],
+  cliff: ['butterfly1', 'grasshopper', 'bird1', 'flowerpot', 'boulder', 'hedgehog'],
+  desert: ['butterfly1', 'mouse', 'cactus1', 'cactus2', 'boulder'],
+  forest: ['butterfly1', 'butterfly2', 'grasshopper', 'bird1', 'puddle', 'boulder', 'hedgehog'],
+  jungle: ['butterfly2', 'frog', 'bird2', 'puddle', 'boulder', 'cactus1', 'hedgehog'],
+  lake: ['mouse', 'bird2', 'frog', 'puddle', 'flowerpot', 'gnome', 'dog'],
   mountains: ['mouse', 'grasshopper', 'puddle', 'flowerpot', 'gnome'],
   default: [...ANIMALS, ...OBSTACLES], // Testing level
 }
@@ -77,7 +77,8 @@ export const TARGET_SCORE: Record<TTargetName, Record<'success' | 'fail', number
   butterfly2: { success: 10, fail: 0 },
   grasshopper: { success: 10, fail: 0 },
   frog: { success: 10, fail: -5 },
-  bird: { success: 10, fail: -5 },
+  bird1: { success: 10, fail: -5 },
+  bird2: { success: 10, fail: -5 },
   mouse: { success: 10, fail: -10 },
 
   puddle: { success: 5, fail: -5 },
