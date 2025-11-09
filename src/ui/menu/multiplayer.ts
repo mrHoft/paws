@@ -45,6 +45,7 @@ class MenuMultiplayerView {
 
     const message = document.createElement('p')
     message.className = 'text-center'
+    message.setAttribute('style', 'font-size: smaller;')
     this.loc.register('connectGamepad', message)
 
     const menu = document.createElement('div')

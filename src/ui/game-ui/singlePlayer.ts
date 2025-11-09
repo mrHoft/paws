@@ -5,7 +5,7 @@ import { buttonIcon } from '~/ui/button/icon'
 import { Caught } from '~/ui/caught/caught'
 import { Localization } from '~/service/localization'
 import { inject } from '~/utils/inject'
-import { isFullscreenActive, fullscreenSwitch } from '~/utils/fullscreen'
+import { Fullscreen } from '~/utils/fullscreen'
 
 import styles from './ui.module.css'
 import layer from '~/ui/layers.module.css'
@@ -79,6 +79,7 @@ export class SinglePlayerUI extends SinglePlayerView {
   private btnPause: HTMLDivElement
   private btnFullscreen?: HTMLDivElement
   private caught: Caught
+  private fullscreen?: Fullscreen
 
   constructor({ enginePause }: { enginePause: (_show: boolean) => void }) {
     super()
@@ -109,12 +110,14 @@ export class SinglePlayerUI extends SinglePlayerView {
     this.bottom.append(bottomLeft)
 
     if (GENERAL.fullscreenControl) {
+      this.fullscreen = inject(Fullscreen)
       this.btnFullscreen = buttonIcon({ src: iconSrc.fullscreen })
       const fullscreenIconElement = this.btnFullscreen.children[0] as HTMLImageElement
       this.btnFullscreen.addEventListener('mousedown', (event) => {
         event.stopPropagation()
         this.handleFullscreenToggle(fullscreenIconElement)
       })
+      this.fullscreen.registerEvents({ 'fullscreenchange': this.onFullscreenChange(fullscreenIconElement) })
       const bottomRight = document.createElement('div')
       bottomRight.append(this.btnFullscreen)
       this.bottom.append(bottomRight)
@@ -175,12 +178,16 @@ export class SinglePlayerUI extends SinglePlayerView {
   }
 
   private handleFullscreenToggle = (iconElement: HTMLImageElement) => {
-    const active = isFullscreenActive()
+    const active = this.fullscreen?.isFullscreenActive()
     const element = document.querySelector('main')
     if (element) {
-      fullscreenSwitch(!active, element)
-      iconElement.src = active ? iconSrc.fullscreen : iconSrc.fullscreenExit
+      this.fullscreen?.switch(!active, element)
+      iconElement.src = active ? iconSrc.fullscreenExit : iconSrc.fullscreen
     }
+  }
+
+  private onFullscreenChange = (iconElement: HTMLImageElement) => (active: boolean) => {
+    iconElement.src = active ? iconSrc.fullscreenExit : iconSrc.fullscreen
   }
 
   private bounce(element: HTMLElement | null) {

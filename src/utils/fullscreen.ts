@@ -1,3 +1,5 @@
+import { Injectable } from "./inject"
+
 interface FullscreenDocument extends Document {
   mozFullScreenEnabled?: boolean,
   webkitFullscreenEnabled?: boolean,
@@ -13,60 +15,71 @@ interface FullscreenElement extends HTMLElement {
   msRequestFullscreen: () => Promise<void>
 }
 
-async function fullscreenActivate(el: HTMLElement): Promise<void> {
-  const element = (el || document.documentElement) as FullscreenElement
-  const d = document as FullscreenDocument
-  const fullscreenEnabled = d.fullscreenEnabled || d.mozFullScreenEnabled || d.webkitFullscreenEnabled
+@Injectable
+export class Fullscreen {
+  private document = document as FullscreenDocument
+  private handlers: Record<'fullscreenchange', Map<symbol, (_active: boolean) => void>> = { fullscreenchange: new Map() }
 
-  if (!fullscreenEnabled) return;
+  constructor() {
+    document.addEventListener('fullscreenchange', () => {
+      if (this.isFullscreenActive()) {
+        console.log('Entered fullscreen.')
+        this.handlers['fullscreenchange'].forEach(handler => handler(true))
+      } else {
+        console.log('Exited fullscreen.')
+        this.handlers['fullscreenchange'].forEach(handler => handler(false))
+      }
+    })
+  }
 
-  try {
-    if (element.requestFullscreen) {
-      await element.requestFullscreen()
-    } else if (element.mozRequestFullScreen) {
-      await element.mozRequestFullScreen()
-    } else if (element.webkitRequestFullscreen) {
-      await element.webkitRequestFullscreen()
-    } else if (element.msRequestFullscreen) {
-      await element.msRequestFullscreen()
+  public registerEvents = ({ fullscreenchange }: { fullscreenchange?: (_active: boolean) => void }) => {
+    if (typeof fullscreenchange === 'function') {
+      const key = Symbol()
+      this.handlers['fullscreenchange'].set(key, fullscreenchange)
+      return () => {
+        this.handlers['fullscreenchange']?.delete(key)
+      }
     }
-  } catch (error) {
-    console.error('Error activating fullscreen:', error)
+  }
+
+  public isFullscreenActive = () => !!(this.document.fullscreenElement || this.document.mozFullScreenElement || this.document.webkitFullscreenElement);
+
+  public switch = (fullscreen: boolean, el: HTMLElement = document.documentElement) => {
+    if (fullscreen) {
+      this.activate(el)
+    } else if (this.isFullscreenActive()) {
+      this.deactivate()
+    }
+  }
+
+  private activate = async (el: HTMLElement) => {
+    const element = (el || document.documentElement) as FullscreenElement
+    const fullscreenEnabled = this.document.fullscreenEnabled || this.document.mozFullScreenEnabled || this.document.webkitFullscreenEnabled
+
+    if (!fullscreenEnabled) return;
+
+    try {
+      if (element.requestFullscreen) {
+        await element.requestFullscreen()
+      } else if (element.mozRequestFullScreen) {
+        await element.mozRequestFullScreen()
+      } else if (element.webkitRequestFullscreen) {
+        await element.webkitRequestFullscreen()
+      } else if (element.msRequestFullscreen) {
+        await element.msRequestFullscreen()
+      }
+    } catch (error) {
+      console.error('Error activating fullscreen:', error)
+    }
+  }
+
+  private deactivate = async () => {
+    if (this.document.exitFullscreen) {
+      await this.document.exitFullscreen()
+    } else if (this.document.mozCancelFullScreen) {
+      await this.document.mozCancelFullScreen()
+    } else if (this.document.webkitExitFullscreen) {
+      await this.document.webkitExitFullscreen()
+    }
   }
 }
-
-async function fullscreenDeactivate() {
-  const d = document as FullscreenDocument
-  if (d.exitFullscreen) {
-    await d.exitFullscreen()
-  } else if (d.mozCancelFullScreen) {
-    await d.mozCancelFullScreen()
-  } else if (d.webkitExitFullscreen) {
-    await d.webkitExitFullscreen()
-  }
-}
-
-export function isFullscreenActive(): boolean {
-  const doc = document as FullscreenDocument;
-  return !!(doc.fullscreenElement || doc.mozFullScreenElement || doc.webkitFullscreenElement);
-}
-
-export async function fullscreenSwitch(fullscreen: boolean, el: HTMLElement = document.documentElement): Promise<void> {
-  if (fullscreen) {
-    await fullscreenActivate(el)
-  } else if (isFullscreenActive()) {
-    await fullscreenDeactivate()
-  }
-}
-
-/*
-document.addEventListener('fullscreenchange', event => {
-  const fullscreenElement =
-    document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement
-  if (fullscreenElement) {
-    console.log('Entered fullscreen.')
-  } else {
-    console.log('Exited fullscreen.')
-  }
-})
- */

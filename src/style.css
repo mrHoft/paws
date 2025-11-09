@@ -30,7 +30,7 @@
   --color-orange80: #f9a765;
   --color-orange90: #fef3e8;
 
-  color: rgba(255, 255, 255, 0.87);
+  color: #fff;
   background: linear-gradient(var(--color-blue10), var(--color-blue20), var(--color-blue10));
 }
 

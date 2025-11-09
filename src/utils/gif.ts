@@ -461,23 +461,31 @@ export const GifFactory = function (): GifObject {
   }
 
   function loadGif(filename: string): void {
-    const ajax = new XMLHttpRequest();
-    ajax.responseType = 'arraybuffer';
-    ajax.onload = function (e) {
-      if (e.target) {
-        const { status } = (e.target as XMLHttpRequest)
-        if (status === 404) {
+    fetch(filename)
+      .then(response => {
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('image/gif')) {
           error('File not found');
-        } else if (status >= 200 && status < 300) {
-          dataLoaded(ajax.response);
-        } else {
-          error('Loading error : ' + status);
+          return null;
         }
-      }
-    };
-    ajax.open('GET', filename, true);
-    ajax.send();
-    ajax.onerror = () => error('File error');
+        if (!response.ok) {
+          if (response.status === 404) {
+            console.error(filename, 'File not found');
+            error('File not found');
+          } else {
+            error(`Loading error: ${response.status}`);
+          }
+          return null;
+        }
+        return response.arrayBuffer();
+      })
+      .then(arrayBuffer => {
+        if (arrayBuffer) {
+          dataLoaded(arrayBuffer);
+        }
+      })
+      .catch(() => error('Network error'));
+
     gif.src = filename;
     gif.loading = true;
   }

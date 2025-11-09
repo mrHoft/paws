@@ -10,10 +10,10 @@
   justify-content: space-between;
   color: var(--color-blue90);
   pointer-events: none;
+}
 
-  &.center {
-    justify-content: center;
-  }
+.ui.center {
+  justify-content: center;
 }
 
 .ui__top {
@@ -35,14 +35,14 @@
   text-align: center;
   font-size: 5em;
   font-weight: 600;
+}
 
-  &.top {
-    top: calc(25% - 1em);
-  }
+.finish.top {
+  top: calc(25% - 1em);
+}
 
-  &.bot {
-    top: calc(75% - 1em);
-  }
+.finish.bot {
+  top: calc(75% - 1em);
 }
 
 .row {

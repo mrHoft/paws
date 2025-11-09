@@ -17,12 +17,12 @@
 .stars {
   height: 2em;
   text-align: center;
+}
 
-  &>img {
-    margin: 0.25em;
-    width: 1.5em;
-    height: 1.5em;
-  }
+.stars>img {
+  margin: 0.25em;
+  width: 1.5em;
+  height: 1.5em;
 }
 
 .bounce {

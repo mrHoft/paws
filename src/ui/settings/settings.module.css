@@ -2,12 +2,6 @@
   display: flex;
   align-items: center;
   column-gap: 0.5em;
-
-  &>img {
-    width: 1.5em;
-    height: 1.5em;
-    filter: invert(1);
-  }
 }
 
 .list {
@@ -31,11 +25,11 @@
 .list__element label {
   display: flex;
   align-items: center;
+}
 
-  &>img {
-    width: 1.5em;
-    height: 1.5em;
-  }
+.list__element label>img {
+  width: 1.5em;
+  height: 1.5em;
 }
 
 .flag_list {
@@ -51,14 +45,14 @@
   border-radius: 0.2em;
   cursor: pointer;
   transition: transform 0.25s linear;
+}
 
-  &.selected {
-    border-color: var(--color-orange70);
-  }
+.flag.selected {
+  border-color: var(--color-orange70);
+}
 
-  &:hover {
-    transform: translateY(-5%);
-  }
+.flag:hover {
+  transform: translateY(-5%);
 }
 
 .paw {
@@ -69,13 +63,11 @@
   transition: opacity 0.25s linear;
 }
 
-.list__element.hover {
-  & button {
-    background-color: var(--color-orange60);
-    border-color: var(--color-orange70);
-  }
+.list__element.hover button {
+  background-color: var(--color-orange60);
+  border-color: var(--color-orange70);
+}
 
-  & .paw {
-    opacity: 1;
-  }
+.list__element.hover .paw {
+  opacity: 1;
 }

@@ -8,14 +8,12 @@
   cursor: pointer;
 }
 
-.button:hover {
-  & .circle {
-    transform: scale(1.25);
-  }
+.button:hover .circle {
+  transform: scale(1.25);
+}
 
-  & .inner {
-    background-color: var(--color-orange60);
-  }
+.button:hover .inner {
+  background-color: var(--color-orange60);
 }
 
 .circle {
@@ -54,17 +52,17 @@
   pointer-events: all;
   user-select: none;
   cursor: pointer;
+}
 
-  & img {
-    width: 2em;
-    height: 2em;
-    transform-origin: center;
-    transition: transform 0.25s linear;
-  }
+.btn_icon img {
+  width: 2em;
+  height: 2em;
+  transform-origin: center;
+  transition: transform 0.25s linear;
+}
 
-  &:hover img {
-    transform: scale(1.2);
-  }
+.btn_icon:hover img {
+  transform: scale(1.2);
 }
 
 .btn_close {
@@ -80,13 +78,13 @@
   box-shadow: inset -0.25em -0.25em 0.75em rgba(0, 0, 0, 0.3);
   transition: background-color 0.2s linear;
   cursor: pointer;
+}
 
-  &:hover {
-    background-color: var(--color-orange60);
-  }
+.btn_close:hover {
+  background-color: var(--color-orange60);
+}
 
-  & img {
-    width: 2em;
-    height: 2em;
-  }
+.btn_close img {
+  width: 2em;
+  height: 2em;
 }

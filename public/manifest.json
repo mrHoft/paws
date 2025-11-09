@@ -8,7 +8,7 @@
     "game",
     "entertainment"
   ],
-  "display": "standalone",
+  "display": "fullscreen",
   "theme_color": "#1e1e2e",
   "background_color": "#1e1e2e",
   "icons": [

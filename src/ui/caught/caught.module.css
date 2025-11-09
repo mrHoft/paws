@@ -7,13 +7,13 @@
   width: 2em;
   height: 2em;
   margin-left: 0.25em;
+}
 
-  & img {
-    margin: 0.25em;
-    width: 1.5em;
-    height: 1.5em;
-    transform-origin: center;
-  }
+.spoil img {
+  margin: 0.25em;
+  width: 1.5em;
+  height: 1.5em;
+  transform-origin: center;
 }
 
 .bounce {

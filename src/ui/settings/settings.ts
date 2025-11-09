@@ -47,6 +47,7 @@ class SettingsView {
     const icon = document.createElement('div')
     icon.className = modal.icon
     icon.setAttribute('style', `mask-image: url(${iconSrc.settings});`)
+    icon.setAttribute('style', `-webkit-mask-image: url(${iconSrc.settings});`)
     const header = document.createElement('div')
     header.className = modal.header
     header.append(icon, h3)

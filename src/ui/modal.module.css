@@ -8,7 +8,10 @@
   width: 1.5em;
   height: 1.5em;
   background-color: var(--color-blue10);
-  mask-size: cover;
+  mask-repeat: no-repeat;
+  mask-size: 1.5em;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: 1.5em;
 }
 
 .outer {
@@ -35,14 +38,14 @@
   align-items: center;
   padding: 0.75em;
   transform-origin: center;
+}
 
-  &.small {
-    width: 30%;
-  }
+.inner.small {
+  width: 30%;
+}
 
-  &.large {
-    width: 50%;
-  }
+.inner.large {
+  width: 50%;
 }
 
 .inner__border {
@@ -68,8 +71,11 @@
 
 .inner__mask {
   mask-image: url('./images/crt.svg');
-  mask-size: 100%;
   mask-repeat: no-repeat;
+  mask-size: 100%;
+  -webkit-mask-image: url('./images/crt.svg');
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: 100%;
 }
 
 .inner__shadow {
@@ -117,20 +123,20 @@
   transition: background-color 0.2s linear, border-color 0.2s linear;
   box-shadow: inset -0.15em -0.15em 0.5em rgba(0, 0, 0, 0.3);
   cursor: pointer;
+}
 
-  &>span {
-    font-size: 1.25em;
-  }
+.button>span {
+  font-size: 1.25em;
+}
 
-  &>img {
-    width: 1.25em;
-    height: 1.25em;
-  }
+.button>img {
+  width: 1.25em;
+  height: 1.25em;
+}
 
-  &:hover {
-    background-color: var(--color-orange60);
-    border-color: var(--color-orange50);
-  }
+.button:hover {
+  background-color: var(--color-orange60);
+  border-color: var(--color-orange50);
 }
 
 .bounce {

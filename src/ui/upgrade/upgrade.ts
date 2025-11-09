@@ -54,6 +54,7 @@ class UpgradeView {
     const icon = document.createElement('div')
     icon.className = modal.icon
     icon.setAttribute('style', `mask-image: url(${iconSrc.upgrade});`)
+    icon.setAttribute('style', `-webkit-mask-image: url(${iconSrc.upgrade});`)
     const header = document.createElement('div')
     header.className = modal.header
     header.append(icon, h3)
@@ -136,6 +137,7 @@ class UpgradeView {
     const icon = document.createElement('div')
     icon.className = modal.icon
     icon.setAttribute('style', `mask-image: url(${iconSrc.reset});`)
+    icon.setAttribute('style', `-webkit-mask-image: url(${iconSrc.reset});`)
 
     const label = document.createElement('div')
     this.loc.register('reset', label)

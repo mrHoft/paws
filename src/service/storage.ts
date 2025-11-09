@@ -19,7 +19,7 @@ const defaultUserData: UserData & { data: GameData } = {
   music: 0.5,
   sound: 0.5,
   fps: false,
-  language: navigator.language || 'en',
+  language: navigator.language.slice(0, 2) || 'en',
   data: {
     score: 0,
     stars: 0,

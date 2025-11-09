@@ -77,9 +77,9 @@ export class Resource {
     setTimeout(() => {
       const newGif = GifFactory()
       newGif.onerror = function (err) {
-        console.log('Gif loading error ' + err.message)
+        console.log('loading error:', url, err.message)
         if (self._errorCallback) {
-          self._errorCallback(`Img loading error: ${err.message}`)
+          self._errorCallback(`loading error: ${url}`)
         }
       }
       newGif.onloadAll = (/* response */) => {
@@ -114,9 +114,9 @@ export class Resource {
       this.countOne()
     }
     newImg.onerror = function (error) {
-      console.log('Img loading error:', error)
+      console.log('loading error:', url, error)
       if (self._errorCallback) {
-        self._errorCallback(`Img loading error: ${name}`)
+        self._errorCallback(`loading error: ${url}`)
       }
     }
     setValue(this.sprite, name, newImg)

@@ -50,6 +50,7 @@ class AboutView {
     const icon = document.createElement('div')
     icon.className = modal.icon
     icon.setAttribute('style', `mask-image: url(${iconSrc.about});`)
+    icon.setAttribute('style', `-webkit-mask-image: url(${iconSrc.about});`)
     const header = document.createElement('div')
     header.className = modal.header
     header.append(icon, h3)

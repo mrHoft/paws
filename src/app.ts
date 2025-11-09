@@ -23,7 +23,7 @@ import { MultiplayerMenu } from '~/ui/menu/multiplayer'
 import { Caught } from '~/ui/caught/caught'
 import { injector, inject } from '~/utils/inject'
 import type { EngineOptions, EngineHandlers, TUpgrades } from '~/engine/types'
-import { throttle } from '~/utils/throttle'
+import { debounce } from '~/utils/throttle'
 
 const autoStartScene: TSceneName | null = null  // 'lake'
 
@@ -252,14 +252,13 @@ export class App extends AppView {
   private registerEvents = () => {
     this.root.addEventListener('contextmenu', (event) => event.preventDefault())
 
-    const resizeCallback = throttle(() => {
+    const resizeCallback = debounce(() => {
       const { width, height } = this.root.getBoundingClientRect()
       let newWidth = Math.min(width, GENERAL.canvas.width)
       const newHeight = Math.floor(Math.min(height, GENERAL.canvas.height, newWidth / GENERAL.canvas.aspectRatio))
       if (newHeight * GENERAL.canvas.aspectRatio < newWidth) {
         newWidth = Math.floor(newHeight * GENERAL.canvas.aspectRatio)
       }
-
       this.game.setAttribute('style', `width: ${newWidth}px; height: ${newHeight}px;`)
     })
     window.addEventListener('resize', resizeCallback)

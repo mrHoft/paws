@@ -18,18 +18,16 @@
   transition: opacity 0.25s linear;
 }
 
-.item.hover {
-  & .paw {
-    opacity: 1;
-  }
+.item.hover .paw {
+  opacity: 1;
+}
 
-  & .device {
-    border-color: var(--color-orange70);
+.item.hover .device {
+  border-color: var(--color-orange70);
+}
 
-    &>span {
-      opacity: 1;
-    }
-  }
+.item.hover>span {
+  opacity: 1;
 }
 
 .row {
@@ -49,28 +47,28 @@
   padding: 0.25em;
   box-sizing: border-box;
   background-color: red;
+}
 
-  &>img {
-    width: calc(2em - 4px);
-    height: calc(2em - 4px);
-  }
+.device>img {
+  width: calc(2em - 4px);
+  height: calc(2em - 4px);
+}
 
-  &>span {
-    position: absolute;
-    top: 0.75em;
-    left: 0;
-    right: 0;
-    text-align: center;
-    color: #fff;
-    font-weight: 600;
-    line-height: 1;
-    opacity: 0;
-    transition: opacity 0.25s linear;
-  }
+.device>span {
+  position: absolute;
+  top: 0.75em;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: #fff;
+  font-weight: 600;
+  line-height: 1;
+  opacity: 0;
+  transition: opacity 0.25s linear;
+}
 
-  &.active {
-    background-color: green;
-  }
+.device.active {
+  background-color: green;
 }
 
 .device.shake {
