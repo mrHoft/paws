@@ -118,6 +118,8 @@ export class SinglePlayerUI extends SinglePlayerView {
         this.handleFullscreenToggle(fullscreenIconElement)
       })
       this.fullscreen.registerEvents({ 'fullscreenchange': this.onFullscreenChange(fullscreenIconElement) })
+      this.onFullscreenChange(fullscreenIconElement)(this.fullscreen?.isFullscreenActive())
+
       const bottomRight = document.createElement('div')
       bottomRight.append(this.btnFullscreen)
       this.bottom.append(bottomRight)
