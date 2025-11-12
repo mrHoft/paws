@@ -16,7 +16,7 @@ import styles from './main.module.css'
 import modal from '~/ui/modal.module.css'
 import layer from '~/ui/layers.module.css'
 
-const PATH = './thumb'
+const PATH = './scene'
 
 interface MenuItem { id: string, icon: string, func: () => void }
 
