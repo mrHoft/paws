@@ -222,6 +222,7 @@ export class SettingsUI extends SettingsView {
 
   private registerEvents = () => {
     const handleOutsideClick = (event: PointerEvent) => {
+      event.preventDefault()
       const { target, currentTarget } = event;
       if (currentTarget && target === currentTarget) {
         const element = currentTarget as HTMLDivElement

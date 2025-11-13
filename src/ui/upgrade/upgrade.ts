@@ -288,6 +288,7 @@ export class UpgradeUI extends UpgradeView {
     })
 
     this.container.addEventListener('click', event => {
+      event.preventDefault()
       const { target, currentTarget } = event;
       if (target === currentTarget) {
         this.show(false)

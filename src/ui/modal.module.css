@@ -25,6 +25,7 @@
   justify-content: center;
   align-items: center;
   padding: 1rem;
+  pointer-events: all;
 }
 
 .inner {

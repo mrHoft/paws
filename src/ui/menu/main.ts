@@ -207,7 +207,7 @@ export class MainMenu extends MenuView {
     const btnAbout = buttonIcon({ src: iconSrc.about })
     btnAbout.classList.add(styles['top-right'])
     btnAbout.addEventListener('click', () => { this.isActive = false; this.aboutUI.show(true) })
-    this.container.append(this.settingsUI.element, btnAbout)
+    this.container.append(btnAbout)
 
     this.registerEvents();
   }
@@ -285,6 +285,7 @@ export class MainMenu extends MenuView {
   }
 
   private handleOutsideClick = (event: PointerEvent) => {
+    event.preventDefault()
     const { target, currentTarget } = event;
     if (currentTarget && target === currentTarget) {
       const element = currentTarget as HTMLDivElement

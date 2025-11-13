@@ -32,6 +32,8 @@
 
   color: #fff;
   background: linear-gradient(var(--color-blue10), var(--color-blue20), var(--color-blue10));
+  pointer-events: none;
+  user-select: none;
 }
 
 a,
