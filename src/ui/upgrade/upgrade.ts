@@ -221,6 +221,8 @@ export class UpgradeUI extends UpgradeView {
 
   private handleReset = () => {
     const savedUpgrades = this.storage.get<TUpgrades>('data.upgrades') || {}
+    if (Object.values(savedUpgrades).reduce((acc, val) => acc + val, 0) === 0) return
+
     const materials = this.storage.get<Record<string, number>>('data.caught') || {}
     const stars = this.storage.get<number>('data.stars')
     materials.star = stars || 0

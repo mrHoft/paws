@@ -36,6 +36,7 @@ export class ConfirmationModalView {
       this.container.setAttribute('style', 'display: none;')
     })
     this.message = document.createElement('p')
+    this.message.className = 'text-center'
 
     const btns = document.createElement('div')
     btns.className = styles.btns

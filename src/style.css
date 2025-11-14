@@ -34,6 +34,7 @@
   background: linear-gradient(var(--color-blue10), var(--color-blue20), var(--color-blue10));
   pointer-events: none;
   user-select: none;
+  /* touch-action: none; */
 }
 
 a,
@@ -54,8 +55,8 @@ h3 {
 
 body {
   margin: 0;
-  user-select: none;
   overflow: hidden;
+  overscroll-behavior: contain;
 }
 
 #app {
