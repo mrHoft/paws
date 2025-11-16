@@ -11,6 +11,7 @@ import { GamepadService } from '~/service/gamepad'
 import { SoundService } from "~/service/sound"
 import { inject } from "~/utils/inject"
 import type { EngineOptions } from '~/engine/types'
+import { InstallManager } from "~/service/installManager"
 
 import styles from './main.module.css'
 import modal from '~/ui/modal.module.css'
@@ -174,11 +175,13 @@ export class MainMenu extends MenuView {
   private settingsUI: SettingsUI
   private aboutUI: AboutUI
   private upgradeUI: UpgradeUI
+  private deviceType: 'desktop' | 'android' | 'iOS'
 
   constructor({ startSinglePlayerGame }: { startSinglePlayerGame: (options?: EngineOptions) => void }) {
     super()
     this.startSinglePlayerGame = startSinglePlayerGame
     this.soundService = inject(SoundService)
+    this.deviceType = inject(InstallManager).getDeviceType()
 
     const onClose = () => {
       if (this.isVisible) this.isActive = true
@@ -196,12 +199,19 @@ export class MainMenu extends MenuView {
     this.upgradeUI = inject(UpgradeUI)
     this.upgradeUI.registerCallback({ onClose })
 
-    this.menuCreate([
+    const menuItems: MenuItem[] = [
       { id: 'start', icon: iconSrc.start, func: () => { this.activeMenuItemId = 'start'; this.handleStart() } },
       { id: 'twoPlayers', icon: iconSrc.gamepad, func: () => { this.isActive = false; this.multiplayerMenu.show() } },
       { id: 'upgrade', icon: iconSrc.upgrade, func: () => { this.isActive = false; this.upgradeUI.show() } },
       { id: 'settings', icon: iconSrc.settings, func: () => { this.isActive = false; this.settingsUI.show() } },
-    ])
+    ]
+    if (this.deviceType !== 'desktop') {
+      const index = menuItems.findIndex(item => item.id === 'twoPlayers')
+      if (index !== -1) {
+        menuItems.splice(index, 1)
+      }
+    }
+    this.menuCreate(menuItems)
     this.menuItems[0].element.classList.add(styles.hover)
 
     const btnAbout = buttonIcon({ src: iconSrc.about })
@@ -220,15 +230,19 @@ export class MainMenu extends MenuView {
     this.scene.btn.addEventListener('click', this.handleSceneStart)
     this.scene.element.addEventListener('click', this.handleOutsideClick)
 
-    this.gamepadService?.registerCallbacks({
-      onButtonUp: this.handleGamepadButton,
-      onGamepadConnected: () => {
-        this.gamepadSupport.classList.add(styles.active, modal.bounce)
-      },
-      onGamepadDisconnected: () => {
-        this.gamepadSupport.classList.remove(styles.active, modal.bounce)
-      }
-    })
+    if (this.deviceType === 'desktop') {
+      this.gamepadService?.registerCallbacks({
+        onButtonUp: this.handleGamepadButton,
+        onGamepadConnected: () => {
+          this.gamepadSupport.classList.add(styles.active, modal.bounce)
+        },
+        onGamepadDisconnected: () => {
+          this.gamepadSupport.classList.remove(styles.active, modal.bounce)
+        }
+      })
+    } else {
+      this.gamepadSupport.setAttribute('style', 'display: none;')
+    }
 
     for (const item of this.menuItems) {
       item.element.addEventListener('mouseenter', () => {

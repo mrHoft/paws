@@ -1,4 +1,4 @@
-import { Injectable } from "./inject"
+import { Injectable } from "~/utils/inject"
 
 interface FullscreenDocument extends Document {
   mozFullScreenEnabled?: boolean,
@@ -16,7 +16,7 @@ interface FullscreenElement extends HTMLElement {
 }
 
 @Injectable
-export class Fullscreen {
+export class FullscreenService {
   private document = document as FullscreenDocument
   private handlers: Record<'fullscreenchange', Map<symbol, (_active: boolean) => void>> = { fullscreenchange: new Map() }
 
