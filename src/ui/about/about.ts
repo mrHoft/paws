@@ -97,6 +97,7 @@ export class AboutUI extends AboutView {
     })
 
     this.container.addEventListener('click', event => {
+      event.preventDefault()
       const { target, currentTarget } = event;
       if (target === currentTarget) {
         this.show(false)

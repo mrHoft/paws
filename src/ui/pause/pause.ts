@@ -68,6 +68,7 @@ export class PauseModal {
     this.container.append(this.inner)
 
     this.container.addEventListener('click', event => {
+      event.preventDefault()
       const { target, currentTarget } = event;
       if (target === currentTarget) {
         this.handleResume()

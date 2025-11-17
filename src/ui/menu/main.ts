@@ -1,4 +1,4 @@
-import { GAME, SCENE_NAMES, SCENE_TARGETS, ANIMALS, type TSceneName, type TAnimalName } from "~/const"
+import { SCENE_NAMES, SCENE_TARGETS, ANIMALS, type TSceneName, type TAnimalName } from "~/const"
 import { buttonCircle, buttonIcon, buttonClose } from "~/ui/button"
 import { SettingsUI } from "~/ui/settings/settings"
 import { AboutUI } from "~/ui/about/about"
@@ -11,6 +11,7 @@ import { GamepadService } from '~/service/gamepad'
 import { SoundService } from "~/service/sound"
 import { inject } from "~/utils/inject"
 import type { EngineOptions } from '~/engine/types'
+import { InstallManager } from "~/service/installManager"
 
 import styles from './main.module.css'
 import modal from '~/ui/modal.module.css'
@@ -61,11 +62,11 @@ class MenuView {
       this.thumbs.push({ element, thumb, name })
       levels.append(element)
     }
-
-    const version = document.createElement('div')
-    version.className = `${styles.version} text-shadow`
-    version.innerText = GAME.version
-
+    /*
+        const version = document.createElement('div')
+        version.className = `${styles.version} text-shadow`
+        version.innerText = GAME.version
+     */
     this.menu = document.createElement('div')
     this.menu.className = styles.menu
 
@@ -79,7 +80,7 @@ class MenuView {
     this.gamepadSupport.append(check)
 
     this.scene = this.sceneCreate()
-    this.container.append(version, this.gamepadSupport, levels, this.menu, this.scene.element)
+    this.container.append(/* version,  */this.gamepadSupport, levels, this.menu, this.scene.element)
   }
 
   private sceneCreate = () => {
@@ -174,11 +175,13 @@ export class MainMenu extends MenuView {
   private settingsUI: SettingsUI
   private aboutUI: AboutUI
   private upgradeUI: UpgradeUI
+  private deviceType: 'desktop' | 'android' | 'iOS'
 
   constructor({ startSinglePlayerGame }: { startSinglePlayerGame: (options?: EngineOptions) => void }) {
     super()
     this.startSinglePlayerGame = startSinglePlayerGame
     this.soundService = inject(SoundService)
+    this.deviceType = inject(InstallManager).getDeviceType()
 
     const onClose = () => {
       if (this.isVisible) this.isActive = true
@@ -196,18 +199,25 @@ export class MainMenu extends MenuView {
     this.upgradeUI = inject(UpgradeUI)
     this.upgradeUI.registerCallback({ onClose })
 
-    this.menuCreate([
+    const menuItems: MenuItem[] = [
       { id: 'start', icon: iconSrc.start, func: () => { this.activeMenuItemId = 'start'; this.handleStart() } },
       { id: 'twoPlayers', icon: iconSrc.gamepad, func: () => { this.isActive = false; this.multiplayerMenu.show() } },
       { id: 'upgrade', icon: iconSrc.upgrade, func: () => { this.isActive = false; this.upgradeUI.show() } },
       { id: 'settings', icon: iconSrc.settings, func: () => { this.isActive = false; this.settingsUI.show() } },
-    ])
+    ]
+    if (this.deviceType !== 'desktop') {
+      const index = menuItems.findIndex(item => item.id === 'twoPlayers')
+      if (index !== -1) {
+        menuItems.splice(index, 1)
+      }
+    }
+    this.menuCreate(menuItems)
     this.menuItems[0].element.classList.add(styles.hover)
 
     const btnAbout = buttonIcon({ src: iconSrc.about })
     btnAbout.classList.add(styles['top-right'])
     btnAbout.addEventListener('click', () => { this.isActive = false; this.aboutUI.show(true) })
-    this.container.append(this.settingsUI.element, btnAbout)
+    this.container.append(btnAbout)
 
     this.registerEvents();
   }
@@ -220,7 +230,19 @@ export class MainMenu extends MenuView {
     this.scene.btn.addEventListener('click', this.handleSceneStart)
     this.scene.element.addEventListener('click', this.handleOutsideClick)
 
-    this.gamepadService?.registerCallbacks({ onButtonUp: this.handleGamepadButton, onGamepadConnected: this.handleGamepadConnected })
+    if (this.deviceType === 'desktop') {
+      this.gamepadService?.registerCallbacks({
+        onButtonUp: this.handleGamepadButton,
+        onGamepadConnected: () => {
+          this.gamepadSupport.classList.add(styles.active, modal.bounce)
+        },
+        onGamepadDisconnected: () => {
+          this.gamepadSupport.classList.remove(styles.active, modal.bounce)
+        }
+      })
+    } else {
+      this.gamepadSupport.setAttribute('style', 'display: none;')
+    }
 
     for (const item of this.menuItems) {
       item.element.addEventListener('mouseenter', () => {
@@ -230,10 +252,6 @@ export class MainMenu extends MenuView {
         }
       })
     }
-  }
-
-  private handleGamepadConnected = () => {
-    this.gamepadSupport.classList.add(styles.active, modal.bounce)
   }
 
   private handleGamepadButton = (_gamepadIndex: number, buttonIndex: number) => {
@@ -285,6 +303,7 @@ export class MainMenu extends MenuView {
   }
 
   private handleOutsideClick = (event: PointerEvent) => {
+    event.preventDefault()
     const { target, currentTarget } = event;
     if (currentTarget && target === currentTarget) {
       const element = currentTarget as HTMLDivElement

@@ -13,7 +13,6 @@ type CallbackArrays = {
 
 @Injectable
 export class GamepadService {
-  private static _instance: GamepadService
   private _gamepads: Map<number, Gamepad> = new Map();
   private animationFrameId: number | null = null;
   private pressed = Array.from({ length: 4 }, () => Array.from({ length: 18 }, () => false))
@@ -26,9 +25,6 @@ export class GamepadService {
   }
 
   constructor() {
-    if (!GamepadService._instance) {
-      GamepadService._instance = this
-    }
     this.setupEventListeners();
     this.startPolling();
 

@@ -22,11 +22,7 @@
   opacity: 1;
 }
 
-.item.hover .device {
-  border-color: var(--color-orange70);
-}
-
-.item.hover>span {
+.item.hover .device>span {
   opacity: 1;
 }
 

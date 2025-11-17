@@ -5,7 +5,7 @@ import { buttonIcon } from '~/ui/button/icon'
 import { Caught } from '~/ui/caught/caught'
 import { Localization } from '~/service/localization'
 import { inject } from '~/utils/inject'
-import { Fullscreen } from '~/utils/fullscreen'
+import { FullscreenService } from '~/service/fullscreen'
 
 import styles from './ui.module.css'
 import layer from '~/ui/layers.module.css'
@@ -79,7 +79,7 @@ export class SinglePlayerUI extends SinglePlayerView {
   private btnPause: HTMLDivElement
   private btnFullscreen?: HTMLDivElement
   private caught: Caught
-  private fullscreen?: Fullscreen
+  private fullscreen?: FullscreenService
 
   constructor({ enginePause }: { enginePause: (_show: boolean) => void }) {
     super()
@@ -110,7 +110,7 @@ export class SinglePlayerUI extends SinglePlayerView {
     this.bottom.append(bottomLeft)
 
     if (GENERAL.fullscreenControl) {
-      this.fullscreen = inject(Fullscreen)
+      this.fullscreen = inject(FullscreenService)
       this.btnFullscreen = buttonIcon({ src: iconSrc.fullscreen })
       const fullscreenIconElement = this.btnFullscreen.children[0] as HTMLImageElement
       this.btnFullscreen.addEventListener('mousedown', (event) => {

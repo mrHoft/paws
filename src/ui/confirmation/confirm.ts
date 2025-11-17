@@ -36,6 +36,7 @@ export class ConfirmationModalView {
       this.container.setAttribute('style', 'display: none;')
     })
     this.message = document.createElement('p')
+    this.message.className = 'text-center'
 
     const btns = document.createElement('div')
     btns.className = styles.btns
@@ -73,6 +74,7 @@ export class ConfirmationModal extends ConfirmationModalView {
     })
 
     this.container.addEventListener('click', event => {
+      event.preventDefault()
       const { target, currentTarget } = event;
       if (target === currentTarget) {
         this.handleCancel()

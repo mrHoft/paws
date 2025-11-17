@@ -108,13 +108,11 @@ class MenuMultiplayerView {
     this.show(false)
   }
 
-  protected setGamepadActive = (index: number) => {
-    const controls: ('gamepad1' | 'gamepad2')[] = ['gamepad1', 'gamepad2']
-    for (const control of controls) {
-      const arr = this.gamepads[control]
-      for (const el of arr) {
-        const gamepadIndex = (Number(control.slice(-1)) || 0)
-        el.classList.toggle(styles.active, index >= gamepadIndex)
+  protected setGamepadActive = (index: number, active: boolean) => {
+    const control = `gamepad${index}`
+    if (control === 'gamepad1' || control === 'gamepad2') {
+      for (const el of this.gamepads[control]) {
+        el.classList.toggle(styles.active, active)
       }
     }
   }
@@ -148,8 +146,8 @@ export class MultiplayerMenu extends MenuMultiplayerView {
     this.soundService = inject(SoundService)
     this.gamepadService = inject(GamepadService)
     this.gamepadService.registerCallbacks({
-      onGamepadConnected: this.handleGamepadConnected,
-      onGamepadDisconnected: this.handleGamepadConnected,
+      onGamepadConnected: ({ index }) => { this.setGamepadActive(index + 1, true) },
+      onGamepadDisconnected: ({ index }) => { this.setGamepadActive(index + 1, false) },
       onButtonUp: this.onGamepadButtonUp
     })
 
@@ -166,6 +164,7 @@ export class MultiplayerMenu extends MenuMultiplayerView {
     }
 
     this.container.addEventListener('click', event => {
+      event.preventDefault()
       const { target, currentTarget } = event;
       if (target === currentTarget) {
         this.show(false)
@@ -232,12 +231,6 @@ export class MultiplayerMenu extends MenuMultiplayerView {
       this.show(false)
       if (this.onClose) this.onClose()
     }
-  }
-
-  private handleGamepadConnected = () => {
-    const total = this.gamepadService.gamepadCount
-    console.log('Gamepads:', total)
-    this.setGamepadActive(Math.min(total, 2))
   }
 
   private handleOptionSelect = (silent = false) => {

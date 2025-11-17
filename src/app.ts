@@ -250,7 +250,8 @@ export class App extends AppView {
   }
 
   private registerEvents = () => {
-    this.root.addEventListener('contextmenu', (event) => event.preventDefault())
+    document.addEventListener('contextmenu', (event) => { event.preventDefault() })
+    // document.addEventListener('touchmove', (event) => { event.preventDefault() }, { passive: false });
 
     const resizeCallback = debounce(() => {
       const { width, height } = this.root.getBoundingClientRect()
