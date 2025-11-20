@@ -1,4 +1,4 @@
-import { SCENE_NAMES, SCENE_TARGETS, ANIMALS, type TSceneName, type TAnimalName } from "~/const"
+import { GAME, SCENE_NAMES, SCENE_TARGETS, ANIMALS, type TSceneName, type TAnimalName } from "~/const"
 import { buttonCircle, buttonIcon, buttonClose } from "~/ui/button"
 import { SettingsUI } from "~/ui/settings/settings"
 import { AboutUI } from "~/ui/about/about"
@@ -62,11 +62,14 @@ class MenuView {
       this.thumbs.push({ element, thumb, name })
       levels.append(element)
     }
-    /*
-        const version = document.createElement('div')
-        version.className = `${styles.version} text-shadow`
-        version.innerText = GAME.version
-     */
+
+    if (GAME.version) {
+      const version = document.createElement('div')
+      version.className = `${styles.version} text-shadow`
+      version.innerText = GAME.version
+      this.container.append(version)
+    }
+
     this.menu = document.createElement('div')
     this.menu.className = styles.menu
 
@@ -80,7 +83,7 @@ class MenuView {
     this.gamepadSupport.append(check)
 
     this.scene = this.sceneCreate()
-    this.container.append(/* version,  */this.gamepadSupport, levels, this.menu, this.scene.element)
+    this.container.append(this.gamepadSupport, levels, this.menu, this.scene.element)
   }
 
   private sceneCreate = () => {
