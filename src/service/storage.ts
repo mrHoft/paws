@@ -41,7 +41,7 @@ const defaultUserData: UserData & { data: GameData } = {
 @Injectable
 export class Storage extends Crypt {
   protected static _instance: Storage;
-  protected static STORE_NAME = 'fastPaws';
+  protected static STORE_NAME = 'nimblePaws';
   protected _state: UserData & { data: GameData } = { ...defaultUserData };
 
   constructor() {
