@@ -186,7 +186,6 @@ export class UpgradeUI extends UpgradeView {
       bird: 1500,
     })
     this.storage.set('data.stars', 1500)
-    this.storage.set('data.upgrades', {})
     */
   }
 
@@ -223,7 +222,7 @@ export class UpgradeUI extends UpgradeView {
     const savedUpgrades = this.storage.get<TUpgrades>('data.upgrades') || {}
     if (Object.values(savedUpgrades).reduce((acc, val) => acc + val, 0) === 0) return
 
-    const materials = this.storage.get<Record<string, number>>('data.caught') || {}
+    const materials = { ...this.storage.get<Record<string, number>>('data.caught') }
     const stars = this.storage.get<number>('data.stars')
     materials.star = stars || 0
 
@@ -262,7 +261,8 @@ export class UpgradeUI extends UpgradeView {
 
     const { cost } = upgrades[name]
     let available = true
-    const caught = this.storage.get<Record<string, number>>('data.caught') || { ...caughtDefault }
+    const caught = { ...this.storage.get<Record<string, number>>('data.caught') || caughtDefault }
+
     let stars = this.storage.get<number>('data.stars') || 0
     Object.keys(cost).forEach(key => {
       const count = key === 'star' ? stars : caught[key]
@@ -272,8 +272,8 @@ export class UpgradeUI extends UpgradeView {
     })
     if (available) {
       this.storage.set(`data.upgrades.${name}`, grade + 1)
-      this.storage.set(`data.caught`, caught)
-      this.storage.set(`data.stars`, stars)
+      this.storage.set('data.caught', caught)
+      this.storage.set('data.stars', stars)
       this.caught.setCount({ ...caught, star: stars })
       this.updateMaterials()
       this.audioService.use('combo')
