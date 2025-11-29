@@ -27,10 +27,9 @@ export const GAME = {
   catchRange: 24, // A range where an animal can be caught
   shadowsEnable: false,
 
-  updateTime: Math.floor(1000 / 60 * 1000) / 1000, // The time between renders (60fps)
-  updateModifier: 2,  // Affects updateTime (2 = 120fps)
-  movementSpeed: 4,
-  trajectoryStep: 1.5,
+  updateTime: Math.floor(1000 / 60 * 100) / 100, // The time between renders (60fps)
+  movementSpeed: 10,
+  trajectoryStep: 4,
 
   actionPositionVertical: Math.floor(GENERAL.canvas.height * 0.88),
   jumpHeightMin: Math.floor(SpriteSize.cat.height / 1.5),

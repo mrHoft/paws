@@ -32,10 +32,10 @@ export class Engine {
   private ctx: CanvasRenderingContext2D
   private game: TGame = {
     sceneName: 'default',
-    movementSpeed: Math.floor(GAME.movementSpeed * GAME.updateModifier * 1000) / 1000,
-    runAwaySpeed: Math.floor(GAME.movementSpeed * 1.2 * GAME.updateModifier * 1000) / 1000,
-    jumpStep: Math.floor(5 / GAME.updateModifier * 1000) / 1000,
-    updateTime: Math.floor(GAME.updateTime / GAME.updateModifier / 0.5), // Frame reit, actually no :)
+    movementSpeed: GAME.movementSpeed,
+    runAwaySpeed: Math.floor(GAME.movementSpeed * 1.2 * 100) / 100,
+    jumpStep: GAME.movementSpeed,
+    updateTime: GAME.updateTime, // Frame reit, actually no :)
     action: null,
     ctx: null,
     fps: true,
@@ -396,7 +396,7 @@ export class Engine {
     window.clearTimeout(this.game.timer)
 
     const speed = Math.min(0.5 + this.game.upgrades.speed * 0.1, 1)
-    this.game.updateTime = Math.floor(GAME.updateTime / GAME.updateModifier / speed)
+    this.game.updateTime = Math.floor(GAME.updateTime / speed)
 
     this.target.nameLast = this.target.nameCurr
     this.target.heightLast = this.target.heightCurr
