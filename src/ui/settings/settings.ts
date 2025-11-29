@@ -103,8 +103,8 @@ export class SettingsUI extends SettingsView {
       this.opt[id] = {
         element: document.createElement('li'),
         label: document.createElement('label'),
-        input: document.createElement('input'),
-        icon: document.createElement('img')
+        icon: document.createElement('img'),
+        input: document.createElement('input')
       }
       this.opt[id].icon.setAttribute('draggable', 'false')
 
@@ -127,6 +127,7 @@ export class SettingsUI extends SettingsView {
     const musicVolume = Math.max(0, Math.min(this.storage.get<number>('music'), 1))
     this.opt.music.element.className = styles.list__element
     this.opt.music.label.setAttribute('label-for', 'music')
+    this.opt.music.icon.src = iconSrc.music
     Object.assign(this.opt.music.input, {
       id: 'music',
       type: 'range',
@@ -136,7 +137,6 @@ export class SettingsUI extends SettingsView {
       defaultValue: musicVolume.toString(),
       // onchange: (event: Event) => console.log((event.currentTarget as HTMLInputElement).value),
     });
-    this.opt.music.icon.src = iconSrc.music
     this.opt.music.input.addEventListener('change', event => {
       const value = Number((event.currentTarget as HTMLInputElement)?.value)
       if (isFinite(value)) this.handleMusicVolumeChange(value)
@@ -145,6 +145,7 @@ export class SettingsUI extends SettingsView {
     const soundVolume = Math.max(0, Math.min(this.storage.get<number>('sound'), 1))
     this.opt.sound.element.className = styles.list__element
     this.opt.sound.label.setAttribute('label-for', 'sound')
+    this.opt.sound.icon.src = iconSrc.sound
     Object.assign(this.opt.sound.input, {
       id: 'sound',
       type: 'range',
@@ -154,7 +155,6 @@ export class SettingsUI extends SettingsView {
       defaultValue: soundVolume.toString(),
       // onchange: (event: Event) => console.log((event.currentTarget as HTMLInputElement).value)
     })
-    this.opt.sound.icon.src = iconSrc.sound
     this.opt.sound.input.addEventListener('change', event => {
       const value = Number((event.currentTarget as HTMLInputElement)?.value)
       if (isFinite(value)) this.handleSoundVolumeChange(value)
@@ -163,13 +163,13 @@ export class SettingsUI extends SettingsView {
     const fpsChecked = this.storage.get<boolean>('fps')
     this.opt.fps.element.className = styles.list__element
     this.opt.fps.label.setAttribute('label-for', 'fps')
+    this.opt.fps.icon.src = iconSrc.fps
     Object.assign(this.opt.fps.input, {
       id: 'fps',
       type: 'checkbox',
       defaultChecked: fpsChecked,
-      // onchange: (event: Event) => console.log((event.currentTarget as HTMLInputElement).value),
+      // onchange: (event: Event) => console.log('change:', (event.currentTarget as HTMLInputElement).checked),
     })
-    this.opt.fps.icon.src = iconSrc.fps
     this.opt.fps.input.addEventListener('change', event => {
       const { checked } = (event.currentTarget as HTMLInputElement)
       this.handleFpsCheckedChange(checked)
@@ -177,9 +177,8 @@ export class SettingsUI extends SettingsView {
 
     const language = this.storage.get<string>('language')
     this.opt.language.element.className = styles.list__element
-    this.opt.fps.label.setAttribute('label-for', 'language')
+    this.opt.language.label.setAttribute('label-for', 'language')
     this.opt.language.icon.src = iconSrc.globe
-    this.opt.sound.label.setAttribute('label-for', 'language')
     this.opt.language.input.setAttribute('style', 'display: none;')
     Object.assign(this.opt.language.input, {
       id: 'language',
@@ -222,9 +221,9 @@ export class SettingsUI extends SettingsView {
 
   private registerEvents = () => {
     const handleOutsideClick = (event: PointerEvent) => {
-      event.preventDefault()
       const { target, currentTarget } = event;
       if (currentTarget && target === currentTarget) {
+        event.preventDefault()
         const element = currentTarget as HTMLDivElement
         element.setAttribute('style', 'display: none;')
         for (const child of element.children) {

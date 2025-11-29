@@ -3,7 +3,7 @@ import { Queue } from "~/utils/queue"
 
 export class PerformanceMeter {
   private ctx: CanvasRenderingContext2D
-  private stackSize = GAME.updateTime * GAME.updateModifier * 2.5 // 2.5 seconds
+  private stackSize = GAME.updateTime * 2.5 // 2.5 seconds
   private meterStack: Queue
   public readonly begin = 'beginRenderProcess'
   public readonly end = 'endRenderProcess'
