@@ -14,17 +14,6 @@
   margin-bottom: 1em;
 }
 
-.stars {
-  height: 2em;
-  text-align: center;
-}
-
-.stars>img {
-  margin: 0.25em;
-  width: 1.5em;
-  height: 1.5em;
-}
-
 .bounce {
   animation: bounce 0.3s ease-out;
 }

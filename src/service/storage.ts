@@ -1,18 +1,19 @@
 import { Crypt } from "~/utils/crypt"
 import { Injectable } from "~/utils/inject"
 
-interface GameData {
-  score: number
-  stars: number
-  caught: Record<string, number>
-  upgrades: Record<string, number>
-}
-
 interface UserData {
   music: number,
   sound: number,
   fps: boolean,
   language: string
+}
+
+interface GameData {
+  score: number
+  stars: number
+  caught: Record<string, number>
+  upgrades: Record<string, number>
+  scene: Record<string, { stars: number, score: number }>
 }
 
 const defaultUserData: UserData & { data: GameData } = {
@@ -34,7 +35,8 @@ const defaultUserData: UserData & { data: GameData } = {
       sneak: 0,
       claws: 0,
       speed: 0
-    }
+    },
+    scene: {}
   }
 }
 

@@ -205,7 +205,7 @@ export class App extends AppView {
     })
     this.weather = new Weather()
     this.weather?.element.setAttribute('style', 'display: none;')
-    this.stageCompleteModal = new StageCompleteModal({ menu: this.handleMenuShow })
+    this.stageCompleteModal = new StageCompleteModal({ menu: this.handleMenuShow, sceneUpdate: this.mainMenu.sceneUpdate })
     this.winModal = new WinModal({
       restart: this.handleEngineRestart,
       menu: this.handleMenuShow
@@ -250,7 +250,7 @@ export class App extends AppView {
   }
 
   private registerEvents = () => {
-    document.addEventListener('contextmenu', (event) => { event.preventDefault() })
+    // document.addEventListener('contextmenu', (event) => { event.preventDefault() })
     // document.addEventListener('touchmove', (event) => { event.preventDefault() }, { passive: false });
 
     const resizeCallback = debounce(() => {
@@ -279,7 +279,7 @@ export class App extends AppView {
       updateProgress: this.handleUpdateProgress,
       updateCaught: (value: string) => this.caught?.handleUpdate(value),
       showTooltip: (value: string) => this.singlePlayerUI?.handleTooltip(value),
-      handleFinish: (result: { score: number, time: number, caught?: number, player?: 'top' | 'bottom' }) => {
+      handleFinish: (result: { scene: string, score: number, time: number, caught?: number, player?: 'top' | 'bottom' }) => {
         this.enginePause!(true, true)
         if (result.player) {
           this.winModal?.handleFinish(result)

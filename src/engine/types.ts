@@ -81,7 +81,7 @@ export interface EngineHandlers {
   updateProgress: (_value: number, _player?: 'top' | 'bottom') => void,
   updateCaught: (_id: string) => void,
   showTooltip: (_id: string) => void,
-  handleFinish?: (_result: { score: number, time: number, caught?: number, prophecy?: number, player?: 'top' | 'bottom' }) => void
+  handleFinish?: (_result: { scene: string, score: number, time: number, caught?: number, prophecy?: number, player?: 'top' | 'bottom' }) => void
   renderCallback?: () => void // Will be called on first render after start or each pause
 }
 

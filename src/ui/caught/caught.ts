@@ -47,10 +47,10 @@ export class Caught {
     }
   }
 
-  public handleUpdate = (name: string) => {
+  public handleUpdate = (name: string, count = 1) => {
     const key = caughtNameTransform(name)
     if (slots.includes(key)) {
-      this.count[key] += 1
+      this.count[key] += count
       this.slot[key]!.value.innerText = this.count[key].toString()
       if (name === 'star') {
         this.storage.set('data.stars', this.count[key])

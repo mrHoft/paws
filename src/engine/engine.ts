@@ -134,6 +134,7 @@ export class Engine {
       const prophecy = (succeed * (1 + (this.game.upgrades.speed) * 0.1) * multiplier) / (this.game.prophecy.total * 2)
       // console.log({ ...this.game.prophecy, speed: this.game.upgrades.speed }); console.log('succeed:', succeed); console.log('multiplier:', multiplier); console.log('prophecy:', prophecy)
       this.handlers.handleFinish({
+        scene: this.game.sceneName,
         player: this.game.multiplayer,
         score: this.game.score,
         time: Date.now() - this.game.timestamp,
