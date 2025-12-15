@@ -1,4 +1,4 @@
-import { GAME, SCENE_NAMES, SCENE_TARGETS, ANIMALS, type TSceneName, type TAnimalName } from "~/const"
+import { GAME, GENERAL, SCENE_NAMES, SCENE_TARGETS, ANIMALS, type TSceneName, type TAnimalName } from "~/const"
 import { buttonCircle, buttonIcon, buttonClose } from "~/ui/button"
 import { SettingsUI } from "~/ui/settings/settings"
 import { AboutUI } from "~/ui/about/about"
@@ -14,12 +14,11 @@ import type { EngineOptions } from '~/engine/types'
 import { InstallManager } from "~/service/installManager"
 import { ProphecyStars } from "../stars/stars"
 import { Storage } from "~/service/storage"
+import { Resource } from "~/engine/resource"
 
 import styles from './main.module.css'
 import modal from '~/ui/modal.module.css'
 import layer from '~/ui/layers.module.css'
-
-const PATH = './scene'
 
 interface MenuItem { id: string, icon: string, func: () => void }
 
@@ -28,20 +27,30 @@ class MenuView {
   protected container: HTMLDivElement
   protected menu: HTMLDivElement
   protected menuItems: { element: HTMLDivElement, props: MenuItem, index: number }[] = []
-  protected thumbs: { element: HTMLDivElement, thumb: HTMLDivElement, name: TSceneName, stars: ProphecyStars }[] = []
-  protected scene: { element: HTMLDivElement, inner: HTMLDivElement, bg: HTMLDivElement, btn: HTMLDivElement, spoil: Record<string, HTMLImageElement>, name: TSceneName }
+  protected thumbs: { element: HTMLDivElement, thumb: HTMLCanvasElement, name: TSceneName, stars: ProphecyStars }[] = []
+  protected scene: { element: HTMLDivElement, inner: HTMLDivElement, bg: HTMLCanvasElement, btn: HTMLDivElement, spoil: Record<string, HTMLImageElement>, name: TSceneName }
   protected gamepadSupport: HTMLDivElement
   protected stars: ProphecyStars
   protected isVisible = false
   protected isActive = false
+  protected resource: Resource
 
   constructor() {
     this.loc = inject(Localization)
+    this.resource = inject(Resource)
     this.stars = new ProphecyStars()
 
     this.container = document.createElement('div')
     this.container.classList.add(layer.menu, styles.container)
     this.container.setAttribute('style', `display: none;`)
+
+    const backdrop = document.createElement('canvas')
+    backdrop.width = GENERAL.canvas.width
+    backdrop.height = GENERAL.canvas.height
+    backdrop.className = 'menu_backdrop'
+    const ctx = backdrop.getContext('2d')
+    ctx?.drawImage(this.resource.getImageBitmap('backdrop'), 0, 0)
+
 
     const levels = document.createElement('div')
     levels.className = styles.level_list
@@ -55,9 +64,12 @@ class MenuView {
       const border = document.createElement('div')
       border.classList.add(modal.inner__border, modal.inner__mask)
       const name = SCENE_NAMES[i]
-      const img = document.createElement('div')
-      img.classList.add(modal.inner__bg, modal.inner__mask)
-      img.setAttribute('style', `background-image: url(${PATH}/${name}.jpg);`)
+      const thumb = document.createElement('canvas')
+      thumb.width = GENERAL.thumb.width
+      thumb.height = GENERAL.thumb.width
+      thumb.classList.add(modal.inner__thumb, modal.inner__mask)
+      const ctx = thumb.getContext('2d')
+      ctx?.drawImage(this.resource.getImageBitmap(`thumb.${name}`), 0, 0)
 
       const stars = new ProphecyStars({ small: true })
 
@@ -65,16 +77,9 @@ class MenuView {
       const x = 50 + Math.floor(Math.cos(r) * 50)
       const y = Math.floor(Math.sin(r) * 100)
       element.setAttribute('style', `height: ${h}%; top: ${y}%; left: ${x}%;`)
-      element.append(border, img, stars.element)
-      this.thumbs.push({ element, thumb: img, name, stars })
+      element.append(border, thumb, stars.element)
+      this.thumbs.push({ element, thumb, name, stars })
       levels.append(element)
-    }
-
-    if (GAME.version) {
-      const version = document.createElement('div')
-      version.className = `${styles.version} text-shadow`
-      version.innerText = GAME.version
-      this.container.append(version)
     }
 
     this.menu = document.createElement('div')
@@ -90,7 +95,14 @@ class MenuView {
     this.gamepadSupport.append(check)
 
     this.scene = this.sceneCreate()
-    this.container.append(this.gamepadSupport, levels, this.menu, this.scene.element)
+    this.container.append(backdrop, this.gamepadSupport, levels, this.menu, this.scene.element)
+
+    if (GAME.version) {
+      const version = document.createElement('div')
+      version.className = `${styles.version} text-shadow`
+      version.innerText = GAME.version
+      this.container.append(version)
+    }
   }
 
   private sceneCreate = () => {
@@ -102,8 +114,13 @@ class MenuView {
     sceneInner.classList.add(modal.inner, styles.scene)
     const sceneBorder = document.createElement('div')
     sceneBorder.classList.add(modal.inner__border, modal.inner__mask)
-    const sceneBg = document.createElement('div')
-    sceneBg.classList.add(modal.inner__bg, modal.inner__mask, modal.inner__shadow)
+
+    const sceneBg = document.createElement('canvas')
+    sceneBg.width = GENERAL.thumb.width
+    sceneBg.height = GENERAL.thumb.width
+    sceneBg.classList.add(modal.inner__thumb, modal.inner__mask, modal.inner__shadow)
+
+
     const sceneClose = buttonClose()
     sceneClose.addEventListener('click', () => {
       this.scene.element.setAttribute('style', 'display: none;')
@@ -173,9 +190,7 @@ class MenuView {
     this.isActive = state
   }
 
-  public get element() {
-    return this.container
-  }
+  public get element() { return this.container }
 }
 
 export class MainMenu extends MenuView {
@@ -368,7 +383,8 @@ export class MainMenu extends MenuView {
 
     this.scene.name = name
     this.scene.element.setAttribute('style', 'display: flex;')
-    this.scene.bg.setAttribute('style', `background-image: url(${PATH}/${name}.jpg)`)
+    const ctx = this.scene.bg.getContext('2d')
+    ctx?.drawImage(this.resource.getImageBitmap(`thumb.${name}`), 0, 0)
     this.scene.inner.classList.add(modal.bounce)
 
     const spoil: string[] = SCENE_TARGETS[name]
@@ -389,7 +405,6 @@ export class MainMenu extends MenuView {
     }
 
     const sceneData = this.storage.get<{ stars: number, score: number } | undefined>(`scene.${name}`)
-    console.log(name, sceneData)
     const stars = sceneData?.stars || 0
     this.stars.setStars(stars)
   }

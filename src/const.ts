@@ -8,6 +8,10 @@ export const GENERAL = {
     get aspectRatio(): number {
       return Math.round(this.width / this.height * 100) / 100
     },
+  },
+  thumb: {
+    width: 400,
+    height: 300
   }
 }
 
@@ -23,7 +27,7 @@ export const SpriteSize = {
 
 // Core game constants
 export const GAME = {
-  version: 'v.0.5.16',
+  version: 'v.0.5.17',
   catchRange: 24, // A range where an animal can be caught
   shadowsEnable: false,
 
@@ -47,7 +51,7 @@ export const GAME = {
   defaultAnimalHeight: 160,
   defaultRunAwayDelay: 8000, // The time after which the target will escape
 
-  roundLength: 5,
+  roundLength: 30,
 }
 
 export type TAnimalName = 'butterfly1' | 'butterfly2' | 'grasshopper' | 'frog' | 'bird1' | 'bird2' | 'mouse'

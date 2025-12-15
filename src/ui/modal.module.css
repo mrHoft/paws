@@ -59,6 +59,13 @@
   pointer-events: none;
 }
 
+.inner__thumb {
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  width: calc(100% - 4px);
+}
+
 .inner__bg {
   position: absolute;
   left: 2px;

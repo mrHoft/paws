@@ -80,6 +80,7 @@ body {
   width: 100%;
 }
 
+.menu_backdrop,
 .game_layer1,
 .game_layer2 {
   position: absolute;

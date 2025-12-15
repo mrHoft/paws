@@ -1,10 +1,9 @@
 import { GENERAL, type TSceneName } from '~/const'
 import { Resource } from './resource'
-import { getValue } from '~/utils/data'
 import { inject } from '~/utils/inject'
 
 interface Layer {
-  img: HTMLImageElement
+  img: ImageBitmap
   x: number
   y: number
   dx: number
@@ -78,7 +77,7 @@ export class Backdrop {
   public setup = ({ sceneName, multiplayer }: { sceneName: TSceneName, multiplayer?: 'top' | 'bottom' }) => {
     this.layersArr = []
     layersData[sceneName].forEach(data => {
-      const img = getValue(this.resource.sprite, data.src) as HTMLImageElement
+      const img = this.resource.getImageBitmap(data.src)
       const aspectRatio = img.width / img.height
       let height = GENERAL.canvas.height * (data.scale || 1)
       if (multiplayer) height = height / 2
