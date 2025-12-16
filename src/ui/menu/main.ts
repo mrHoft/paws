@@ -3,6 +3,7 @@ import { buttonCircle, buttonIcon, buttonClose } from "~/ui/button"
 import { SettingsUI } from "~/ui/settings/settings"
 import { AboutUI } from "~/ui/about/about"
 import { UpgradeUI } from "~/ui/upgrade/upgrade"
+import { LeaderboardUI } from '~/ui/leaderboard/leaderboard'
 import { iconSrc, spoilSrc } from "~/ui/icons"
 import { Localization } from '~/service/localization'
 import { ConfirmationModal } from "~/ui/confirmation/confirm"
@@ -209,6 +210,7 @@ export class MainMenu extends MenuView {
   private settingsUI: SettingsUI
   private aboutUI: AboutUI
   private upgradeUI: UpgradeUI
+  private leaderboardUI: LeaderboardUI
   private deviceType: 'desktop' | 'android' | 'iOS'
 
   constructor({ startSinglePlayerGame }: { startSinglePlayerGame: (options?: EngineOptions) => void }) {
@@ -233,6 +235,8 @@ export class MainMenu extends MenuView {
     this.aboutUI.registerCallback({ onClose })
     this.upgradeUI = inject(UpgradeUI)
     this.upgradeUI.registerCallbacks({ onClose, onUpgrade: this.handleMarkersUpdate })
+    this.leaderboardUI = inject(LeaderboardUI)
+    this.leaderboardUI.registerCallbacks({ onClose })
 
     this.menuInit()
     this.sceneInit()
@@ -246,6 +250,7 @@ export class MainMenu extends MenuView {
       { id: 'start', icon: iconSrc.start, func: () => { this.activeMenuItemId = 'start'; this.handleStart() } },
       { id: 'twoPlayers', icon: iconSrc.gamepad, func: () => { this.isActive = false; this.multiplayerMenu.show() } },
       { id: 'upgrades', icon: iconSrc.upgrade, marker: true, func: () => { this.isActive = false; this.upgradeUI.show() } },
+      { id: 'leaderboard', icon: iconSrc.crown, marker: true, func: () => { this.isActive = false; this.leaderboardUI.show() } },
       { id: 'settings', icon: iconSrc.settings, func: () => { this.isActive = false; this.settingsUI.show() } },
     ]
     if (this.deviceType !== 'desktop') {
@@ -261,7 +266,7 @@ export class MainMenu extends MenuView {
 
   private sceneInit = () => {
     for (const scene of this.thumbs) {
-      const sceneData = this.storage.get<{ stars: number, score: number } | undefined>(`scene.${scene.name}`)
+      const sceneData = this.storage.get<{ stars: number, score: number } | undefined>(`data.scene.${scene.name}`)
       scene.stars.setStars(sceneData?.stars || 0)
     }
   }
@@ -409,7 +414,7 @@ export class MainMenu extends MenuView {
       }
     }
 
-    const sceneData = this.storage.get<{ stars: number, score: number } | undefined>(`scene.${name}`)
+    const sceneData = this.storage.get<{ stars: number, score: number } | undefined>(`data.scene.${name}`)
     const stars = sceneData?.stars || 0
     this.stars.setStars(stars)
   }

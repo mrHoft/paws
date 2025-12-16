@@ -12,13 +12,14 @@ import { LoaderUI } from '~/ui/loader/loader'
 import { MainMenu } from '~/ui/menu/main'
 import { AboutUI } from '~/ui/about/about'
 import { UpgradeUI } from '~/ui/upgrade/upgrade'
+import { LeaderboardUI } from '~/ui/leaderboard/leaderboard'
 import { Storage } from '~/service/storage'
 import { AudioService } from '~/service/audio'
 import { ShepardTone, type ShepardToneConfig } from '~/service/shepardTone'
 import { SoundService } from "~/service/sound";
 import { Localization } from '~/service/localization'
 import { WindowFocusService } from '~/service/focus'
-import { YaGamesService } from '~/service/ysdk/ysdk'
+import { YandexGamesService } from '~/service/sdk.yandex/sdk'
 import { MultiplayerMenu } from '~/ui/menu/multiplayer'
 import { Caught } from '~/ui/caught/caught'
 import { injector, inject } from '~/utils/inject'
@@ -70,7 +71,7 @@ export class App extends AppView {
   private mainMenu?: MainMenu
   private storage: Storage
   private focusService: WindowFocusService
-  private yaGames?: YaGamesService
+  private yandexGames?: YandexGamesService
   private caught?: Caught
   private engineStart?: (options1?: EngineOptions, options2?: EngineOptions) => void
   private enginePause?: (state: boolean, force?: boolean) => void
@@ -115,8 +116,9 @@ export class App extends AppView {
       focusGain: () => { this.audioService.mute = false; soundService.mute = false }
     })
 
-    if (GENERAL.sdk === 'ya-games') {
-      this.yaGames = new YaGamesService()
+    if (GENERAL.sdk === 'yandex-games') {
+      this.yandexGames = inject(YandexGamesService)
+      this.yandexGames.init()
     }
   }
 
@@ -128,7 +130,7 @@ export class App extends AppView {
     let apiReady = true
     if (GENERAL.sdk === 'ya-games') {
       apiReady = false
-      this.yaGames?.registerCallback((sdk) => {
+      this.yandexGames?.registerCallback((sdk) => {
         sdk.features.LoadingAPI.ready()
         apiReady = true
       })
@@ -188,6 +190,7 @@ export class App extends AppView {
     const aboutUI = injector.createInstance(AboutUI)
     this.settingsUI = injector.createInstance(SettingsUI)
     const upgradeUI = injector.createInstance(UpgradeUI)
+    const leaderboardUI = injector.createInstance(LeaderboardUI)
     const multiplayerMenu = injector.createInstance(MultiplayerMenu, { startMultiplayerGame: this.startMultiplayerGame })
     this.mainMenu = new MainMenu({ startSinglePlayerGame: this.startSinglePlayerGame })
     this.pauseModal = new PauseModal({
@@ -218,6 +221,7 @@ export class App extends AppView {
       this.singlePlayerUI.element,
       this.multiplayerUI.element,
       upgradeUI.element,
+      leaderboardUI.element,
       multiplayerMenu.element,
       aboutUI.element,
       this.settingsUI.element,
@@ -227,7 +231,7 @@ export class App extends AppView {
       this.confirmationModal.element,
     )
 
-    this.yaGames?.registerCallback((sdk) => {
+    this.yandexGames?.registerCallback((sdk) => {
       const lang = sdk.environment.i18n.lang
       if (lang) {
         this.loc.language = lang
@@ -250,7 +254,7 @@ export class App extends AppView {
   }
 
   private registerEvents = () => {
-    // document.addEventListener('contextmenu', (event) => { event.preventDefault() })
+    document.addEventListener('contextmenu', (event) => { event.preventDefault() })
     // document.addEventListener('touchmove', (event) => { event.preventDefault() }, { passive: false });
 
     const resizeCallback = debounce(() => {
@@ -412,9 +416,9 @@ export class App extends AppView {
   private handleSdkApiState = (state: boolean) => {
     console.log('Gameplay API:', state ? 'start' : 'stop')
     if (state) {
-      this.yaGames?.sdk?.features.GameplayAPI.start()
+      this.yandexGames?.sdk?.features.GameplayAPI.start()
     } else {
-      this.yaGames?.sdk?.features.GameplayAPI.stop()
+      this.yandexGames?.sdk?.features.GameplayAPI.stop()
     }
   }
 }

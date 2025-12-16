@@ -1,0 +1,24 @@
+.leaderboard_entry {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 3em 1fr 3em;
+  column-gap: 0.5em;
+}
+
+.leaderboard_entry:nth-child(2n+1) {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.leaderboard_entry>span:nth-child(1) {
+  text-align: right;
+}
+
+.leaderboard_entry>span:nth-child(3) {
+  text-align: right;
+}
+
+.avatar {
+  width: 1em;
+  height: 1em;
+  margin-right: 0.5em;
+}

@@ -2,15 +2,11 @@ import { Injectable } from "~/utils/inject"
 import type { SDK } from "./types"
 
 @Injectable
-export class YaGamesService {
+export class YandexGamesService {
   public sdk?: SDK
   private callbacks: ((sdk: SDK) => void)[] = []
 
-  constructor() {
-    this.init()
-  }
-
-  private init = () => {
+  public init = () => {
     const s = document.createElement('script');
     s.src = "/sdk.js";
     s.async = true;

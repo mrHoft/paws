@@ -5,6 +5,7 @@ import { inject } from '~/utils/inject'
 import { formatTime } from "~/utils/time"
 import { Caught } from '~/ui/caught/caught'
 import { Storage } from "~/service/storage"
+import { ScoreService } from "~/service/score"
 import { ProphecyStars } from "~/ui/stars/stars"
 
 import styles from './stageComplete.module.css'
@@ -96,13 +97,12 @@ class StageCompleteView {
     this.isActive = state
   }
 
-  public get element() {
-    return this.container
-  }
+  public get element() { return this.container }
 }
 
 export class StageCompleteModal extends StageCompleteView {
   private storage: Storage
+  private scoreService: ScoreService
   private menu: () => void
   private sceneUpdate: (_name: string, _count: number) => void
   private gamepadService: GamepadService
@@ -114,6 +114,7 @@ export class StageCompleteModal extends StageCompleteView {
     this.sceneUpdate = sceneUpdate
 
     this.storage = inject(Storage)
+    this.scoreService = new ScoreService()
     this.caught = inject(Caught)
     this.gamepadService = inject(GamepadService)
     this.gamepadService.registerCallbacks({ onButtonUp: this.onGamepadButtonUp })
@@ -125,19 +126,20 @@ export class StageCompleteModal extends StageCompleteView {
     this.result.score.innerText = result.score.toString()
     this.result.time.innerText = formatTime(result.time)
     this.result.caught.innerText = (result.caught || 0).toString()
-    const sceneData = this.storage.get<{ stars: number, score: number } | undefined>(`scene.${result.scene}`)
+    const sceneData = this.storage.get<{ stars: number, score: number } | undefined>(`data.scene.${result.scene}`)
     const gainStars = Math.floor(((result.prophecy || 0.3) + 0.1) * 3)
     if (gainStars > (sceneData?.stars || 0)) {
       this.sceneUpdate(result.scene, gainStars)
     }
-    this.storage.set(`scene.${result.scene}`, {
+    this.storage.set(`data.scene.${result.scene}`, {
       stars: Math.max(sceneData?.stars || 0, gainStars),
       score: Math.max(sceneData?.score || 0, result.score)
     })
     this.stars.showStars(gainStars)
     this.caught.handleUpdate('star', gainStars)
-
-    this.storage.set('data.score', (this.storage.get<number>('data.score') || 0) + result.score)
+    if (!sceneData?.score || result.score > sceneData?.score) {
+      this.scoreService.update()
+    }
 
     this.show(true)
   }

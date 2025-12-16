@@ -1,7 +1,5 @@
 export const GENERAL = {
-  outerLinks: true,
-  fullscreenControl: true,
-  sdk: null,  //'ya-games',  // | null
+  sdk: null,  //'yandex-games',  // | null
   canvas: {
     width: 1280,
     height: 720,
@@ -27,7 +25,7 @@ export const SpriteSize = {
 
 // Core game constants
 export const GAME = {
-  version: 'v.0.5.17',
+  version: 'v.0.5.18',
   catchRange: 24, // A range where an animal can be caught
   shadowsEnable: false,
 
