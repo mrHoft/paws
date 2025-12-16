@@ -1,19 +1,15 @@
-import { GENERAL } from "~/const"
 import { buttonClose } from "~/ui/button"
 import { Localization } from '~/service/localization'
 import { GamepadService } from "~/service/gamepad"
 import { Injectable, inject } from "~/utils/inject"
 import { iconSrc } from "~/ui/icons"
+import { CopyLink } from "../copy-link/copy"
 
 import modal from '~/ui/modal.module.css'
 import layer from '~/ui/layers.module.css'
 
 function about() {
-  const link = document.createElement(GENERAL.outerLinks ? 'a' : 'span')
-  link.innerText = 'mrHoft'
-  if (link instanceof HTMLAnchorElement) {
-    link.href = 'mailto:mrhoft@yandex.ru'
-  }
+  const link = new CopyLink({ text: 'mrHoft', link: 'https://github.com/mrHoft' }).element
 
   const author = document.createElement('p')
   author.append('Developed by\u00a0', link)
