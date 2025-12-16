@@ -50,7 +50,7 @@ class UpgradeView {
     content.className = modal.inner__content
 
     const h3 = document.createElement('h3')
-    this.loc.register('upgrade', h3)
+    this.loc.register('upgrades', h3)
     const icon = document.createElement('div')
     icon.className = modal.icon
     icon.setAttribute('style', `mask-image: url(${iconSrc.upgrade});`)
@@ -162,7 +162,7 @@ export class UpgradeUI extends UpgradeView {
   private audioService: AudioService
   private caught: Caught
   private confirmationModal: ConfirmationModal
-  private onClose?: () => void
+  private callbacks: { onClose?: () => void, onUpgrade?: () => void } = {}
   private selectedOptionIndex = 0
   private upgradesTotal = Object.keys(upgrades).length
 
@@ -187,6 +187,30 @@ export class UpgradeUI extends UpgradeView {
     })
     this.storage.set('data.stars', 1500)
     */
+  }
+
+  public getAvailable = () => {
+    let availableUpgrades = 0
+    this.upgrades.forEach(item => {
+      if (item.name !== 'reset') {
+        let sufficientMaterials = 0
+        const grade = this.storage.get<number>(`data.upgrades.${item.name}`) || 0
+        const upgrade = upgrades[item.name]
+        if (grade < upgrade.grades) {
+          item.materials.element.removeAttribute('style')
+          Object.keys(item.materials).forEach(key => {
+            if (key !== 'element') {
+              const count = (key === 'star' ? this.storage.get<number>('data.stars') : this.storage.get<number>(`data.caught.${key}`)) || 0
+              const value = this.getCost(upgrade.cost[key], grade)
+              if (value <= count) sufficientMaterials += 1
+            }
+          })
+        }
+        if (sufficientMaterials >= 3) availableUpgrades += 1
+      }
+    })
+
+    return availableUpgrades
   }
 
   private updateMaterials = () => {
@@ -247,6 +271,7 @@ export class UpgradeUI extends UpgradeView {
     this.storage.set('data.caught', newCaught)
     this.storage.set('data.stars', newStars)
     this.updateMaterials()
+    if (this.callbacks.onUpgrade) this.callbacks.onUpgrade()
   }
 
   private handleUpgrade = (name: string) => {
@@ -277,6 +302,7 @@ export class UpgradeUI extends UpgradeView {
       this.caught.setCount({ ...caught, star: stars })
       this.updateMaterials()
       this.audioService.use('combo')
+      if (this.callbacks.onUpgrade) this.callbacks.onUpgrade()
     } else {
       this.soundService.play('error')
     }
@@ -294,13 +320,13 @@ export class UpgradeUI extends UpgradeView {
       const { target, currentTarget } = event;
       if (target === currentTarget) {
         this.show(false)
-        if (this.onClose) this.onClose()
+        if (this.callbacks.onClose) this.callbacks.onClose()
       }
     })
 
     this.close.addEventListener('click', () => {
       this.show(false)
-      if (this.onClose) this.onClose()
+      if (this.callbacks.onClose) this.callbacks.onClose()
     })
 
     this.upgrades.forEach((item, index) => {
@@ -322,8 +348,9 @@ export class UpgradeUI extends UpgradeView {
     if (!silent) this.soundService.play('tap')
   }
 
-  public registerCallback = ({ onClose }: { onClose: () => void }) => {
-    this.onClose = onClose
+  public registerCallbacks = ({ onClose, onUpgrade }: { onClose?: () => void, onUpgrade?: () => void }) => {
+    if (onClose) this.callbacks.onClose = onClose
+    if (onUpgrade) this.callbacks.onUpgrade = onUpgrade
   }
 
   private onGamepadButtonUp = (_gamepadIndex: number, buttonIndex: number) => {
@@ -345,7 +372,7 @@ export class UpgradeUI extends UpgradeView {
 
     if (buttonIndex === 0) {
       this.show(false)
-      if (this.onClose) this.onClose()
+      if (this.callbacks.onClose) this.callbacks.onClose()
     }
   }
 

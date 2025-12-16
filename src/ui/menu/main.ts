@@ -12,21 +12,22 @@ import { SoundService } from "~/service/sound"
 import { inject } from "~/utils/inject"
 import type { EngineOptions } from '~/engine/types'
 import { InstallManager } from "~/service/installManager"
-import { ProphecyStars } from "../stars/stars"
+import { ProphecyStars } from "~/ui/stars/stars"
 import { Storage } from "~/service/storage"
 import { Resource } from "~/engine/resource"
+import { CountMarker } from "~/ui/marker/marker"
 
 import styles from './main.module.css'
 import modal from '~/ui/modal.module.css'
 import layer from '~/ui/layers.module.css'
 
-interface MenuItem { id: string, icon: string, func: () => void }
+interface MenuItem { id: string, icon: string, marker?: true, func: () => void }
 
 class MenuView {
   protected loc: Localization
   protected container: HTMLDivElement
   protected menu: HTMLDivElement
-  protected menuItems: { element: HTMLDivElement, props: MenuItem, index: number }[] = []
+  protected menuItems: { element: HTMLDivElement, props: MenuItem, index: number, marker: CountMarker | null }[] = []
   protected thumbs: { element: HTMLDivElement, thumb: HTMLCanvasElement, name: TSceneName, stars: ProphecyStars }[] = []
   protected scene: { element: HTMLDivElement, inner: HTMLDivElement, bg: HTMLCanvasElement, btn: HTMLDivElement, spoil: Record<string, HTMLImageElement>, name: TSceneName }
   protected gamepadSupport: HTMLDivElement
@@ -169,18 +170,21 @@ class MenuView {
       button.append(icon, text)
       button.onclick = props.func
 
+      const marker = props.marker ? new CountMarker() : null
+      if (marker) button.append(marker.element)
+
       const paw = document.createElement('img')
       paw.setAttribute('draggable', 'false')
       paw.src = iconSrc.paw
       paw.className = styles.paw
 
       container.append(paw, button)
-      this.menuItems.push({ element: container, props, index: this.menuItems.length })
+      this.menuItems.push({ element: container, props, index: this.menuItems.length, marker })
       this.menu.append(container)
     }
   }
 
-  public show = (state = true) => {
+  protected show(state = true) {
     if (state) {
       this.container.removeAttribute('style')
     } else {
@@ -228,7 +232,7 @@ export class MainMenu extends MenuView {
     this.aboutUI = inject(AboutUI)
     this.aboutUI.registerCallback({ onClose })
     this.upgradeUI = inject(UpgradeUI)
-    this.upgradeUI.registerCallback({ onClose })
+    this.upgradeUI.registerCallbacks({ onClose, onUpgrade: this.handleMarkersUpdate })
 
     this.menuInit()
     this.sceneInit()
@@ -241,7 +245,7 @@ export class MainMenu extends MenuView {
     const menuItems: MenuItem[] = [
       { id: 'start', icon: iconSrc.start, func: () => { this.activeMenuItemId = 'start'; this.handleStart() } },
       { id: 'twoPlayers', icon: iconSrc.gamepad, func: () => { this.isActive = false; this.multiplayerMenu.show() } },
-      { id: 'upgrade', icon: iconSrc.upgrade, func: () => { this.isActive = false; this.upgradeUI.show() } },
+      { id: 'upgrades', icon: iconSrc.upgrade, marker: true, func: () => { this.isActive = false; this.upgradeUI.show() } },
       { id: 'settings', icon: iconSrc.settings, func: () => { this.isActive = false; this.settingsUI.show() } },
     ]
     if (this.deviceType !== 'desktop') {
@@ -250,6 +254,7 @@ export class MainMenu extends MenuView {
         menuItems.splice(index, 1)
       }
     }
+
     this.menuCreate(menuItems)
     this.menuItems[0].element.classList.add(styles.hover)
   }
@@ -413,5 +418,22 @@ export class MainMenu extends MenuView {
     this.show(false)
     this.scene.element.setAttribute('style', 'display: none;')
     this.startSinglePlayerGame({ sceneName: this.scene.name })
+  }
+
+  private handleMarkersUpdate = () => {
+    for (const item of this.menuItems) {
+      if (item.marker) {
+        if (item.props.id === 'upgrades') {
+          item.marker.value = this.upgradeUI.getAvailable()
+        }
+      }
+    }
+  }
+
+  public show(state = true) {
+    super.show(state)
+    if (state) {
+      this.handleMarkersUpdate()
+    }
   }
 }
