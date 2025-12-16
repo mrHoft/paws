@@ -106,3 +106,26 @@ export const caughtDefault: TCaught = {
   bird: 0,
   mouse: 0,
 }
+
+export const achievements: Record<string, { icon: string, num?: number, hidden?: true }> = {
+  'caught1': { icon: 'paw', num: 1 }, // Novice trapper (catch 20 animals)
+  'caught2': { icon: 'paw', num: 2 }, // Seasoned hunter (catch 100 animals)
+  'caught3': { icon: 'paw', num: 3 }, // Master of the wild (catch 1000 animals)
+  'perfect': { icon: 'stars-stack' }, // Flawless stage (complete a stage with 3 stars)
+  'stages1': { icon: 'steel-wing', num: 1 },  // First steps (complete all stages)
+  'stages2': { icon: 'steel-wing', num: 2 },  // Perfectionist (complete all stages with 3 stars)
+  'stars1': { icon: 'star-swirl', num: 1 },  // Star Gatherer (collect 100 stars)
+  'stars2': { icon: 'star-swirl', num: 2 },  // Star Collector (collect 500 stars)
+  'stars3': { icon: 'star-swirl', num: 3 },  // Stellar Hoarder (collect 1000 stars)
+  'pegasus': { icon: 'pegasus' },  // Momentum Leaper (perform a jump from a run)
+  'upgrade1': { icon: 'upgrade', num: 1 },  // Enhanced (make your first upgrade)
+  'upgrade2': { icon: 'upgrade', num: 2 },  // Peak performance (make all upgrades)
+  'upgrade3': { icon: 'lion' },  // Maxed out! (make upgrade to the max tier)
+  'dog': { icon: 'dog', hidden: true },  // Met the dog
+  'birds': { icon: 'bird' },  // Ornithologist (catch all types of birds)
+  'insects': { icon: 'insect' },  // Entomologist (catch all types of insects)
+  'zoo': { icon: 'mouse-seated' },  // Zoologist (catch all animal types)
+  'streak': { icon: 'doubled' },  // Perfect Streak (catch 10 animals in a row)
+  'cactus': { icon: 'cactus', hidden: true },  // Needle in a paw (catch a cactus)
+  'hidden': { icon: 'cat', hidden: true }
+}

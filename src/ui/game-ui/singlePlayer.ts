@@ -6,6 +6,7 @@ import { Localization } from '~/service/localization'
 import { inject } from '~/utils/inject'
 import { FullscreenService } from '~/service/fullscreen'
 import { YandexGamesService } from '~/service/sdk.yandex/sdk'
+import { debounce } from '~/utils/throttle'
 
 import styles from './ui.module.css'
 import layer from '~/ui/layers.module.css'
@@ -195,10 +196,10 @@ export class SinglePlayerUI extends SinglePlayerView {
     }
   }
 
-  private onFullscreenChange = (iconElement: HTMLImageElement) => () => {
+  private onFullscreenChange = (iconElement: HTMLImageElement) => debounce(() => {
     const active = this.yandexGames.sdk ? this.yandexGames.sdk.screen.fullscreen.status === 'on' : this.fullscreen.isFullscreenActive()
     iconElement.src = active ? iconSrc.fullscreenExit : iconSrc.fullscreen
-  }
+  })
 
   private bounce(element: HTMLElement | null) {
     if (element) {

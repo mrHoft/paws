@@ -13,6 +13,7 @@ import { MainMenu } from '~/ui/menu/main'
 import { AboutUI } from '~/ui/about/about'
 import { UpgradeUI } from '~/ui/upgrade/upgrade'
 import { LeaderboardUI } from '~/ui/leaderboard/leaderboard'
+import { AchievementsUI } from '~/ui/achievements/achievements'
 import { Storage } from '~/service/storage'
 import { AudioService } from '~/service/audio'
 import { ShepardTone, type ShepardToneConfig } from '~/service/shepardTone'
@@ -191,6 +192,7 @@ export class App extends AppView {
     this.settingsUI = injector.createInstance(SettingsUI)
     const upgradeUI = injector.createInstance(UpgradeUI)
     const leaderboardUI = injector.createInstance(LeaderboardUI)
+    const achievementsUI = injector.createInstance(AchievementsUI)
     const multiplayerMenu = injector.createInstance(MultiplayerMenu, { startMultiplayerGame: this.startMultiplayerGame })
     this.mainMenu = new MainMenu({ startSinglePlayerGame: this.startSinglePlayerGame })
     this.pauseModal = new PauseModal({
@@ -222,6 +224,7 @@ export class App extends AppView {
       this.multiplayerUI.element,
       upgradeUI.element,
       leaderboardUI.element,
+      achievementsUI.element,
       multiplayerMenu.element,
       aboutUI.element,
       this.settingsUI.element,
@@ -254,7 +257,7 @@ export class App extends AppView {
   }
 
   private registerEvents = () => {
-    document.addEventListener('contextmenu', (event) => { event.preventDefault() })
+    // document.addEventListener('contextmenu', (event) => { event.preventDefault() })
     // document.addEventListener('touchmove', (event) => { event.preventDefault() }, { passive: false });
 
     const resizeCallback = debounce(() => {

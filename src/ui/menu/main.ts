@@ -4,6 +4,7 @@ import { SettingsUI } from "~/ui/settings/settings"
 import { AboutUI } from "~/ui/about/about"
 import { UpgradeUI } from "~/ui/upgrade/upgrade"
 import { LeaderboardUI } from '~/ui/leaderboard/leaderboard'
+import { AchievementsUI } from '~/ui/achievements/achievements'
 import { iconSrc, spoilSrc } from "~/ui/icons"
 import { Localization } from '~/service/localization'
 import { ConfirmationModal } from "~/ui/confirmation/confirm"
@@ -211,6 +212,7 @@ export class MainMenu extends MenuView {
   private aboutUI: AboutUI
   private upgradeUI: UpgradeUI
   private leaderboardUI: LeaderboardUI
+  private achievementsUI: AchievementsUI
   private deviceType: 'desktop' | 'android' | 'iOS'
 
   constructor({ startSinglePlayerGame }: { startSinglePlayerGame: (options?: EngineOptions) => void }) {
@@ -237,6 +239,8 @@ export class MainMenu extends MenuView {
     this.upgradeUI.registerCallbacks({ onClose, onUpgrade: this.handleMarkersUpdate })
     this.leaderboardUI = inject(LeaderboardUI)
     this.leaderboardUI.registerCallbacks({ onClose })
+    this.achievementsUI = inject(AchievementsUI)
+    this.achievementsUI.registerCallbacks({ onClose })
 
     this.menuInit()
     this.sceneInit()
@@ -251,6 +255,7 @@ export class MainMenu extends MenuView {
       { id: 'twoPlayers', icon: iconSrc.gamepad, func: () => { this.isActive = false; this.multiplayerMenu.show() } },
       { id: 'upgrades', icon: iconSrc.upgrade, marker: true, func: () => { this.isActive = false; this.upgradeUI.show() } },
       { id: 'leaderboard', icon: iconSrc.crown, marker: true, func: () => { this.isActive = false; this.leaderboardUI.show() } },
+      { id: 'achievements', icon: iconSrc.achievement, marker: true, func: () => { this.isActive = false; this.achievementsUI.show() } },
       { id: 'settings', icon: iconSrc.settings, func: () => { this.isActive = false; this.settingsUI.show() } },
     ]
     if (this.deviceType !== 'desktop') {

@@ -14,6 +14,7 @@ interface GameData {
   caught: Record<string, number>
   upgrades: Record<string, number>
   scene: Record<string, { stars: number, score: number }>
+  ach: string[]
 }
 
 const defaultUserData: UserData & { data: GameData } = {
@@ -36,7 +37,8 @@ const defaultUserData: UserData & { data: GameData } = {
       claws: 0,
       speed: 0
     },
-    scene: {}
+    scene: {},
+    ach: []
   }
 }
 

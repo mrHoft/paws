@@ -39,6 +39,7 @@ export const iconSrc: Record<string, string> = {
   jump: './icons/jump.svg',
   speed: './icons/speed.svg',
   crown: './icons/crown.svg',
+  achievement: './icons/achievement.svg',
   en: './flag/en.svg',
   ru: './flag/ru.svg',
   de: './flag/de.svg',
