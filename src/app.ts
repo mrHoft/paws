@@ -27,6 +27,7 @@ import { Caught } from '~/ui/caught/caught'
 import { injector, inject } from '~/utils/inject'
 import type { EngineOptions, EngineHandlers, TUpgrades } from '~/engine/types'
 import { debounce } from '~/utils/throttle'
+import { EventPreventService } from '~/service/eventPrevent'
 
 const autoStartScene: TSceneName | null = null  // 'lake'
 
@@ -260,8 +261,7 @@ export class App extends AppView {
   }
 
   private registerEvents = () => {
-    // document.addEventListener('contextmenu', (event) => { event.preventDefault() })
-    // document.addEventListener('touchmove', (event) => { event.preventDefault() }, { passive: false });
+    new EventPreventService().init()
 
     const resizeCallback = debounce(() => {
       const { width, height } = this.root.getBoundingClientRect()
@@ -417,7 +417,7 @@ export class App extends AppView {
   }
 
   private handleSdkApiState = (state: boolean) => {
-    console.log('Gameplay API:', state ? 'start' : 'stop')
+    // console.log('Gameplay API:', state ? 'start' : 'stop')
     if (state) {
       this.yandexGames?.sdk?.features.GameplayAPI.start()
     } else {

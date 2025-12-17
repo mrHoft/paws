@@ -1,3 +1,4 @@
+import { debounce } from "~/utils/throttle"
 import { Injectable } from "~/utils/inject"
 
 interface FullscreenDocument extends Document {
@@ -21,15 +22,15 @@ export class FullscreenService {
   private handlers: Record<'fullscreenchange', Map<symbol, (_active: boolean) => void>> = { fullscreenchange: new Map() }
 
   constructor() {
-    document.addEventListener('fullscreenchange', () => {
+    document.addEventListener('fullscreenchange', debounce(() => {
       if (this.isFullscreenActive()) {
-        console.log('Entered fullscreen.')
+        // console.log('Entered fullscreen.')
         this.handlers['fullscreenchange'].forEach(handler => handler(true))
       } else {
-        console.log('Exited fullscreen.')
+        // console.log('Exited fullscreen.')
         this.handlers['fullscreenchange'].forEach(handler => handler(false))
       }
-    })
+    }))
   }
 
   public registerEvents = ({ fullscreenchange }: { fullscreenchange?: (_active: boolean) => void }) => {
