@@ -136,7 +136,7 @@ export class StageCompleteModal extends StageCompleteView {
       score: Math.max(sceneData?.score || 0, result.score)
     })
     this.stars.showStars(gainStars)
-    this.caught.handleUpdate('star', gainStars)
+    this.caught.handleUpdate('stars', gainStars)
     if (!sceneData?.score || result.score > sceneData?.score) {
       this.scoreService.update()
     }

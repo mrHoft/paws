@@ -19,6 +19,7 @@ import { ProphecyStars } from "~/ui/stars/stars"
 import { Storage } from "~/service/storage"
 import { Resource } from "~/engine/resource"
 import { CountMarker } from "~/ui/marker/marker"
+import { caughtNameTransform } from "~/utils/caught"
 
 import styles from './main.module.css'
 import modal from '~/ui/modal.module.css'
@@ -140,8 +141,7 @@ class MenuView {
     const spoilContainer = document.createElement('div')
     spoilContainer.className = styles.scene__spoil
     ANIMALS.forEach(key => {
-      let n = key.replace(/\d/, '')
-      if (n === 'grasshopper') n = 'butterfly'
+      const n = caughtNameTransform(key)
       if (!spoil[n]) {
         const icon = document.createElement('img')
         icon.setAttribute('draggable', 'false')
@@ -408,14 +408,10 @@ export class MainMenu extends MenuView {
 
     const spoil: string[] = SCENE_TARGETS[name]
       .filter(el => ANIMALS.includes(el as TAnimalName))
-      .map(name => {
-        let n = name.replace(/\d/, '')
-        if (n === 'grasshopper') n = 'butterfly'
-        return n
-      })
+      .map(caughtNameTransform)
 
     for (const key of ANIMALS) {
-      let n = key.replace(/\d/, '')
+      const n = caughtNameTransform(key)
       const el = this.scene.spoil[n]
       if (el) {
         const visible = spoil.includes(el.alt)

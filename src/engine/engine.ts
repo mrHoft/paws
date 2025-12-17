@@ -5,6 +5,7 @@ import { Backdrop } from './backdrop'
 import { FlyingValues } from './flyingValues'
 import { EventsService } from './events'
 import { GamepadService } from '~/service/gamepad'
+import { AchievementsService } from '~/service/achievements'
 import { Tooltip } from './tooltip'
 import { PerformanceMeter } from './meter'
 import { TargetService } from './target'
@@ -29,6 +30,7 @@ const upgradesDefault = {
 
 export class Engine {
   private audioService: AudioService
+  private achievementsService: AchievementsService
   private ctx: CanvasRenderingContext2D
   private game: TGame = {
     sceneName: 'default',
@@ -105,6 +107,7 @@ export class Engine {
     if (initialScore) this.game.score = initialScore
 
     this.audioService = inject(AudioService)
+    this.achievementsService = inject(AchievementsService)
     this.tone = inject(ShepardTone)
     this.targetService = inject(TargetService)
     this.gamepadService = inject(GamepadService)
@@ -133,6 +136,7 @@ export class Engine {
       const multiplier = Math.floor((1 + this.game.prophecy.multiplied / this.game.prophecy.total) * 100) / 100
       const prophecy = (succeed * (1 + (this.game.upgrades.speed) * 0.1) * multiplier) / (this.game.prophecy.total * 2)
       // console.log({ ...this.game.prophecy, speed: this.game.upgrades.speed }); console.log('succeed:', succeed); console.log('multiplier:', multiplier); console.log('prophecy:', prophecy)
+
       this.handlers.handleFinish({
         scene: this.game.sceneName,
         player: this.game.multiplayer,
@@ -141,6 +145,10 @@ export class Engine {
         caught: Object.values(this.game.caught).reduce((acc, value) => acc + value, 0),
         prophecy
       })
+
+      if (!this.game.multiplayer) {
+        this.achievementsService.check('stage')
+      }
     }
   }
 
@@ -169,6 +177,9 @@ export class Engine {
     if (this.target.isObstacle) {
       this.audioService.use('impact')
       this.gamepadService.vibrate(this.game.control == 'any' || this.game.control === 'gamepad1' ? 0 : 1)
+      if (this.target.nameCurr.startsWith('cactus')) {
+        this.achievementsService.check('cactus')
+      }
     } else {
       this.levelPrepare()
     }
@@ -177,16 +188,31 @@ export class Engine {
   private commitSuccess = () => {
     const multiplier = this.target.atPosition ? 1 : 2
     this.updateScore(TARGET_SCORE[this.target.nameCurr].success, multiplier)
-    if (!this.target.isObstacle) {
-      if (this.game.combo < 5) {
-        this.game.combo += 1
-        if (this.game.combo > 1) {
-          this.handlers.updateCombo(this.game.combo, this.game.multiplayer)
-          this.flyingValues.throw('Combo:', this.game.combo, this.cat.x)
-          this.audioService.use('combo')
-        }
+
+    if (!this.target.atPosition) {
+      this.achievementsService.check('pegasus')
+    }
+
+    if (this.target.isObstacle) {
+      if (this.target.nameCurr === 'dog') {
+        this.achievementsService.check('dog')
       }
-      const name: TAnimalName = this.target.nameCurr as TAnimalName
+    } else {
+      this.game.combo += 1
+      if (this.game.combo > 1) {
+        if (this.game.combo < 5) {
+          this.handlers.updateCombo(this.game.combo, this.game.multiplayer)
+        }
+        this.flyingValues.throw('Combo:', this.game.combo, this.cat.x)
+        this.audioService.use('combo')
+      }
+      if (this.game.combo === 10) {
+        this.achievementsService.check('streak')
+      }
+
+      const name = this.target.nameCurr as TAnimalName
+      this.achievementsService.check('catch', name)
+
       this.game.caught[caughtNameTransform(name)] += 1
       if (multiplier) this.game.prophecy.multiplied += 1
 

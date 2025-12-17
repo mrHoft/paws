@@ -10,9 +10,9 @@ interface UserData {
 
 interface GameData {
   score: number
-  stars: number
   caught: Record<string, number>
-  upgrades: Record<string, number>
+  total: Record<string, number>
+  upg: Record<string, number>
   scene: Record<string, { stars: number, score: number }>
   ach: string[]
 }
@@ -24,14 +24,21 @@ const defaultUserData: UserData & { data: GameData } = {
   language: navigator.language.slice(0, 2) || 'en',
   data: {
     score: 0,
-    stars: 0,
     caught: {
-      butterfly: 0,
+      stars: 0,
+      insect: 0,
       frog: 0,
       mouse: 0,
       bird: 0,
     },
-    upgrades: {
+    total: {
+      stars: 0,
+      insect: 0,
+      frog: 0,
+      mouse: 0,
+      bird: 0,
+    },
+    upg: {
       jump: 0,
       sneak: 0,
       claws: 0,

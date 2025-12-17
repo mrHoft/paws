@@ -2,29 +2,23 @@ import { spoilSrc } from "~/ui/icons";
 import { Storage } from '~/service/storage'
 import { Injectable, inject } from "~/utils/inject";
 import { caughtNameTransform } from "~/utils/caught";
+import { caughtDefault } from "~/const";
 
 import styles from './caught.module.css'
 
-const slots = ['butterfly', 'mouse', 'bird', 'frog', 'star']
+const slots = ['insect', 'mouse', 'bird', 'frog', 'stars']
 
 @Injectable
 export class Caught {
   private storage!: Storage
   private container!: HTMLDivElement
-  private count: Record<string, number> = {
-    butterfly: 0,
-    frog: 0,
-    mouse: 0,
-    bird: 0,
-    star: 0,
-  }
+  private count: Record<string, number> = { ...caughtDefault }
   private slot: Record<string, { icon: HTMLImageElement, value: HTMLSpanElement }> = {}
 
   constructor() {
     this.storage = inject(Storage)
     const initialCaught = this.storage.get<Record<string, number>>('data.caught')
-    const initialStars = this.storage.get<number>('data.stars')
-    if (initialCaught) this.count = { ...this.count, ...initialCaught, star: initialStars || 0 }
+    if (initialCaught) this.count = { ...this.count, ...initialCaught }
 
     this.container = document.createElement('div')
     this.container.className = styles.caught
@@ -52,22 +46,11 @@ export class Caught {
     if (slots.includes(key)) {
       this.count[key] += count
       this.slot[key]!.value.innerText = this.count[key].toString()
-      if (name === 'star') {
-        this.storage.set('data.stars', this.count[key])
-      } else {
-        this.storage.set(`data.caught.${key}`, this.count[key])
-      }
+      this.storage.set(`data.caught.${key}`, this.count[key])
+      this.storage.set(`data.total.${key}`, this.storage.get<number>(`data.total.${key}`) + count)
 
       this.bounce(this.slot[key].icon)
     }
-  }
-
-  public handleReset = () => {
-    for (const name of slots) {
-      this.count[name] = 0
-      this.slot[name]!.value.innerText = '0'
-    }
-    this.storage.set(`data.caught`, this.count)
   }
 
   private createSlot = (name: string) => {

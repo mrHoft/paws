@@ -96,33 +96,35 @@ export const TARGET_SCORE: Record<TTargetName, Record<'success' | 'fail', number
 }
 
 export type TCaught = {
-  butterfly: number
+  insect: number
   frog: number
   bird: number
   mouse: number
+  stars: number
 }
 
 export const caughtDefault: TCaught = {
-  butterfly: 0,
+  insect: 0,
   frog: 0,
   bird: 0,
   mouse: 0,
+  stars: 0
 }
 
 
 type TUpgradeCost = Record<string, number>
 export const UPGRADES: Record<string, { icon: string, grades: number, cost: TUpgradeCost }> = {
-  jump: { icon: iconSrc.jump, grades: 5, cost: { butterfly: 10, frog: 10, star: 10 } },
-  precise: { icon: iconSrc.eye, grades: 5, cost: { butterfly: 10, mouse: 10, star: 10 } },
-  claws: { icon: iconSrc.claws, grades: 5, cost: { bird: 10, mouse: 10, star: 10 } },
-  speed: { icon: iconSrc.speed, grades: 5, cost: { bird: 10, butterfly: 10, star: 10 } },
-  // cat: { icon: iconSrc.cat, grades: 1, cost: { mouse: 50, frog: 50, star: 100 } }
+  jump: { icon: iconSrc.jump, grades: 5, cost: { insect: 10, frog: 10, stars: 10 } },
+  precise: { icon: iconSrc.eye, grades: 5, cost: { insect: 10, mouse: 10, stars: 10 } },
+  claws: { icon: iconSrc.claws, grades: 5, cost: { bird: 10, mouse: 10, stars: 10 } },
+  speed: { icon: iconSrc.speed, grades: 5, cost: { bird: 10, insect: 10, stars: 10 } },
+  // cat: { icon: iconSrc.cat, grades: 1, cost: { mouse: 50, frog: 50, stars: 100 } }
 }
 
 export const ACHIEVEMENTS: Record<string, { icon: string, num?: number, hidden?: true }> = {
-  'caught1': { icon: 'paw', num: 1 }, // Novice trapper (catch 20 animals)
-  'caught2': { icon: 'paw', num: 2 }, // Seasoned hunter (catch 100 animals)
-  'caught3': { icon: 'paw', num: 3 }, // Master of the wild (catch 1000 animals)
+  'catch1': { icon: 'paw', num: 1 }, // Novice trapper (catch 50 animals)
+  'catch2': { icon: 'paw', num: 2 }, // Seasoned hunter (catch 250 animals)
+  'catch3': { icon: 'paw', num: 3 }, // Master of the wild (catch 1000 animals)
   'perfect': { icon: 'stars-stack' }, // Flawless stage (complete a stage with 3 stars)
   'stages1': { icon: 'steel-wing', num: 1 },  // First steps (complete all stages)
   'stages2': { icon: 'steel-wing', num: 2 },  // Perfectionist (complete all stages with 3 stars)

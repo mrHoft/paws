@@ -319,7 +319,7 @@ export class App extends AppView {
         engines[0].start(options1)
         engines[1].start(options2)
       } else {
-        const upgrades = this.storage.get<TUpgrades>(`data.upgrades`)
+        const upgrades = this.storage.get<TUpgrades>('data.upg')
         this.singlePlayerUI?.toggleView('single-player')
         engines[0].start({ ...options1, upgrades })
         this.canvas[0].removeAttribute('style')
@@ -380,10 +380,7 @@ export class App extends AppView {
       } else {
         this.engineStart()
       }
-      this.weather?.pause(false);
-      if (!this.multiplayer) {
-        this.caught?.handleReset()
-      }
+      this.weather?.pause(false)
     }
   }
 

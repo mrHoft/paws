@@ -99,7 +99,7 @@ class UpgradeView {
       Object.keys(cost).forEach(key => {
         const spoil = document.createElement('img')
         spoil.setAttribute('draggable', 'false')
-        spoil.src = key === 'star' ? iconSrc[key] : spoilSrc[key]
+        spoil.src = spoilSrc[key]
         const value = document.createElement('span')
         value.innerText = cost[key].toString()
         materialsContainer.append(spoil, value)
@@ -172,15 +172,7 @@ export class UpgradeUI extends UpgradeView {
 
     this.registerEvents()
 
-    /*
-    this.storage.set('data.caught', {
-      butterfly: 1500,
-      frog: 1500,
-      mouse: 1500,
-      bird: 1500,
-    })
-    this.storage.set('data.stars', 1500)
-    */
+    // this.storage.set('data.caught', {insect: 1500,frog: 1500,mouse: 1500,bird: 1500,stars: 1500})
   }
 
   public getAvailable = () => {
@@ -188,13 +180,13 @@ export class UpgradeUI extends UpgradeView {
     this.upgrades.forEach(item => {
       if (item.name !== 'reset') {
         let sufficientMaterials = 0
-        const grade = this.storage.get<number>(`data.upgrades.${item.name}`) || 0
+        const grade = this.storage.get<number>(`data.upg.${item.name}`) || 0
         const upgrade = UPGRADES[item.name]
         if (grade < upgrade.grades) {
           item.materials.element.removeAttribute('style')
           Object.keys(item.materials).forEach(key => {
             if (key !== 'element') {
-              const count = (key === 'star' ? this.storage.get<number>('data.stars') : this.storage.get<number>(`data.caught.${key}`)) || 0
+              const count = this.storage.get<number>(`data.caught.${key}`) || 0
               const value = this.getCost(upgrade.cost[key], grade)
               if (value <= count) sufficientMaterials += 1
             }
@@ -210,7 +202,7 @@ export class UpgradeUI extends UpgradeView {
   private updateMaterials = () => {
     this.upgrades.forEach(item => {
       if (item.name !== 'reset') {
-        const grade = this.storage.get<number>(`data.upgrades.${item.name}`) || 0
+        const grade = this.storage.get<number>(`data.upg.${item.name}`) || 0
         item.grade.forEach((el, i) => {
           el.classList.toggle(styles.active, grade >= i + 1)
         })
@@ -221,7 +213,7 @@ export class UpgradeUI extends UpgradeView {
           item.materials.element.removeAttribute('style')
           Object.keys(item.materials).forEach(key => {
             if (key !== 'element') {
-              const count = key === 'star' ? this.storage.get<number>('data.stars') || 0 : this.storage.get<number>(`data.caught.${key}`) || 0
+              const count = this.storage.get<number>(`data.caught.${key}`) || 0
               const value = this.getCost(UPGRADES[item.name].cost[key], grade)
               item.materials[key].innerText = value.toString()
               if (value <= count) {
@@ -237,12 +229,10 @@ export class UpgradeUI extends UpgradeView {
   }
 
   private handleReset = () => {
-    const savedUpgrades = this.storage.get<TUpgrades>('data.upgrades') || {}
+    const savedUpgrades = this.storage.get<TUpgrades>('data.upg') || {}
     if (Object.values(savedUpgrades).reduce((acc, val) => acc + val, 0) === 0) return
 
-    const materials = { ...this.storage.get<Record<string, number>>('data.caught') }
-    const stars = this.storage.get<number>('data.stars')
-    materials.star = stars || 0
+    const caught = { ...this.storage.get<Record<string, number>>('data.caught') }
 
     for (const key of Object.keys(savedUpgrades)) {
       const grade = savedUpgrades[key as keyof TUpgrades]
@@ -252,18 +242,16 @@ export class UpgradeUI extends UpgradeView {
           const value = upgrade.cost[resource]
           for (let i = 1; i <= grade; i += 1) {
             const cost = this.getCost(value, i - 1)
-            if (!materials[resource]) materials[resource] = 0
-            materials[resource] += Math.floor(cost / 2)
+            if (!caught[resource]) caught[resource] = 0
+            caught[resource] += Math.floor(cost / 2)
           }
         }
       }
     }
 
-    this.caught.setCount(materials)
-    this.storage.set('data.upgrades', {})
-    const { star: newStars, ...newCaught } = materials
-    this.storage.set('data.caught', newCaught)
-    this.storage.set('data.stars', newStars)
+    this.caught.setCount(caught)
+    this.storage.set('data.upg', {})
+    this.storage.set('data.caught', caught)
     this.updateMaterials()
     if (this.callbacks.onUpdate) this.callbacks.onUpdate()
   }
@@ -275,25 +263,20 @@ export class UpgradeUI extends UpgradeView {
       return
     }
 
-    const grade = this.storage.get<number>(`data.upgrades.${name}`) || 0
+    const grade = this.storage.get<number>(`data.upg.${name}`) || 0
     if (grade >= UPGRADES[name].grades) return
 
     const { cost } = UPGRADES[name]
     let available = true
     const caught = { ...this.storage.get<Record<string, number>>('data.caught') || caughtDefault }
-
-    let stars = this.storage.get<number>('data.stars') || 0
     Object.keys(cost).forEach(key => {
-      const count = key === 'star' ? stars : caught[key]
       const value = this.getCost(cost[key], grade)
-      if (count < value) available = false
-      if (key === 'star') { stars -= value } else { caught[key] -= value }
+      if (caught[key] < value) { available = false } else { caught[key] -= value }
     })
     if (available) {
-      this.storage.set(`data.upgrades.${name}`, grade + 1)
+      this.storage.set(`data.upg.${name}`, grade + 1)
       this.storage.set('data.caught', caught)
-      this.storage.set('data.stars', stars)
-      this.caught.setCount({ ...caught, star: stars })
+      this.caught.setCount(caught)
       this.updateMaterials()
       this.audioService.use('combo')
       if (this.callbacks.onUpdate) this.callbacks.onUpdate()

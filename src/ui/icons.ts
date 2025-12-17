@@ -1,9 +1,9 @@
 export const spoilSrc: Record<string, string> = {
-  butterfly: './spoil/butterfly.svg',
+  insect: './spoil/butterfly.svg',
   frog: './spoil/frog.svg',
   mouse: './spoil/mouse.svg',
   bird: './spoil/bird.svg',
-  star: './icons/star.svg',
+  stars: './icons/star.svg',
 }
 
 export const iconSrc: Record<string, string> = {
