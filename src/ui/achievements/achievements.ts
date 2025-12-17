@@ -3,7 +3,8 @@ import { iconSrc } from '~/ui/icons'
 import { Localization } from '~/service/localization'
 import { Injectable, inject } from '~/utils/inject'
 import { buttonClose } from '~/ui/button'
-import { achievements } from "~/const"
+import { ACHIEVEMENTS } from "~/const"
+import { AchievementsService } from "~/service/achievements"
 
 import styles from './achievements.module.css'
 import modal from '~/ui/modal.module.css'
@@ -16,6 +17,7 @@ class AchievementsView {
   protected content: HTMLDivElement
   protected close: HTMLDivElement
   protected achievements: HTMLDivElement
+  protected items: { key: string, element: HTMLDivElement, icon: HTMLImageElement, num?: HTMLDivElement, hidden?: true }[] = []
   protected isActive = false
 
   constructor() {
@@ -60,8 +62,8 @@ class AchievementsView {
   }
 
   private initAchievements = () => {
-    for (const key of Object.keys(achievements)) {
-      const item = achievements[key]
+    for (const key of Object.keys(ACHIEVEMENTS)) {
+      const item = ACHIEVEMENTS[key]
 
       const element = document.createElement('div')
       element.className = styles.item
@@ -73,13 +75,15 @@ class AchievementsView {
       if (item.hidden) icon.setAttribute('style', 'display: none;')
       element.append(icon)
 
+      let num: HTMLDivElement | undefined
       if (item.num || item.hidden) {
-        const num = document.createElement('div')
+        num = document.createElement('div')
         num.className = styles.numerator
         num.innerText = item.hidden ? '?' : (item.num || 0).toString()
         element.append(num)
       }
       this.achievements.append(element)
+      this.items.push({ key, element, icon, num, hidden: item.hidden })
     }
   }
 
@@ -99,17 +103,29 @@ class AchievementsView {
 @Injectable
 export class AchievementsUI extends AchievementsView {
   private gamepadService: GamepadService
-  private callbacks: { onClose?: () => void, onUpgrade?: () => void } = {}
+  private achievementsService: AchievementsService
+  private callbacks: { onClose?: () => void } = {}
 
   constructor() {
     super()
     this.gamepadService = inject(GamepadService)
+    this.achievementsService = inject(AchievementsService)
 
     this.registerEvents()
   }
 
   private update = () => {
-    // darkorange
+    for (const item of this.items) {
+      const collected = this.achievementsService.get(item.key)
+      if (collected) {
+        item.element.setAttribute('style', '--color: darkorange;')
+        if (item.hidden && item.num) {
+          item.icon.removeAttribute('style')
+          item.num.setAttribute('style', 'display: none;')
+          item.element.title = this.loc.get(`ach.${item.key}`)
+        }
+      }
+    }
   }
 
   private registerEvents = () => {
@@ -149,6 +165,7 @@ export class AchievementsUI extends AchievementsView {
     super.show(state)
     if (state) {
       this.update()
+      this.achievementsService.clear()
     }
   }
 }

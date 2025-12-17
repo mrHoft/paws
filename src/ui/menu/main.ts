@@ -10,6 +10,7 @@ import { Localization } from '~/service/localization'
 import { ConfirmationModal } from "~/ui/confirmation/confirm"
 import { MultiplayerMenu } from "~/ui/menu/multiplayer"
 import { GamepadService } from '~/service/gamepad'
+import { AchievementsService } from "~/service/achievements"
 import { SoundService } from "~/service/sound"
 import { inject } from "~/utils/inject"
 import type { EngineOptions } from '~/engine/types'
@@ -202,8 +203,9 @@ class MenuView {
 export class MainMenu extends MenuView {
   private startSinglePlayerGame: (options?: EngineOptions) => void
   private confirmationModal: ConfirmationModal
-  private gamepadService?: GamepadService
+  private gamepadService: GamepadService
   private soundService: SoundService
+  private achievementsService: AchievementsService
   private storage: Storage
   private multiplayerMenu: MultiplayerMenu
   private selectedOptionIndex = 0
@@ -231,12 +233,14 @@ export class MainMenu extends MenuView {
     this.multiplayerMenu = inject(MultiplayerMenu)
     this.multiplayerMenu.registerCallback({ onClose })
     this.gamepadService = inject(GamepadService)
+    this.achievementsService = inject(AchievementsService)
+    this.achievementsService.registerCallbacks({ onUpdate: this.handleMarkersUpdate })
     this.settingsUI = inject(SettingsUI)
     this.settingsUI.registerCallback({ onClose })
     this.aboutUI = inject(AboutUI)
     this.aboutUI.registerCallback({ onClose })
     this.upgradeUI = inject(UpgradeUI)
-    this.upgradeUI.registerCallbacks({ onClose, onUpgrade: this.handleMarkersUpdate })
+    this.upgradeUI.registerCallbacks({ onClose, onUpdate: this.handleMarkersUpdate })
     this.leaderboardUI = inject(LeaderboardUI)
     this.leaderboardUI.registerCallbacks({ onClose })
     this.achievementsUI = inject(AchievementsUI)
@@ -435,6 +439,9 @@ export class MainMenu extends MenuView {
       if (item.marker) {
         if (item.props.id === 'upgrades') {
           item.marker.value = this.upgradeUI.getAvailable()
+        }
+        if (item.props.id === 'achievements') {
+          item.marker.value = this.achievementsService.new
         }
       }
     }

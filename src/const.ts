@@ -1,3 +1,5 @@
+import { iconSrc } from "~/ui/icons"
+
 export const GENERAL = {
   sdk: null,  //'yandex-games',  // | null
   canvas: {
@@ -107,7 +109,17 @@ export const caughtDefault: TCaught = {
   mouse: 0,
 }
 
-export const achievements: Record<string, { icon: string, num?: number, hidden?: true }> = {
+
+type TUpgradeCost = Record<string, number>
+export const UPGRADES: Record<string, { icon: string, grades: number, cost: TUpgradeCost }> = {
+  jump: { icon: iconSrc.jump, grades: 5, cost: { butterfly: 10, frog: 10, star: 10 } },
+  precise: { icon: iconSrc.eye, grades: 5, cost: { butterfly: 10, mouse: 10, star: 10 } },
+  claws: { icon: iconSrc.claws, grades: 5, cost: { bird: 10, mouse: 10, star: 10 } },
+  speed: { icon: iconSrc.speed, grades: 5, cost: { bird: 10, butterfly: 10, star: 10 } },
+  // cat: { icon: iconSrc.cat, grades: 1, cost: { mouse: 50, frog: 50, star: 100 } }
+}
+
+export const ACHIEVEMENTS: Record<string, { icon: string, num?: number, hidden?: true }> = {
   'caught1': { icon: 'paw', num: 1 }, // Novice trapper (catch 20 animals)
   'caught2': { icon: 'paw', num: 2 }, // Seasoned hunter (catch 100 animals)
   'caught3': { icon: 'paw', num: 3 }, // Master of the wild (catch 1000 animals)

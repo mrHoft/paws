@@ -1,7 +1,8 @@
-import { caughtDefault } from "~/const"
+import { caughtDefault, UPGRADES } from "~/const"
 import { buttonClose } from "~/ui/button"
 import { Localization } from '~/service/localization'
 import { GamepadService } from "~/service/gamepad"
+import { AchievementsService } from "~/service/achievements"
 import { AudioService } from "~/service/audio"
 import { SoundService } from "~/service/sound"
 import { Injectable, inject } from "~/utils/inject"
@@ -14,15 +15,6 @@ import type { TUpgrades } from "~/engine/types"
 import styles from './upgrade.module.css'
 import modal from '~/ui/modal.module.css'
 import layer from '~/ui/layers.module.css'
-
-type TUpgradeCost = Record<string, number>
-const upgrades: Record<string, { icon: string, grades: number, cost: TUpgradeCost }> = {
-  jump: { icon: iconSrc.jump, grades: 5, cost: { butterfly: 10, frog: 10, star: 10 } },
-  precise: { icon: iconSrc.eye, grades: 5, cost: { butterfly: 10, mouse: 10, star: 10 } },
-  claws: { icon: iconSrc.claws, grades: 5, cost: { bird: 10, mouse: 10, star: 10 } },
-  speed: { icon: iconSrc.speed, grades: 5, cost: { bird: 10, butterfly: 10, star: 10 } },
-  // cat: { icon: iconSrc.cat, grades: 1, cost: { mouse: 50, frog: 50, star: 100 } }
-}
 
 class UpgradeView {
   protected loc: Localization
@@ -74,8 +66,8 @@ class UpgradeView {
     const container = document.createElement('ul')
     container.className = styles.list
 
-    Object.keys(upgrades).forEach(name => {
-      const { icon, grades, cost } = upgrades[name]
+    Object.keys(UPGRADES).forEach(name => {
+      const { icon, grades, cost } = UPGRADES[name]
 
       const element = document.createElement('li')
       element.className = styles.list__element
@@ -158,18 +150,20 @@ class UpgradeView {
 export class UpgradeUI extends UpgradeView {
   private gamepadService: GamepadService
   private soundService: SoundService
+  private achievementsService: AchievementsService
   private storage: Storage
   private audioService: AudioService
   private caught: Caught
   private confirmationModal: ConfirmationModal
-  private callbacks: { onClose?: () => void, onUpgrade?: () => void } = {}
+  private callbacks: { onClose?: () => void, onUpdate?: () => void } = {}
   private selectedOptionIndex = 0
-  private upgradesTotal = Object.keys(upgrades).length
+  private upgradesTotal = Object.keys(UPGRADES).length
 
   constructor() {
     super()
     this.gamepadService = inject(GamepadService)
     this.soundService = inject(SoundService)
+    this.achievementsService = inject(AchievementsService)
     this.storage = inject(Storage)
     this.audioService = inject(AudioService)
     this.caught = inject(Caught)
@@ -195,7 +189,7 @@ export class UpgradeUI extends UpgradeView {
       if (item.name !== 'reset') {
         let sufficientMaterials = 0
         const grade = this.storage.get<number>(`data.upgrades.${item.name}`) || 0
-        const upgrade = upgrades[item.name]
+        const upgrade = UPGRADES[item.name]
         if (grade < upgrade.grades) {
           item.materials.element.removeAttribute('style')
           Object.keys(item.materials).forEach(key => {
@@ -221,14 +215,14 @@ export class UpgradeUI extends UpgradeView {
           el.classList.toggle(styles.active, grade >= i + 1)
         })
 
-        if (grade >= upgrades[item.name].grades) {
+        if (grade >= UPGRADES[item.name].grades) {
           item.materials.element.setAttribute('style', 'opacity: 0;')
         } else {
           item.materials.element.removeAttribute('style')
           Object.keys(item.materials).forEach(key => {
             if (key !== 'element') {
               const count = key === 'star' ? this.storage.get<number>('data.stars') || 0 : this.storage.get<number>(`data.caught.${key}`) || 0
-              const value = this.getCost(upgrades[item.name].cost[key], grade)
+              const value = this.getCost(UPGRADES[item.name].cost[key], grade)
               item.materials[key].innerText = value.toString()
               if (value <= count) {
                 item.materials[key].removeAttribute('style')
@@ -252,7 +246,7 @@ export class UpgradeUI extends UpgradeView {
 
     for (const key of Object.keys(savedUpgrades)) {
       const grade = savedUpgrades[key as keyof TUpgrades]
-      const upgrade = upgrades[key]
+      const upgrade = UPGRADES[key]
       if (upgrade) {
         for (const resource of Object.keys(upgrade.cost)) {
           const value = upgrade.cost[resource]
@@ -271,7 +265,7 @@ export class UpgradeUI extends UpgradeView {
     this.storage.set('data.caught', newCaught)
     this.storage.set('data.stars', newStars)
     this.updateMaterials()
-    if (this.callbacks.onUpgrade) this.callbacks.onUpgrade()
+    if (this.callbacks.onUpdate) this.callbacks.onUpdate()
   }
 
   private handleUpgrade = (name: string) => {
@@ -282,9 +276,9 @@ export class UpgradeUI extends UpgradeView {
     }
 
     const grade = this.storage.get<number>(`data.upgrades.${name}`) || 0
-    if (grade >= upgrades[name].grades) return
+    if (grade >= UPGRADES[name].grades) return
 
-    const { cost } = upgrades[name]
+    const { cost } = UPGRADES[name]
     let available = true
     const caught = { ...this.storage.get<Record<string, number>>('data.caught') || caughtDefault }
 
@@ -302,7 +296,8 @@ export class UpgradeUI extends UpgradeView {
       this.caught.setCount({ ...caught, star: stars })
       this.updateMaterials()
       this.audioService.use('combo')
-      if (this.callbacks.onUpgrade) this.callbacks.onUpgrade()
+      if (this.callbacks.onUpdate) this.callbacks.onUpdate()
+      this.achievementsService.check('upgrade')
     } else {
       this.soundService.play('error')
     }
@@ -348,9 +343,9 @@ export class UpgradeUI extends UpgradeView {
     if (!silent) this.soundService.play('tap')
   }
 
-  public registerCallbacks = ({ onClose, onUpgrade }: { onClose?: () => void, onUpgrade?: () => void }) => {
+  public registerCallbacks = ({ onClose, onUpdate }: { onClose?: () => void, onUpdate?: () => void }) => {
     if (onClose) this.callbacks.onClose = onClose
-    if (onUpgrade) this.callbacks.onUpgrade = onUpgrade
+    if (onUpdate) this.callbacks.onUpdate = onUpdate
   }
 
   private onGamepadButtonUp = (_gamepadIndex: number, buttonIndex: number) => {

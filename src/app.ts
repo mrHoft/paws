@@ -15,6 +15,7 @@ import { UpgradeUI } from '~/ui/upgrade/upgrade'
 import { LeaderboardUI } from '~/ui/leaderboard/leaderboard'
 import { AchievementsUI } from '~/ui/achievements/achievements'
 import { Storage } from '~/service/storage'
+import { Message } from '~/ui/message/message'
 import { AudioService } from '~/service/audio'
 import { ShepardTone, type ShepardToneConfig } from '~/service/shepardTone'
 import { SoundService } from "~/service/sound";
@@ -215,6 +216,7 @@ export class App extends AppView {
       restart: this.handleEngineRestart,
       menu: this.handleMenuShow
     })
+    const message = inject(Message)
 
     this.game.append(
       ...this.canvas,
@@ -232,6 +234,7 @@ export class App extends AppView {
       this.winModal.element,
       this.pauseModal.element,
       this.confirmationModal.element,
+      message.element
     )
 
     this.yandexGames?.registerCallback((sdk) => {
