@@ -175,7 +175,7 @@ export class SettingsUI extends SettingsView {
       this.handleFpsCheckedChange(checked)
     })
 
-    const language = this.storage.get<string>('language')
+    const { language } = this.loc
     this.opt.language.element.className = styles.list__element
     this.opt.language.label.setAttribute('label-for', 'language')
     this.opt.language.icon.src = iconSrc.globe

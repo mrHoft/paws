@@ -5,14 +5,14 @@ export class EventPreventService {
     touchStart: (event: TouchEvent) => { this.startY = event.touches[0].clientY },
     touchMove: (event: TouchEvent) => {
       if (event.touches[0].clientY - this.startY > 0) {
-        console.log('Prevent "swipe to refresh"')
+        // console.log('Prevent "swipe to refresh"')
         event.preventDefault()
       }
     }
   }
 
   public init() {
-    // document.addEventListener('contextmenu', this.handlers.contextMenu)
+    document.addEventListener('contextmenu', this.handlers.contextMenu)
 
     const userAgent = navigator.userAgent.toLowerCase()
     const isIOS = /iphone|ipad|ipod/.test(userAgent)

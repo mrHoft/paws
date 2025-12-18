@@ -5,7 +5,7 @@ import { Caught } from '~/ui/caught/caught'
 import { Localization } from '~/service/localization'
 import { inject } from '~/utils/inject'
 import { FullscreenService } from '~/service/fullscreen'
-import { YandexGamesService } from '~/service/sdk.yandex/sdk'
+import { YandexGamesService } from '~/service/sdk/yandex'
 
 import styles from './ui.module.css'
 import layer from '~/ui/layers.module.css'

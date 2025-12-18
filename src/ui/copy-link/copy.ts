@@ -1,11 +1,16 @@
+import { YandexGamesService } from '~/service/sdk/yandex'
+import { inject } from '~/utils/inject'
+
 import styles from './copy.module.css'
 
 export class CopyLink {
   private container: HTMLElement
   private msg: HTMLElement
   private timer?: number
+  private yandexGames: YandexGamesService
 
   constructor({ text, link }: { text: string, link: string }) {
+    this.yandexGames = inject(YandexGamesService)
     this.msg = document.createElement('span')
     this.msg.innerText = 'Copied'
     this.msg.className = styles.copy_link__msg
@@ -22,7 +27,11 @@ export class CopyLink {
   }
 
   private handleCopy(link: string) {
-    navigator.clipboard.writeText(link)
+    if (this.yandexGames.sdk) {
+      this.yandexGames.sdk.clipboard.writeText(link)
+    } else {
+      navigator.clipboard.writeText(link).catch(e => console.log(e.message))
+    }
     this.msg.classList.add(styles.show)
     if (this.timer) clearTimeout(this.timer)
     this.timer = setTimeout(() => {

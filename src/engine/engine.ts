@@ -15,7 +15,7 @@ import { AudioService } from '~/service/audio'
 import { ShepardTone } from '~/service/shepardTone'
 import { inject } from '~/utils/inject'
 import { caughtNameTransform } from "~/utils/caught";
-import { YandexGamesService } from '~/service/sdk.yandex/sdk'
+import { YandexGamesService } from '~/service/sdk/yandex'
 
 const prophecyDefault = {
   total: GAME.roundLength,
@@ -152,7 +152,7 @@ export class Engine {
       if (!this.game.multiplayer) {
         this.achievementsService.check('stage')
         const meta1 = SCENE_NAMES.indexOf(this.game.sceneName)
-        this.yandexGamesService.ghost.push({ meta1, meta2: prophecy, meta3: 0 })
+        this.yandexGamesService.sdk?.multiplayer.sessions.push({ meta1, meta2: prophecy, meta3: 0 })
       }
     }
   }
@@ -271,13 +271,10 @@ export class Engine {
       // console.log('Jump height: ', this.cat.jumpHeight, '/', this.game.successHeight, this.game.success)
 
       if (!this.game.multiplayer) {
-        this.yandexGamesService.ghost.commit({
-          data: {
-            jump: this.cat.jumpHeight,
-            success: this.game.success,
-            target: this.target.nameCurr
-          },
-          time: Date.now() - this.game.timestamp
+        this.yandexGamesService.sdk?.multiplayer.sessions.commit({
+          jump: this.cat.jumpHeight,
+          success: this.game.success,
+          target: this.target.nameCurr
         })
       }
     }
@@ -527,7 +524,7 @@ export class Engine {
       }, 3000)
     } else {
       this.tooltip.show('startNewGame')
-      this.yandexGamesService.ghost.init()
+      this.yandexGamesService.sdk?.multiplayer.sessions.init()
     }
   }
 

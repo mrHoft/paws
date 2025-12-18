@@ -21,7 +21,7 @@ import { ShepardTone, type ShepardToneConfig } from '~/service/shepardTone'
 import { SoundService } from "~/service/sound";
 import { Localization } from '~/service/localization'
 import { WindowFocusService } from '~/service/focus'
-import { YandexGamesService } from '~/service/sdk.yandex/sdk'
+import { YandexGamesService } from '~/service/sdk/yandex'
 import { MultiplayerMenu } from '~/ui/menu/multiplayer'
 import { Caught } from '~/ui/caught/caught'
 import { injector, inject } from '~/utils/inject'
@@ -118,27 +118,11 @@ export class App extends AppView {
       focusLoss: () => { this.audioService.mute = true; soundService.mute = true; tone.stop() },
       focusGain: () => { this.audioService.mute = false; soundService.mute = false }
     })
-
-    if (GENERAL.sdk === 'yandex-games') {
-      this.yandexGames = inject(YandexGamesService)
-      this.yandexGames.init()
-    }
   }
 
   public init = async (): Promise<void> => {
     this.loaderUI = new LoaderUI()
     this.game.append(this.loaderUI.element)
-
-    let repeats = 10 // 500ms to each
-    let apiReady = true
-    if (GENERAL.sdk === 'ya-games') {
-      apiReady = false
-      this.yandexGames?.registerCallback((sdk) => {
-        sdk.features.LoadingAPI.ready()
-        apiReady = true
-      })
-    }
-
     this.loading.start = Date.now()
 
     const handleError = ({ source }: { source: TErrorSource }) => (message: string) => {
@@ -151,17 +135,18 @@ export class App extends AppView {
       this.loaderUI?.addMessage(msgEl)
     }
 
-    const handleReady = () => {
-      if (!apiReady && repeats > 0) {
-        repeats -= 1
-        if (repeats > 0) {
-          setTimeout(handleReady, 500)
-          return
-        } else {
-          if (GENERAL.sdk === 'ya-games') {
-            handleError({ source: 'api' })('Yandex games api initialization timeout.')
-          }
-        }
+    const handleReady = async () => {
+      if (GENERAL.sdk === 'yandex-games') {
+        this.loading.start = Date.now()
+        this.yandexGames = inject(YandexGamesService)
+        await this.yandexGames.initSync()
+          .then(sdk => {
+            const lang = sdk.environment.i18n.lang
+            if (lang) this.loc.language = lang
+            sdk.features.LoadingAPI.ready()
+            console.log(`\x1b[33msdk\x1b[0m init in \x1b[33m${Date.now() - this.loading.start}ms\x1b[0m`)
+          })
+          .catch(reason => handleError({ source: 'api' })(reason))
       }
 
       this.start()
@@ -237,14 +222,6 @@ export class App extends AppView {
       this.confirmationModal.element,
       message.element
     )
-
-    this.yandexGames?.registerCallback((sdk) => {
-      const lang = sdk.environment.i18n.lang
-      if (lang) {
-        this.loc.language = lang
-        this.settingsUI?.setLanguage(lang)
-      }
-    })
 
     if (autoStartScene) {
       this.initGame().then(() => {

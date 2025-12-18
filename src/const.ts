@@ -1,7 +1,7 @@
 import { iconSrc } from "~/ui/icons"
 
 export const GENERAL = {
-  sdk: null,  //'yandex-games',  // | null
+  sdk: 'yandex-games',  // | null
   canvas: {
     width: 1280,
     height: 720,

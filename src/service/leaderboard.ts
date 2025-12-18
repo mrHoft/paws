@@ -1,5 +1,5 @@
 import { Storage } from "./storage"
-import { YandexGamesService } from "./sdk.yandex/sdk"
+import { YandexGamesService } from "./sdk/yandex"
 import { inject, Injectable } from "~/utils/inject"
 import { iconSrc } from "~/ui/icons"
 

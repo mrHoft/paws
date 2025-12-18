@@ -1,5 +1,5 @@
 import { Storage } from "./storage"
-import { YandexGamesService } from "./sdk.yandex/sdk"
+import { YandexGamesService } from "./sdk/yandex"
 import { LeaderboardService } from "~/service/leaderboard"
 import { inject } from "~/utils/inject"
 
