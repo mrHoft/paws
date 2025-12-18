@@ -12,7 +12,7 @@ export class EventPreventService {
   }
 
   public init() {
-    document.addEventListener('contextmenu', this.handlers.contextMenu)
+    // document.addEventListener('contextmenu', this.handlers.contextMenu)
 
     const userAgent = navigator.userAgent.toLowerCase()
     const isIOS = /iphone|ipad|ipod/.test(userAgent)

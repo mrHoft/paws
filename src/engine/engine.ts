@@ -1,4 +1,4 @@
-import { GENERAL, ANIMALS, OBSTACLES, GAME, TARGET_SCORE, caughtDefault, type TAnimalName } from '~/const'
+import { GENERAL, ANIMALS, OBSTACLES, GAME, TARGET_SCORE, SCENE_NAMES, caughtDefault, type TAnimalName } from '~/const'
 import { Draw } from './draw'
 import { Resource } from './resource'
 import { Backdrop } from './backdrop'
@@ -15,6 +15,7 @@ import { AudioService } from '~/service/audio'
 import { ShepardTone } from '~/service/shepardTone'
 import { inject } from '~/utils/inject'
 import { caughtNameTransform } from "~/utils/caught";
+import { YandexGamesService } from '~/service/sdk.yandex/sdk'
 
 const prophecyDefault = {
   total: GAME.roundLength,
@@ -31,6 +32,7 @@ const upgradesDefault = {
 export class Engine {
   private audioService: AudioService
   private achievementsService: AchievementsService
+  private yandexGamesService: YandexGamesService
   private ctx: CanvasRenderingContext2D
   private game: TGame = {
     sceneName: 'default',
@@ -108,6 +110,7 @@ export class Engine {
 
     this.audioService = inject(AudioService)
     this.achievementsService = inject(AchievementsService)
+    this.yandexGamesService = inject(YandexGamesService)
     this.tone = inject(ShepardTone)
     this.targetService = inject(TargetService)
     this.gamepadService = inject(GamepadService)
@@ -122,7 +125,7 @@ export class Engine {
   }
 
   private updateScore = (value: number, multiplier = 1) => {
-    const combo = Math.max(this.game.combo, 1)
+    const combo = 1 + Math.min(this.game.combo, 5) / 5
     this.game.score += value * multiplier * combo
     if (this.game.score < 0) this.game.score = 0
     this.handlers.updateScore(this.game.score, this.game.multiplayer)
@@ -148,6 +151,8 @@ export class Engine {
 
       if (!this.game.multiplayer) {
         this.achievementsService.check('stage')
+        const meta1 = SCENE_NAMES.indexOf(this.game.sceneName)
+        this.yandexGamesService.ghost.push({ meta1, meta2: prophecy, meta3: 0 })
       }
     }
   }
@@ -200,10 +205,10 @@ export class Engine {
     } else {
       this.game.combo += 1
       if (this.game.combo > 1) {
-        if (this.game.combo < 5) {
+        if (this.game.combo <= 5) {
           this.handlers.updateCombo(this.game.combo, this.game.multiplayer)
         }
-        this.flyingValues.throw('Combo:', this.game.combo, this.cat.x)
+        this.flyingValues.throw('Combo:', Math.min(this.game.combo, 5), this.cat.x)
         this.audioService.use('combo')
       }
       if (this.game.combo === 10) {
@@ -264,6 +269,17 @@ export class Engine {
         (this.target.isObstacle && this.cat.jumpHeight > successHeight) ||
         Math.abs(this.cat.jumpHeight - successHeight) < GAME.catchRange * (1 + this.game.upgrades.claws * 0.1)
       // console.log('Jump height: ', this.cat.jumpHeight, '/', this.game.successHeight, this.game.success)
+
+      if (!this.game.multiplayer) {
+        this.yandexGamesService.ghost.commit({
+          data: {
+            jump: this.cat.jumpHeight,
+            success: this.game.success,
+            target: this.target.nameCurr
+          },
+          time: Date.now() - this.game.timestamp
+        })
+      }
     }
   }
 
@@ -511,6 +527,7 @@ export class Engine {
       }, 3000)
     } else {
       this.tooltip.show('startNewGame')
+      this.yandexGamesService.ghost.init()
     }
   }
 

@@ -1,5 +1,5 @@
 import { Injectable } from "~/utils/inject"
-import type { SDK } from "./types"
+import type { SDK, MultiplayerSessionsCommitPayload, MultiplayerSessionsMeta } from "./types"
 
 @Injectable
 export class YandexGamesService {
@@ -34,6 +34,24 @@ export class YandexGamesService {
     while (callback) {
       callback(sdk)
       callback = this.callbacks.pop()
+    }
+  }
+
+  public ghost = {
+    init: () => {
+      if (this.sdk) {
+        this.sdk.multiplayer.sessions.init({ count: 0 })
+      }
+    },
+    commit: (payload: MultiplayerSessionsCommitPayload) => {
+      if (this.sdk) {
+        this.sdk.multiplayer.sessions.commit(payload)
+      }
+    },
+    push: (meta: MultiplayerSessionsMeta) => {
+      if (this.sdk) {
+        this.sdk.multiplayer.sessions.push(meta)
+      }
     }
   }
 }

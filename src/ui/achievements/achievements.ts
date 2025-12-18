@@ -17,7 +17,7 @@ class AchievementsView {
   protected content: HTMLDivElement
   protected close: HTMLDivElement
   protected achievements: HTMLDivElement
-  protected items: { key: string, element: HTMLDivElement, icon: HTMLImageElement, num?: HTMLDivElement, hidden?: true }[] = []
+  protected items: { key: string, element: HTMLDivElement, icon: HTMLImageElement, num?: HTMLDivElement, tooltip: HTMLDivElement, hidden?: true }[] = []
   protected isActive = false
 
   constructor() {
@@ -58,22 +58,25 @@ class AchievementsView {
 
     this.container.append(this.inner)
 
-    this.initAchievements()
+    this.createAchievements()
   }
 
-  private initAchievements = () => {
+  private createAchievements = () => {
     for (const key of Object.keys(ACHIEVEMENTS)) {
       const item = ACHIEVEMENTS[key]
 
       const element = document.createElement('div')
       element.className = styles.item
-      if (!item.hidden) element.title = this.loc.get(`ach.${key}`)
 
       const icon = document.createElement('img')
       icon.src = `./icons/achievements/${item.icon}.svg`
       icon.draggable = false
-      if (item.hidden) icon.setAttribute('style', 'display: none;')
-      element.append(icon)
+      const tooltip = this.createTooltip(key)
+      if (item.hidden) {
+        icon.setAttribute('style', 'display: none;')
+        tooltip.setAttribute('style', 'display: none;')
+      }
+      element.append(icon, tooltip)
 
       let num: HTMLDivElement | undefined
       if (item.num || item.hidden) {
@@ -83,8 +86,15 @@ class AchievementsView {
         element.append(num)
       }
       this.achievements.append(element)
-      this.items.push({ key, element, icon, num, hidden: item.hidden })
+      this.items.push({ key, element, icon, num, tooltip, hidden: item.hidden })
     }
+  }
+
+  private createTooltip = (key: string) => {
+    const element = document.createElement('div')
+    element.className = styles.tooltip
+    this.loc.register(`ach.${key}`, element)
+    return element
   }
 
   public show(state = true) {
@@ -119,10 +129,12 @@ export class AchievementsUI extends AchievementsView {
       const collected = this.achievementsService.get(item.key)
       if (collected) {
         item.element.setAttribute('style', '--color: darkorange;')
-        if (item.hidden && item.num) {
+        if (item.hidden) {
           item.icon.removeAttribute('style')
-          item.num.setAttribute('style', 'display: none;')
-          item.element.title = this.loc.get(`ach.${item.key}`)
+          item.tooltip.removeAttribute('style')
+          if (item.num) {
+            item.num.setAttribute('style', 'display: none;')
+          }
         }
       }
     }

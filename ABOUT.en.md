@@ -14,10 +14,10 @@ The world is alive with challenge: butterflies flutter, mice dodge, and birds ca
 
 ### Key Features
 - Charge-Up Jumps: Hold to aim for the perfect leap.
-- Endless Challenge: The game gets faster and harder as you play.
 - Living World: Prey can escape, and obstacles have unique behaviors.
 - Combo System: Chain successes for a high-score multiplier.
 - Multiple Locations: Explore the backyard, basement, and rooftop.
 - Charming Feline: Dozens of cute animations bring your cat to life.
 - Global Leaderboards: Compete with players worldwide.
 - Changing Seasons: The visuals evolve with the time of year.
+- Achievements: Collectables, game mechanics, funny, hidden.
