@@ -25,6 +25,7 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     resetDesc: 'Only half of the spent resources will be returned. Are you sure?',
     stageComplete: 'Stage complete!',
     caught: 'Caught',
+    developed: 'Developed by',
     // tooltip
     startNewGame: 'Hold space/tap to jump',
     firstAnimal: 'Need to jump on target',
@@ -66,7 +67,7 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     'ach.zoo': 'Zoologist (catch all animal types)',
     'ach.streak': 'Perfect Streak (catch 10 animals in a row)',
     'ach.cactus': 'Needle in a paw (catch a cactus)',
-    'ach.hidden': 'Hidden',
+    'ach.spill': 'Wet paws (step in to the puddle)',
   },
   ru: {
     // ui
@@ -91,6 +92,7 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     resetDesc: 'Будет возвращена лишь половина потраченных ресурсов. Вы уверены?',
     stageComplete: 'Этап завершён!',
     caught: 'Поймано',
+    developed: 'Разработано',
     // tooltip
     startNewGame: 'Удерживайте пробел/тап для прыжка',
     firstAnimal: 'Для поимки нужно прыгать на цель',
@@ -132,7 +134,7 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     'ach.zoo': 'Зоолог (поймайте все виды животных)',
     'ach.streak': 'Идеальная серия (поймайте 10 животных подряд)',
     'ach.cactus': 'Игла в лапе (поймайте кактус)',
-    'ach.hidden': 'Скрытое',
+    'ach.spill': 'Мокрые лапки (ступите в лужу)',
   },
   tr: {
     // ui
@@ -157,6 +159,7 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     resetDesc: 'Harcanan kaynakların sadece yarısı iade edilecek. Emin misiniz?',
     stageComplete: 'Aşama tamamlandı!',
     caught: 'Yakalandı',
+    developed: 'Geliştiren',
     // tooltip
     startNewGame: 'Zıplamak için boşluk tuşunu basılı tutun/dokunun',
     firstAnimal: 'Hedefin üzerine zıplanmalı',
@@ -198,7 +201,7 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     'ach.zoo': 'Hayvan bilimci (tüm hayvan türlerini yakala)',
     'ach.streak': 'Mükemmel Seri (üst üste 10 hayvan yakala)',
     'ach.cactus': 'Pencede iğne (bir kaktüs yakala)',
-    'ach.hidden': 'Gizli',
+    'ach.spill': 'Islak patiler (bir su birikintisine bas)',
   },
   de: {
     // ui
@@ -223,6 +226,7 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     resetDesc: 'Nur die Hälfte der ausgegebenen Ressourcen wird zurückerstattet. Sind Sie sicher?',
     stageComplete: 'Stufe abgeschlossen!',
     caught: 'Gefangen',
+    developed: 'Entwickelt von',
     // tooltip
     startNewGame: 'Leertaste gedrückt halten/tippen zum Springen',
     firstAnimal: 'Muss auf das Ziel springen',
@@ -264,7 +268,7 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     'ach.zoo': 'Zoologe (fange alle Tierarten)',
     'ach.streak': 'Perfekte Serie (fange 10 Tiere in Folge)',
     'ach.cactus': 'Nadel in der Pfote (fange einen Kaktus)',
-    'ach.hidden': 'Versteckt',
+    'ach.spill': 'Nasse Pfoten (tritt in eine Pfütze)',
   },
   fr: {
     // ui
@@ -289,6 +293,7 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     resetDesc: 'Seulement la moitié des ressources dépensées sera restituée. Êtes-vous sûr?',
     stageComplete: 'Niveau terminé!',
     caught: 'Attrapé',
+    developed: 'Développé par',
     // tooltip
     startNewGame: 'Maintenez espace/touchez pour sauter',
     firstAnimal: 'Doit sauter sur la cible',
@@ -330,6 +335,6 @@ export const i18n: Record<TLanguage, Record<string, string>> = {
     'ach.zoo': 'Zoologiste (attrapez tous les types d\'animaux)',
     'ach.streak': 'Série parfaite (attrapez 10 animaux d\'affilée)',
     'ach.cactus': 'Épine dans la patte (attrapez un cactus)',
-    'ach.hidden': 'Caché',
+    'ach.spill': 'Pattes mouillées (marchez dans la flaque)',
   }
 }

@@ -1,7 +1,7 @@
 import { iconSrc } from "~/ui/icons"
 
 export const GENERAL = {
-  sdk: 'yandex-games',  // | null
+  sdk: null,  // 'yandex-games',  // | null
   canvas: {
     width: 1280,
     height: 720,
@@ -141,5 +141,5 @@ export const ACHIEVEMENTS: Record<string, { icon: string, num?: number, hidden?:
   'zoo': { icon: 'mouse-seated' },  // Zoologist (catch all animal types)
   'streak': { icon: 'doubled' },  // Perfect Streak (catch 10 animals in a row)
   'cactus': { icon: 'cactus', hidden: true },  // Needle in a paw (catch a cactus)
-  'hidden': { icon: 'cat', hidden: true }
+  'spill': { icon: 'spill', hidden: true }, // Wet paws (step in to the puddle)
 }

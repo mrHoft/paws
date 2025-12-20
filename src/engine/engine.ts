@@ -185,6 +185,9 @@ export class Engine {
       if (this.target.nameCurr.startsWith('cactus')) {
         this.achievementsService.check('cactus')
       }
+      if (this.target.nameCurr.startsWith('puddle')) {
+        this.achievementsService.check('spill')
+      }
     } else {
       this.levelPrepare()
     }

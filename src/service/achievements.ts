@@ -26,7 +26,7 @@ export class AchievementsService {
     this.upgrades = { count, grades, total }
   }
 
-  public check(key: 'upgrade' | 'stage' | 'dog' | 'cactus' | 'streak' | 'catch' | 'pegasus', name?: TAnimalName) {
+  public check(key: 'upgrade' | 'stage' | 'dog' | 'cactus' | 'spill' | 'streak' | 'catch' | 'pegasus', name?: TAnimalName) {
     const cur = this.storage.get<string[]>('data.ach') || []
 
     if (key === 'pegasus' && !cur.includes('pegasus')) {
@@ -79,6 +79,10 @@ export class AchievementsService {
 
     if (key === 'cactus' && !cur.includes('cactus')) {
       this.save('cactus')
+    }
+
+    if (key === 'spill' && !cur.includes('spill')) {
+      this.save('spill')
     }
 
     if (key === 'streak' && !cur.includes('streak')) {
