@@ -75,7 +75,7 @@ body {
 }
 
 .game {
-  font-size: calc(min(2vw, 1.5rem));
+  font-size: calc(min(1.5vw, 3.25vh));
   position: relative;
   width: 100%;
 }
