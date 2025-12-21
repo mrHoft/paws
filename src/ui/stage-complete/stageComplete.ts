@@ -3,9 +3,10 @@ import { Localization } from '~/service/localization'
 import { GamepadService } from '~/service/gamepad'
 import { inject } from '~/utils/inject'
 import { formatTime } from "~/utils/time"
-import { SoundService } from "~/service/sound"
 import { Caught } from '~/ui/caught/caught'
 import { Storage } from "~/service/storage"
+import { ScoreService } from "~/service/score"
+import { ProphecyStars } from "~/ui/stars/stars"
 
 import styles from './stageComplete.module.css'
 import modal from '~/ui/modal.module.css'
@@ -16,6 +17,7 @@ class StageCompleteView {
   protected container: HTMLDivElement
   protected inner: HTMLDivElement
   protected button: HTMLDivElement
+  protected stars: ProphecyStars
   protected result: {
     stars: HTMLDivElement,
     score: HTMLSpanElement,
@@ -50,19 +52,12 @@ class StageCompleteView {
     menuIcon.src = iconSrc.menu
     this.button.append(menuIcon, menuLabel)
 
+    this.stars = new ProphecyStars()
     this.result = {
-      stars: document.createElement('div'),
+      stars: this.stars.element,
       score: document.createElement('span'),
       time: document.createElement('span'),
       caught: document.createElement('span'),
-    }
-
-    this.result.stars.className = styles.stars
-    for (let i = 0; i < 3; i += 1) {
-      const img = document.createElement('img')
-      img.setAttribute('draggable', 'false')
-      img.src = iconSrc.star
-      this.result.stars.append(img)
     }
 
     const score = document.createElement('div')
@@ -102,66 +97,51 @@ class StageCompleteView {
     this.isActive = state
   }
 
-  public get element() {
-    return this.container
-  }
+  public get element() { return this.container }
 }
 
 export class StageCompleteModal extends StageCompleteView {
   private storage: Storage
+  private scoreService: ScoreService
   private menu: () => void
+  private sceneUpdate: (_name: string, _count: number) => void
   private gamepadService: GamepadService
-  private soundService: SoundService
   private caught: Caught
-  private timer: ReturnType<typeof setTimeout> | null = null
 
-  constructor({ menu }: { menu: () => void }) {
+  constructor({ menu, sceneUpdate }: { menu: () => void, sceneUpdate: (_name: string, _count: number) => void }) {
     super()
     this.menu = menu
+    this.sceneUpdate = sceneUpdate
 
     this.storage = inject(Storage)
+    this.scoreService = new ScoreService()
     this.caught = inject(Caught)
-    this.soundService = inject(SoundService)
     this.gamepadService = inject(GamepadService)
     this.gamepadService.registerCallbacks({ onButtonUp: this.onGamepadButtonUp })
 
     this.button.addEventListener('click', this.handleMenu)
   }
 
-  public handleComplete = (result: { score: number, time: number, caught?: number, prophecy?: number }) => {
+  public handleComplete = (result: { scene: string, score: number, time: number, caught?: number, prophecy?: number }) => {
     this.result.score.innerText = result.score.toString()
     this.result.time.innerText = formatTime(result.time)
     this.result.caught.innerText = (result.caught || 0).toString()
-    this.showStars(result.prophecy)
-
-    this.storage.set('data.score', (this.storage.get<number>('data.score') || 0) + result.score)
+    const sceneData = this.storage.get<{ stars: number, score: number } | undefined>(`data.scene.${result.scene}`)
+    const gainStars = Math.floor(((result.prophecy || 0.3) + 0.1) * 3)
+    if (gainStars > (sceneData?.stars || 0)) {
+      this.sceneUpdate(result.scene, gainStars)
+    }
+    this.storage.set(`data.scene.${result.scene}`, {
+      stars: Math.max(sceneData?.stars || 0, gainStars),
+      score: Math.max(sceneData?.score || 0, result.score)
+    })
+    this.stars.showStars(gainStars)
+    this.caught.handleUpdate('stars', gainStars)
+    if (!sceneData?.score || result.score > sceneData?.score) {
+      this.scoreService.update()
+    }
 
     this.show(true)
-  }
-
-  private showStars = (prophecy = 0.3) => {
-    const stars = this.result.stars.children
-    for (const star of stars) {
-      star.setAttribute('style', 'display: none;')
-      star.classList.remove(styles.bounce)
-    }
-
-    let i = 0
-    const count = () => {
-      const star = stars[i]
-      if ((i + 1) / stars.length <= prophecy + 0.01) {
-        star.removeAttribute('style')
-        star.classList.add(styles.bounce)
-        this.soundService.play('pum')
-        this.caught.handleUpdate('star')
-      }
-      i += 1
-      if (i < stars.length) {
-        this.timer = setTimeout(count, 500)
-      }
-    }
-
-    setTimeout(count, 500)
   }
 
   private onGamepadButtonUp = (_gamepadIndex: number, buttonIndex: number) => {
@@ -173,10 +153,7 @@ export class StageCompleteModal extends StageCompleteView {
   }
 
   private handleMenu = () => {
-    if (this.timer) {
-      clearTimeout(this.timer)
-      this.timer = null
-    }
+    this.stars.stop()
     this.show(false)
     this.menu()
   }

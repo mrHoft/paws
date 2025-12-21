@@ -5,9 +5,6 @@
   bottom: 0;
   right: 0;
   padding: 1rem;
-  background-repeat: no-repeat;
-  background-image: url(./images/bg_1280.jpg);
-  background-size: contain;
 }
 
 .header {
@@ -72,20 +69,23 @@
   opacity: 1;
 }
 
-.levels {
+.level_list {
   position: relative;
   width: 75%;
   height: 100%;
 }
 
-.level {
+.level_list__el {
   position: absolute;
   aspect-ratio: 4/3;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   pointer-events: all;
   transition: transform 0.25s ease-in;
 }
 
-.level:hover {
+.level_list__el:hover {
   z-index: 1;
   transform: translateX(15%);
 }
@@ -109,6 +109,14 @@
 .scene__spoil img {
   width: 2em;
   height: 2em;
+}
+
+.scene__stars {
+  position: absolute;
+  top: 1rem;
+  left: 0;
+  width: 100%;
+  text-align: center;
 }
 
 .version {

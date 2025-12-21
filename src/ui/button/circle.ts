@@ -2,7 +2,7 @@ import styles from './button.module.css'
 
 export const buttonCircle = ({ src }: { src: string }) => {
   const button = document.createElement('div')
-  button.className = styles.button
+  button.className = styles.button_circle
   const circle = document.createElement('div')
   circle.className = styles.circle
   const inner = document.createElement('div')

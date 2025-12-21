@@ -1,0 +1,24 @@
+.stars {
+  height: 2em;
+  text-align: center;
+}
+
+.stars.small {
+  font-size: 0.75em;
+}
+
+.stars>span {
+  display: inline-block;
+  position: relative;
+  margin: 0.25em;
+  width: 1.5em;
+  height: 1.5em;
+}
+
+.stars img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1.5em;
+  height: 1.5em;
+}

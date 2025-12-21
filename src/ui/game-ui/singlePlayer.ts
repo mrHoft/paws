@@ -1,4 +1,3 @@
-import { GENERAL } from '~/const'
 import { AudioService } from '~/service/audio'
 import { iconSrc } from "~/ui/icons"
 import { buttonIcon } from '~/ui/button/icon'
@@ -6,6 +5,7 @@ import { Caught } from '~/ui/caught/caught'
 import { Localization } from '~/service/localization'
 import { inject } from '~/utils/inject'
 import { FullscreenService } from '~/service/fullscreen'
+import { YandexGamesService } from '~/service/sdk/yandex'
 
 import styles from './ui.module.css'
 import layer from '~/ui/layers.module.css'
@@ -77,14 +77,16 @@ export class SinglePlayerUI extends SinglePlayerView {
   private audioService: AudioService
   private btnSound: HTMLDivElement
   private btnPause: HTMLDivElement
-  private btnFullscreen?: HTMLDivElement
   private caught: Caught
-  private fullscreen?: FullscreenService
+  private fullscreen: FullscreenService
+  private yandexGames: YandexGamesService
 
   constructor({ enginePause }: { enginePause: (_show: boolean) => void }) {
     super()
     this.audioService = inject(AudioService)
     this.caught = inject(Caught)
+    this.fullscreen = inject(FullscreenService)
+    this.yandexGames = inject(YandexGamesService)
 
     this.btnSound = buttonIcon({ src: this.audioService.muted ? iconSrc.soundOn : iconSrc.soundOff })
     const soundIconElement = this.btnSound.children[0] as HTMLImageElement
@@ -109,21 +111,18 @@ export class SinglePlayerUI extends SinglePlayerView {
     bottomLeft.append(this.btnPause)
     this.bottom.append(bottomLeft)
 
-    if (GENERAL.fullscreenControl) {
-      this.fullscreen = inject(FullscreenService)
-      this.btnFullscreen = buttonIcon({ src: iconSrc.fullscreen })
-      const fullscreenIconElement = this.btnFullscreen.children[0] as HTMLImageElement
-      this.btnFullscreen.addEventListener('mousedown', (event) => {
-        event.stopPropagation()
-        this.handleFullscreenToggle(fullscreenIconElement)
-      })
-      this.fullscreen.registerEvents({ 'fullscreenchange': this.onFullscreenChange(fullscreenIconElement) })
-      this.onFullscreenChange(fullscreenIconElement)(this.fullscreen?.isFullscreenActive())
+    const btnFullscreen = buttonIcon({ src: iconSrc.fullscreen })
+    const fullscreenIconElement = btnFullscreen.children[0] as HTMLImageElement
+    btnFullscreen.addEventListener('mousedown', (event) => {
+      event.stopPropagation()
+      this.handleFullscreenToggle(fullscreenIconElement)
+    })
+    this.fullscreen.registerEvents({ 'fullscreenchange': this.onFullscreenChange(fullscreenIconElement) })
+    this.onFullscreenChange(fullscreenIconElement)()
 
-      const bottomRight = document.createElement('div')
-      bottomRight.append(this.btnFullscreen)
-      this.bottom.append(bottomRight)
-    }
+    const bottomRight = document.createElement('div')
+    bottomRight.append(btnFullscreen)
+    this.bottom.append(bottomRight)
   }
 
   public toggleView = (view: 'menu' | 'single-player' | 'multiplayer') => {
@@ -180,15 +179,24 @@ export class SinglePlayerUI extends SinglePlayerView {
   }
 
   private handleFullscreenToggle = (iconElement: HTMLImageElement) => {
-    const active = this.fullscreen?.isFullscreenActive()
+    const active = this.yandexGames.sdk ? this.yandexGames.sdk.screen.fullscreen.status === 'on' : this.fullscreen.isFullscreenActive()
     const element = document.querySelector('main')
     if (element) {
-      this.fullscreen?.switch(!active, element)
+      if (this.yandexGames.sdk) {
+        if (active) {
+          this.yandexGames.sdk.screen.fullscreen.exit()
+        } else {
+          this.yandexGames.sdk.screen.fullscreen.request()
+        }
+      } else {
+        this.fullscreen.switch(!active, element)
+      }
       iconElement.src = active ? iconSrc.fullscreenExit : iconSrc.fullscreen
     }
   }
 
-  private onFullscreenChange = (iconElement: HTMLImageElement) => (active: boolean) => {
+  private onFullscreenChange = (iconElement: HTMLImageElement) => () => {
+    const active = this.yandexGames.sdk ? this.yandexGames.sdk.screen.fullscreen.status === 'on' : this.fullscreen.isFullscreenActive()
     iconElement.src = active ? iconSrc.fullscreenExit : iconSrc.fullscreen
   }
 

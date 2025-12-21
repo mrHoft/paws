@@ -124,7 +124,7 @@ export class Draw {
   public drawTarget = (name: string, x: number, y: number, height: number, animate = false) => {
     height = height * this.sizeModifier
     const image = this.resource.sprite[name]
-    if (image instanceof HTMLImageElement) {
+    if (image instanceof ImageBitmap) {
       let width = (image.width * height) / image.height
       let newY = Math.floor(y - height * 0.9)
       if (name == 'puddle') {

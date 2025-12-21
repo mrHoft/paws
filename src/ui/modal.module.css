@@ -46,7 +46,7 @@
 }
 
 .inner.large {
-  width: 50%;
+  width: 60%;
 }
 
 .inner__border {
@@ -57,6 +57,13 @@
   right: 0;
   background-color: var(--color-orange70);
   pointer-events: none;
+}
+
+.inner__thumb {
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  width: calc(100% - 4px);
 }
 
 .inner__bg {

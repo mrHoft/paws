@@ -1,0 +1,7 @@
+.marker {
+  width: 1lh;
+  border-radius: 50%;
+  background-color: yellow;
+  color: black;
+  font-size: 0.75em;
+}

@@ -1,73 +1,90 @@
-import { GAME, SCENE_NAMES, SCENE_TARGETS, ANIMALS, type TSceneName, type TAnimalName } from "~/const"
+import { GAME, GENERAL, SCENE_NAMES, SCENE_TARGETS, ANIMALS, type TSceneName, type TAnimalName } from "~/const"
 import { buttonCircle, buttonIcon, buttonClose } from "~/ui/button"
 import { SettingsUI } from "~/ui/settings/settings"
 import { AboutUI } from "~/ui/about/about"
 import { UpgradeUI } from "~/ui/upgrade/upgrade"
+import { LeaderboardUI } from '~/ui/leaderboard/leaderboard'
+import { AchievementsUI } from '~/ui/achievements/achievements'
 import { iconSrc, spoilSrc } from "~/ui/icons"
 import { Localization } from '~/service/localization'
 import { ConfirmationModal } from "~/ui/confirmation/confirm"
 import { MultiplayerMenu } from "~/ui/menu/multiplayer"
 import { GamepadService } from '~/service/gamepad'
+import { AchievementsService } from "~/service/achievements"
 import { SoundService } from "~/service/sound"
 import { inject } from "~/utils/inject"
 import type { EngineOptions } from '~/engine/types'
 import { InstallManager } from "~/service/installManager"
+import { ProphecyStars } from "~/ui/stars/stars"
+import { Storage } from "~/service/storage"
+import { Resource } from "~/engine/resource"
+import { CountMarker } from "~/ui/marker/marker"
+import { caughtNameTransform } from "~/utils/caught"
 
 import styles from './main.module.css'
 import modal from '~/ui/modal.module.css'
 import layer from '~/ui/layers.module.css'
 
-const PATH = './scene'
-
-interface MenuItem { id: string, icon: string, func: () => void }
+interface MenuItem { id: string, icon: string, marker?: true, func: () => void }
 
 class MenuView {
   protected loc: Localization
   protected container: HTMLDivElement
   protected menu: HTMLDivElement
-  protected menuItems: { element: HTMLDivElement, props: MenuItem, index: number }[] = []
-  protected thumbs: { element: HTMLDivElement, thumb: HTMLDivElement, name: TSceneName }[] = []
-  protected scene: { element: HTMLDivElement, inner: HTMLDivElement, bg: HTMLDivElement, btn: HTMLDivElement, spoil: Record<string, HTMLImageElement>, name: TSceneName }
+  protected menuItems: { element: HTMLDivElement, props: MenuItem, index: number, marker: CountMarker | null }[] = []
+  protected thumbs: { element: HTMLDivElement, thumb: HTMLCanvasElement, name: TSceneName, stars: ProphecyStars }[] = []
+  protected scene: { element: HTMLDivElement, inner: HTMLDivElement, bg: HTMLCanvasElement, btn: HTMLDivElement, spoil: Record<string, HTMLImageElement>, name: TSceneName }
   protected gamepadSupport: HTMLDivElement
+  protected stars: ProphecyStars
   protected isVisible = false
   protected isActive = false
+  protected resource: Resource
 
   constructor() {
     this.loc = inject(Localization)
+    this.resource = inject(Resource)
+    this.stars = new ProphecyStars()
+
     this.container = document.createElement('div')
     this.container.classList.add(layer.menu, styles.container)
     this.container.setAttribute('style', `display: none;`)
 
+    const backdrop = document.createElement('canvas')
+    backdrop.width = GENERAL.canvas.width
+    backdrop.height = GENERAL.canvas.height
+    backdrop.className = 'menu_backdrop'
+    const ctx = backdrop.getContext('2d')
+    ctx?.drawImage(this.resource.getImageBitmap('backdrop'), 0, 0)
+
+
     const levels = document.createElement('div')
-    levels.className = styles.levels
+    levels.className = styles.level_list
     const h = Math.floor(100 / (SCENE_NAMES.length - 1) * 2)
     levels.setAttribute('style', `height: ${100 - h * .75}%;`)
 
     const shift = Math.PI / 2 / (SCENE_NAMES.length - 1)
     for (let i = SCENE_NAMES.length - 1; i >= 0; i -= 1) {
       const element = document.createElement('div')
-      element.classList.add(styles.level)
+      element.classList.add(styles.level_list__el)
       const border = document.createElement('div')
       border.classList.add(modal.inner__border, modal.inner__mask)
       const name = SCENE_NAMES[i]
-      const thumb = document.createElement('div')
-      thumb.classList.add(modal.inner__bg, modal.inner__mask)
-      thumb.setAttribute('style', `background-image: url(${PATH}/${name}.jpg);`)
+      const thumb = document.createElement('canvas')
+      thumb.width = GENERAL.thumb.width
+      thumb.height = GENERAL.thumb.width
+      thumb.classList.add(modal.inner__thumb, modal.inner__mask)
+      const ctx = thumb.getContext('2d')
+      ctx?.drawImage(this.resource.getImageBitmap(`thumb.${name}`), 0, 0)
+
+      const stars = new ProphecyStars({ small: true })
 
       const r = Math.PI * 1 - i * shift
       const x = 50 + Math.floor(Math.cos(r) * 50)
       const y = Math.floor(Math.sin(r) * 100)
       element.setAttribute('style', `height: ${h}%; top: ${y}%; left: ${x}%;`)
-      element.append(border, thumb)
-      this.thumbs.push({ element, thumb, name })
+      element.append(border, thumb, stars.element)
+      this.thumbs.push({ element, thumb, name, stars })
       levels.append(element)
-    }
-
-    if (GAME.version) {
-      const version = document.createElement('div')
-      version.className = `${styles.version} text-shadow`
-      version.innerText = GAME.version
-      this.container.append(version)
     }
 
     this.menu = document.createElement('div')
@@ -83,7 +100,14 @@ class MenuView {
     this.gamepadSupport.append(check)
 
     this.scene = this.sceneCreate()
-    this.container.append(this.gamepadSupport, levels, this.menu, this.scene.element)
+    this.container.append(backdrop, this.gamepadSupport, levels, this.menu, this.scene.element)
+
+    if (GAME.version) {
+      const version = document.createElement('div')
+      version.className = `${styles.version} text-shadow`
+      version.innerText = GAME.version
+      this.container.append(version)
+    }
   }
 
   private sceneCreate = () => {
@@ -95,8 +119,13 @@ class MenuView {
     sceneInner.classList.add(modal.inner, styles.scene)
     const sceneBorder = document.createElement('div')
     sceneBorder.classList.add(modal.inner__border, modal.inner__mask)
-    const sceneBg = document.createElement('div')
-    sceneBg.classList.add(modal.inner__bg, modal.inner__mask, modal.inner__shadow)
+
+    const sceneBg = document.createElement('canvas')
+    sceneBg.width = GENERAL.thumb.width
+    sceneBg.height = GENERAL.thumb.width
+    sceneBg.classList.add(modal.inner__thumb, modal.inner__mask, modal.inner__shadow)
+
+
     const sceneClose = buttonClose()
     sceneClose.addEventListener('click', () => {
       this.scene.element.setAttribute('style', 'display: none;')
@@ -104,12 +133,15 @@ class MenuView {
 
     const btn = buttonCircle({ src: iconSrc.play })
 
+    const starsContainer = document.createElement('div')
+    starsContainer.className = styles.scene__stars
+    starsContainer.append(this.stars.element)
+
     const spoil: Record<string, HTMLImageElement> = {}
     const spoilContainer = document.createElement('div')
     spoilContainer.className = styles.scene__spoil
     ANIMALS.forEach(key => {
-      let n = key.replace(/\d/, '')
-      if (n === 'grasshopper') n = 'butterfly'
+      const n = caughtNameTransform(key)
       if (!spoil[n]) {
         const icon = document.createElement('img')
         icon.setAttribute('draggable', 'false')
@@ -121,7 +153,7 @@ class MenuView {
       }
     })
 
-    sceneInner.append(sceneBorder, sceneBg, btn, spoilContainer, sceneClose)
+    sceneInner.append(sceneBorder, sceneBg, btn, starsContainer, spoilContainer, sceneClose)
     sceneContainer.append(sceneInner)
     return { element: sceneContainer, inner: sceneInner, bg: sceneBg, btn, spoil, name: ('default' as TSceneName) }
   }
@@ -141,18 +173,21 @@ class MenuView {
       button.append(icon, text)
       button.onclick = props.func
 
+      const marker = props.marker ? new CountMarker() : null
+      if (marker) button.append(marker.element)
+
       const paw = document.createElement('img')
       paw.setAttribute('draggable', 'false')
       paw.src = iconSrc.paw
       paw.className = styles.paw
 
       container.append(paw, button)
-      this.menuItems.push({ element: container, props, index: this.menuItems.length })
+      this.menuItems.push({ element: container, props, index: this.menuItems.length, marker })
       this.menu.append(container)
     }
   }
 
-  public show = (state = true) => {
+  protected show(state = true) {
     if (state) {
       this.container.removeAttribute('style')
     } else {
@@ -162,22 +197,24 @@ class MenuView {
     this.isActive = state
   }
 
-  public get element() {
-    return this.container
-  }
+  public get element() { return this.container }
 }
 
 export class MainMenu extends MenuView {
   private startSinglePlayerGame: (options?: EngineOptions) => void
   private confirmationModal: ConfirmationModal
-  private gamepadService?: GamepadService
+  private gamepadService: GamepadService
   private soundService: SoundService
+  private achievementsService: AchievementsService
+  private storage: Storage
   private multiplayerMenu: MultiplayerMenu
   private selectedOptionIndex = 0
   private activeMenuItemId: string | null = null
   private settingsUI: SettingsUI
   private aboutUI: AboutUI
   private upgradeUI: UpgradeUI
+  private leaderboardUI: LeaderboardUI
+  private achievementsUI: AchievementsUI
   private deviceType: 'desktop' | 'android' | 'iOS'
 
   constructor({ startSinglePlayerGame }: { startSinglePlayerGame: (options?: EngineOptions) => void }) {
@@ -185,6 +222,7 @@ export class MainMenu extends MenuView {
     this.startSinglePlayerGame = startSinglePlayerGame
     this.soundService = inject(SoundService)
     this.deviceType = inject(InstallManager).getDeviceType()
+    this.storage = inject(Storage)
 
     const onClose = () => {
       if (this.isVisible) this.isActive = true
@@ -195,17 +233,33 @@ export class MainMenu extends MenuView {
     this.multiplayerMenu = inject(MultiplayerMenu)
     this.multiplayerMenu.registerCallback({ onClose })
     this.gamepadService = inject(GamepadService)
+    this.achievementsService = inject(AchievementsService)
+    this.achievementsService.registerCallbacks({ onUpdate: this.handleMarkersUpdate })
     this.settingsUI = inject(SettingsUI)
     this.settingsUI.registerCallback({ onClose })
     this.aboutUI = inject(AboutUI)
     this.aboutUI.registerCallback({ onClose })
     this.upgradeUI = inject(UpgradeUI)
-    this.upgradeUI.registerCallback({ onClose })
+    this.upgradeUI.registerCallbacks({ onClose, onUpdate: this.handleMarkersUpdate })
+    this.leaderboardUI = inject(LeaderboardUI)
+    this.leaderboardUI.registerCallbacks({ onClose })
+    this.achievementsUI = inject(AchievementsUI)
+    this.achievementsUI.registerCallbacks({ onClose })
 
+    this.menuInit()
+    this.sceneInit()
+    this.aboutInit()
+
+    this.registerEvents();
+  }
+
+  private menuInit = () => {
     const menuItems: MenuItem[] = [
       { id: 'start', icon: iconSrc.start, func: () => { this.activeMenuItemId = 'start'; this.handleStart() } },
       { id: 'twoPlayers', icon: iconSrc.gamepad, func: () => { this.isActive = false; this.multiplayerMenu.show() } },
-      { id: 'upgrade', icon: iconSrc.upgrade, func: () => { this.isActive = false; this.upgradeUI.show() } },
+      { id: 'upgrades', icon: iconSrc.upgrade, marker: true, func: () => { this.isActive = false; this.upgradeUI.show() } },
+      { id: 'leaderboard', icon: iconSrc.crown, marker: true, func: () => { this.isActive = false; this.leaderboardUI.show() } },
+      { id: 'achievements', icon: iconSrc.achievement, marker: true, func: () => { this.isActive = false; this.achievementsUI.show() } },
       { id: 'settings', icon: iconSrc.settings, func: () => { this.isActive = false; this.settingsUI.show() } },
     ]
     if (this.deviceType !== 'desktop') {
@@ -214,15 +268,31 @@ export class MainMenu extends MenuView {
         menuItems.splice(index, 1)
       }
     }
+
     this.menuCreate(menuItems)
     this.menuItems[0].element.classList.add(styles.hover)
+  }
 
+  private sceneInit = () => {
+    for (const scene of this.thumbs) {
+      const sceneData = this.storage.get<{ stars: number, score: number } | undefined>(`data.scene.${scene.name}`)
+      scene.stars.setStars(sceneData?.stars || 0)
+    }
+  }
+
+  public sceneUpdate = (name: string, count: number) => {
+    for (const scene of this.thumbs) {
+      if (scene.name === name) {
+        scene.stars.setStars(count)
+      }
+    }
+  }
+
+  private aboutInit = () => {
     const btnAbout = buttonIcon({ src: iconSrc.about })
     btnAbout.classList.add(styles['top-right'])
     btnAbout.addEventListener('click', () => { this.isActive = false; this.aboutUI.show(true) })
     this.container.append(btnAbout)
-
-    this.registerEvents();
   }
 
   private registerEvents = () => {
@@ -332,30 +402,51 @@ export class MainMenu extends MenuView {
 
     this.scene.name = name
     this.scene.element.setAttribute('style', 'display: flex;')
-    this.scene.bg.setAttribute('style', `background-image: url(${PATH}/${name}.jpg)`)
+    const ctx = this.scene.bg.getContext('2d')
+    ctx?.drawImage(this.resource.getImageBitmap(`thumb.${name}`), 0, 0)
     this.scene.inner.classList.add(modal.bounce)
 
     const spoil: string[] = SCENE_TARGETS[name]
       .filter(el => ANIMALS.includes(el as TAnimalName))
-      .map(name => {
-        let n = name.replace(/\d/, '')
-        if (n === 'grasshopper') n = 'butterfly'
-        return n
-      })
+      .map(caughtNameTransform)
 
     for (const key of ANIMALS) {
-      let n = key.replace(/\d/, '')
+      const n = caughtNameTransform(key)
       const el = this.scene.spoil[n]
       if (el) {
         const visible = spoil.includes(el.alt)
         el.setAttribute('style', `display: ${visible ? 'block' : 'none'}`)
       }
     }
+
+    const sceneData = this.storage.get<{ stars: number, score: number } | undefined>(`data.scene.${name}`)
+    const stars = sceneData?.stars || 0
+    this.stars.setStars(stars)
   }
 
   private handleSceneStart = () => {
     this.show(false)
     this.scene.element.setAttribute('style', 'display: none;')
     this.startSinglePlayerGame({ sceneName: this.scene.name })
+  }
+
+  private handleMarkersUpdate = () => {
+    for (const item of this.menuItems) {
+      if (item.marker) {
+        if (item.props.id === 'upgrades') {
+          item.marker.value = this.upgradeUI.getAvailable()
+        }
+        if (item.props.id === 'achievements') {
+          item.marker.value = this.achievementsService.new
+        }
+      }
+    }
+  }
+
+  public show(state = true) {
+    super.show(state)
+    if (state) {
+      this.handleMarkersUpdate()
+    }
   }
 }

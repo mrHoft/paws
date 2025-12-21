@@ -1,9 +1,9 @@
 export const spoilSrc: Record<string, string> = {
-  butterfly: './spoil/butterfly.svg',
+  insect: './spoil/butterfly.svg',
   frog: './spoil/frog.svg',
   mouse: './spoil/mouse.svg',
   bird: './spoil/bird.svg',
-  star: './icons/star.svg',
+  stars: './icons/star.svg',
 }
 
 export const iconSrc: Record<string, string> = {
@@ -17,6 +17,7 @@ export const iconSrc: Record<string, string> = {
   play: './icons/play.svg',
   start: './icons/play-circle.svg',
   star: './icons/star.svg',
+  starOutline: './icons/star_outline.svg',
   about: './icons/about.svg',
   tooltip: './icons/tooltip.svg',
   fullscreen: './icons/fullscreen.svg',
@@ -37,6 +38,8 @@ export const iconSrc: Record<string, string> = {
   claws: './icons/claws.svg',
   jump: './icons/jump.svg',
   speed: './icons/speed.svg',
+  crown: './icons/crown.svg',
+  achievement: './icons/achievement.svg',
   en: './flag/en.svg',
   ru: './flag/ru.svg',
   de: './flag/de.svg',

@@ -1,13 +1,17 @@
+import { iconSrc } from "~/ui/icons"
+
 export const GENERAL = {
-  outerLinks: true,
-  fullscreenControl: true,
-  sdk: null,  //'ya-games',  // | null
+  sdk: null,  // 'yandex-games',  // | null
   canvas: {
     width: 1280,
     height: 720,
     get aspectRatio(): number {
       return Math.round(this.width / this.height * 100) / 100
     },
+  },
+  thumb: {
+    width: 400,
+    height: 300
   }
 }
 
@@ -23,7 +27,7 @@ export const SpriteSize = {
 
 // Core game constants
 export const GAME = {
-  version: 'v.0.5.16',
+  version: 'v.0.5.19',
   catchRange: 24, // A range where an animal can be caught
   shadowsEnable: false,
 
@@ -92,15 +96,50 @@ export const TARGET_SCORE: Record<TTargetName, Record<'success' | 'fail', number
 }
 
 export type TCaught = {
-  butterfly: number
+  insect: number
   frog: number
   bird: number
   mouse: number
+  stars: number
 }
 
 export const caughtDefault: TCaught = {
-  butterfly: 0,
+  insect: 0,
   frog: 0,
   bird: 0,
   mouse: 0,
+  stars: 0
+}
+
+
+type TUpgradeCost = Record<string, number>
+export const UPGRADES: Record<string, { icon: string, grades: number, cost: TUpgradeCost }> = {
+  jump: { icon: iconSrc.jump, grades: 5, cost: { insect: 10, frog: 10, stars: 10 } },
+  precise: { icon: iconSrc.eye, grades: 5, cost: { insect: 10, mouse: 10, stars: 10 } },
+  claws: { icon: iconSrc.claws, grades: 5, cost: { bird: 10, mouse: 10, stars: 10 } },
+  speed: { icon: iconSrc.speed, grades: 5, cost: { bird: 10, insect: 10, stars: 10 } },
+  // cat: { icon: iconSrc.cat, grades: 1, cost: { mouse: 50, frog: 50, stars: 100 } }
+}
+
+export const ACHIEVEMENTS: Record<string, { icon: string, num?: number, hidden?: true }> = {
+  'catch1': { icon: 'paw', num: 1 }, // Novice trapper (catch 50 animals)
+  'catch2': { icon: 'paw', num: 2 }, // Seasoned hunter (catch 250 animals)
+  'catch3': { icon: 'paw', num: 3 }, // Master of the wild (catch 1000 animals)
+  'perfect': { icon: 'stars-stack' }, // Flawless stage (complete a stage with 3 stars)
+  'stages1': { icon: 'steel-wing', num: 1 },  // First steps (complete all stages)
+  'stages2': { icon: 'steel-wing', num: 2 },  // Perfectionist (complete all stages with 3 stars)
+  'stars1': { icon: 'star-swirl', num: 1 },  // Star Gatherer (collect 100 stars)
+  'stars2': { icon: 'star-swirl', num: 2 },  // Star Collector (collect 500 stars)
+  'stars3': { icon: 'star-swirl', num: 3 },  // Stellar Hoarder (collect 1000 stars)
+  'pegasus': { icon: 'pegasus' },  // Momentum Leaper (perform a jump from a run)
+  'upgrade1': { icon: 'upgrade', num: 1 },  // Enhanced (make your first upgrade)
+  'upgrade2': { icon: 'upgrade', num: 2 },  // Peak performance (make all upgrades)
+  'upgrade3': { icon: 'lion' },  // Maxed out! (make upgrade to the max tier)
+  'dog': { icon: 'dog', hidden: true },  // Met the dog
+  'birds': { icon: 'bird' },  // Ornithologist (catch all types of birds)
+  'insects': { icon: 'insect' },  // Entomologist (catch all types of insects)
+  'zoo': { icon: 'mouse-seated' },  // Zoologist (catch all animal types)
+  'streak': { icon: 'doubled' },  // Perfect Streak (catch 10 animals in a row)
+  'cactus': { icon: 'cactus', hidden: true },  // Needle in a paw (catch a cactus)
+  'spill': { icon: 'spill', hidden: true }, // Wet paws (step in to the puddle)
 }

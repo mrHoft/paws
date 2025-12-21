@@ -1,5 +1,4 @@
 import { GifFactory, type GifObject } from '~/utils/gif'
-import { setValue } from '~/utils/data.js'
 import { Injectable } from '~/utils/inject'
 
 const PATH = '.'
@@ -47,6 +46,15 @@ const assets: Record<string, string> = {
   'forest.layer1': 'scene/forest/layer1.png',
   'forest.layer2': 'scene/forest/layer2.png',
   'forest.layer3': 'scene/forest/layer3.png',
+  // Menu
+  backdrop: 'images/bg_1280.jpg',
+  'thumb.mountains': 'scene/mountains.jpg',
+  'thumb.cliff': 'scene/cliff.jpg',
+  'thumb.autumn': 'scene/autumn.jpg',
+  'thumb.desert': 'scene/desert.jpg',
+  'thumb.lake': 'scene/lake.jpg',
+  'thumb.jungle': 'scene/jungle.jpg',
+  'thumb.forest': 'scene/forest.jpg',
 }
 
 @Injectable
@@ -57,12 +65,14 @@ export class Resource {
 
   private _progressCallback?: (progress: number) => void
   private _errorCallback?: (message: string) => void
-  public sprite: Record<string, HTMLImageElement | GifObject> = {}
+  public sprite: Record<string, ImageBitmap | GifObject> = {}
 
   constructor() {
     this.total = Object.keys(assets).length
     this.initialize()
   }
+
+  public getImageBitmap = (name: string) => this.sprite[name] as ImageBitmap
 
   private countOne = () => {
     this.current += 1
@@ -99,29 +109,22 @@ export class Resource {
     }, 0)
   }
 
-  private loadImg = (name: string, url: string): HTMLImageElement => {
-    const self = this
-    const newImg = document.createElement('img')
-    newImg.src = url
-    newImg.onload = () => {
-      /*
-      const dimensions = {
-        width: newImg.width,
-        height: newImg.height,
-      }
-      console.log('Loaded img:', name, dimensions)
-       */
+  private loadImg = (name: string, url: string): Promise<ImageBitmap | null> => fetch(url)
+    .then((response) => {
+      if (!response.ok) throw new Error(`Failed to fetch: ${url}`)
+      return response.blob()
+    })
+    .then((blob) => createImageBitmap(blob))
+    .then((imageBitmap) => {
+      this.sprite[name] = imageBitmap
       this.countOne()
-    }
-    newImg.onerror = function (error) {
-      console.log('loading error:', url, error)
-      if (self._errorCallback) {
-        self._errorCallback(`loading error: ${url}`)
-      }
-    }
-    setValue(this.sprite, name, newImg)
-    return newImg
-  }
+      return imageBitmap
+    })
+    .catch((error) => {
+      console.error('Loading/error with image:', url, error)
+      if (this._errorCallback) this._errorCallback(`Failed to load image: ${url}`)
+      return null
+    })
 
   private initialize = () => {
     const keys = Object.keys(assets)
@@ -135,6 +138,10 @@ export class Resource {
           break
         }
         case ('png'): {
+          this.loadImg(key, path)
+          break
+        }
+        case ('jpg'): {
           this.loadImg(key, path)
           break
         }

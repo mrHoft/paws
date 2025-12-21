@@ -1,28 +1,12 @@
-import { GENERAL } from "~/const"
 import { buttonClose } from "~/ui/button"
 import { Localization } from '~/service/localization'
 import { GamepadService } from "~/service/gamepad"
 import { Injectable, inject } from "~/utils/inject"
 import { iconSrc } from "~/ui/icons"
+import { CopyLink } from "../copy-link/copy"
 
 import modal from '~/ui/modal.module.css'
 import layer from '~/ui/layers.module.css'
-
-function about() {
-  const link = document.createElement(GENERAL.outerLinks ? 'a' : 'span')
-  link.innerText = 'mrHoft'
-  if (link instanceof HTMLAnchorElement) {
-    link.href = 'mailto:mrhoft@yandex.ru'
-  }
-
-  const author = document.createElement('p')
-  author.append('Developed by\u00a0', link)
-
-  const copyright = document.createElement('div')
-  copyright.innerText = '© 2025'
-
-  return [author, copyright]
-}
 
 class AboutView {
   protected loc: Localization
@@ -57,13 +41,28 @@ class AboutView {
 
     const content = document.createElement('div')
     content.className = modal.inner__content
-    content.append(header, ...about())
+    content.append(header, ...this.createContent())
 
     this.close = buttonClose()
 
     this.inner.append(border, bg, content, this.close)
     this.container.append(this.inner)
   }
+
+  private createContent() {
+    const link = new CopyLink({ text: 'mrHoft', link: 'mrHoft@yandex.ru' }).element
+
+    const author = document.createElement('p')
+    const text = document.createElement('span')
+    this.loc.register('developed', text)
+    author.append(text, '\u00a0', link)
+
+    const copyright = document.createElement('div')
+    copyright.innerText = '© 2025'
+
+    return [author, copyright]
+  }
+
 
   public show = (state = true) => {
     if (state) {

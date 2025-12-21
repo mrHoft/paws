@@ -382,7 +382,7 @@ export interface MultiplayerSessions {
    * Collect transactions of the current game session
    * @param payload - fragment of information that allows to restore the game process
    */
-  commit(payload: MultiplayerSessionsCommitPayload): void;
+  commit(payload: Record<string, unknown>): void;
 
   /**
    * Sends a message about initialization to the parent frame. Returns an array of data about loaded sessions
@@ -412,13 +412,6 @@ export interface CallbackBaseMessageData {
     message: string;
   };
   status: "error" | "ok";
-}
-
-export interface MultiplayerSessionsCommitPayload {
-  /** Transaction data */
-  data: Record<string, unknown>;
-  /** Transaction time */
-  time: number;
 }
 
 export interface MultiplayerSessionsInitOptions {
@@ -454,10 +447,19 @@ export interface MultiplayerSessionsMetaRanges {
 }
 
 export interface MultiplayerSessionsOpponent {
-  /** Opponent ID */
   id: string;
-  /** Opponent metadata */
   meta: MultiplayerSessionsMeta;
-  /** Opponent transactions */
-  transactions: MultiplayerSessionsCommitPayload[];
+  player: {
+    avatar: string;
+    name: string;
+  };
+  timeline: TimelineItem[];
+}
+
+export interface TimelineItem {
+  id: string;
+  /** Transaction data */
+  data: Record<string, unknown>;
+  /** Transaction time */
+  time: number;
 }
