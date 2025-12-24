@@ -31,7 +31,7 @@ const upgradesDefault = {
 
 export class Engine {
   private audioService: AudioService
-  private achievementsService: AchievementsService
+  private achievements: AchievementsService
   private yandexGamesService: YandexGamesService
   private ctx: CanvasRenderingContext2D
   private game: TGame = {
@@ -109,7 +109,7 @@ export class Engine {
     if (initialScore) this.game.score = initialScore
 
     this.audioService = inject(AudioService)
-    this.achievementsService = inject(AchievementsService)
+    this.achievements = inject(AchievementsService)
     this.yandexGamesService = inject(YandexGamesService)
     this.tone = inject(ShepardTone)
     this.targetService = inject(TargetService)
@@ -150,7 +150,7 @@ export class Engine {
       })
 
       if (!this.game.multiplayer) {
-        this.achievementsService.check('stage')
+        this.achievements.check('stage')
         const meta1 = SCENE_NAMES.indexOf(this.game.sceneName)
         this.yandexGamesService.sdk?.multiplayer.sessions.push({ meta1, meta2: prophecy, meta3: 0 })
       }
@@ -172,7 +172,7 @@ export class Engine {
     this.game.prophecy.fails += 1
     this.handlers.updateCombo(this.game.combo, this.game.multiplayer)
     this.game.success = false
-    if (reason != 'timeout') {
+    if (reason !== 'timeout') {
       this.game.action = 'return'
     }
 
@@ -183,12 +183,16 @@ export class Engine {
       this.audioService.use('impact')
       this.gamepadService.vibrate(this.game.control == 'any' || this.game.control === 'gamepad1' ? 0 : 1)
       if (this.target.nameCurr.startsWith('cactus')) {
-        this.achievementsService.check('cactus')
+        this.achievements.check('cactus')
       }
       if (this.target.nameCurr.startsWith('puddle')) {
-        this.achievementsService.check('spill')
+        this.achievements.check('spill')
       }
     } else {
+      if (this.game.definingTrajectory) {
+        this.tone.stop();
+        this.game.definingTrajectory = false
+      }
       this.levelPrepare()
     }
   }
@@ -198,12 +202,12 @@ export class Engine {
     this.updateScore(TARGET_SCORE[this.target.nameCurr].success, multiplier)
 
     if (!this.target.atPosition) {
-      this.achievementsService.check('pegasus')
+      this.achievements.check('pegasus')
     }
 
     if (this.target.isObstacle) {
       if (this.target.nameCurr === 'dog') {
-        this.achievementsService.check('dog')
+        this.achievements.check('dog')
       }
     } else {
       this.game.combo += 1
@@ -215,11 +219,11 @@ export class Engine {
         this.audioService.use('combo')
       }
       if (this.game.combo === 10) {
-        this.achievementsService.check('streak')
+        this.achievements.check('streak')
       }
 
       const name = this.target.nameCurr as TAnimalName
-      this.achievementsService.check('catch', name)
+      this.achievements.check('catch', name)
 
       this.game.caught[caughtNameTransform(name)] += 1
       if (multiplier) this.game.prophecy.multiplied += 1
@@ -248,7 +252,7 @@ export class Engine {
     this.cat.jumpHeight = GAME.jumpHeightMin * (1 + (this.target.isObstacle ? this.game.upgrades.jump * 0.1 : 0))
     this.cat.trajectoryDirection = 1
     this.game.definingTrajectory = true
-    if (!this.updateIsNeeded()) {
+    if (!this.updateIsNeeded) {
       requestAnimationFrame(this.render)
     }
   }
@@ -324,7 +328,31 @@ export class Engine {
     }
   }
 
-  private scrollSpeed = () => this.cat.atPosition ? this.game.movementSpeed : Math.floor((this.game.movementSpeed / 2) * 3)
+  private get scrollSpeed() { return this.cat.atPosition ? this.game.movementSpeed : Math.floor((this.game.movementSpeed / 2) * 3) }
+
+  private get updateIsNeeded() { return this.game.action !== null && this.game.action !== 'stay' }
+
+  private runAway = () => {
+    const speed = this.game.runAwaySpeed
+    if (this.target.nameLast.startsWith('butterfly') || this.target.nameLast.startsWith('bird')) {
+      this.target.xLast -= speed * (this.target.nameLast.startsWith('bird') ? 1.8 : 1.4)
+      this.target.yLast -= this.target.nameLast.startsWith('butterfly') ? Math.random() * speed : speed
+      return
+    }
+
+    if (this.target.nameLast.startsWith('grasshopper') || this.target.nameLast.startsWith('frog')) {
+      this.target.xLast -= speed * 1.5
+      return
+    }
+
+    if (this.target.nameLast.startsWith('mouse')) {
+      this.target.xLast += speed
+      return
+    }
+
+    this.target.xLast -= this.scrollSpeed
+    return
+  }
 
   private sceneChange = () => {
     // Move last target
@@ -342,7 +370,7 @@ export class Engine {
     }
 
     // Move current target
-    this.target.xCurr -= this.scrollSpeed()
+    this.target.xCurr -= this.scrollSpeed
     if (this.target.xCurr < this.target.positionX) {
       this.target.xCurr = this.target.positionX
       this.target.atPosition = true
@@ -363,33 +391,11 @@ export class Engine {
     }
   }
 
-  private runAway = () => {
-    const speed = this.game.runAwaySpeed
-    if (this.target.nameLast.startsWith('butterfly') || this.target.nameLast.startsWith('bird')) {
-      this.target.xLast -= speed * (this.target.nameLast.startsWith('bird') ? 1.8 : 1.4)
-      this.target.yLast -= this.target.nameLast.startsWith('butterfly') ? Math.random() * speed : speed
-      return
-    }
-
-    if (this.target.nameLast.startsWith('grasshopper') || this.target.nameLast.startsWith('frog')) {
-      this.target.xLast -= speed * 1.5
-      return
-    }
-
-    if (this.target.nameLast.startsWith('mouse')) {
-      this.target.xLast += speed
-      return
-    }
-
-    this.target.xLast -= this.scrollSpeed()
-    return
-  }
-
   private render = () => {
     performance.mark(this.meter.begin)
     this.ctx.clearRect(0, 0, GENERAL.canvas.width, GENERAL.canvas.height)
     if (!this.target.atPosition && (this.game.action == 'return' || this.game.action == 'scene')) {
-      this.backdrop.move(this.scrollSpeed())
+      this.backdrop.move(this.scrollSpeed)
     } else {
       this.backdrop.draw()
     }
@@ -421,7 +427,7 @@ export class Engine {
     performance.mark(this.meter.end)
     if (this.game.fps && this.game.multiplayer === undefined) this.meter.render()
 
-    if (!this.game.paused && (this.game.definingTrajectory || this.updateIsNeeded())) {
+    if (!this.game.paused && (this.game.definingTrajectory || this.updateIsNeeded)) {
       setTimeout(this.render, this.game.updateTime)
     }
 
@@ -429,10 +435,6 @@ export class Engine {
       this.game.rendered = true
       this.handlers.renderCallback()
     }
-  }
-
-  private updateIsNeeded = (): boolean => {
-    return this.game.action !== null && this.game.action !== 'stay'
   }
 
   private levelPrepare = () => {
@@ -458,7 +460,7 @@ export class Engine {
     this.cat.atPosition = false
     this.target.atPosition = false
 
-    if (!this.updateIsNeeded()) requestAnimationFrame(this.render)
+    if (!this.updateIsNeeded) requestAnimationFrame(this.render)
     this.game.action = 'scene'
   }
 
