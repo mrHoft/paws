@@ -31,12 +31,9 @@ import { EventPreventService } from '~/service/eventPrevent'
 
 const autoStartScene: TSceneName | null = null  // 'lake'
 
-type TErrorSource = 'assets' | 'api'
-
 export class AppView {
   protected root: HTMLDivElement
   protected game: HTMLDivElement
-  protected errors: { source: TErrorSource, message: string, lapse: number }[] = []
 
   constructor() {
     const root = document.querySelector<HTMLDivElement>('#app')
@@ -125,19 +122,10 @@ export class App extends AppView {
     this.game.append(this.loaderUI.element)
     this.loading.start = Date.now()
 
-    const handleError = ({ source }: { source: TErrorSource }) => (message: string) => {
-      const lapse = Date.now() - this.loading.start
-      this.errors.push({ source, message, lapse })
-      console.error(message, `(${lapse}ms)`)
-
-      const msgEl = document.createElement('div')
-      msgEl.innerText = message
-      this.loaderUI?.addMessage(msgEl)
-    }
-
     const handleReady = async () => {
       if (GENERAL.sdk === 'yandex-games') {
         this.loading.start = Date.now()
+        this.loaderUI?.addMessage({ source: 'info' })({ message: 'Yandex games api initialization' })
         this.yandexGames = inject(YandexGamesService)
         await this.yandexGames.initSync()
           .then(sdk => {
@@ -146,7 +134,7 @@ export class App extends AppView {
             sdk.features.LoadingAPI.ready()
             console.log(`\x1b[33msdk\x1b[0m init in \x1b[33m${Date.now() - this.loading.start}ms\x1b[0m`)
           })
-          .catch(reason => handleError({ source: 'api' })(reason))
+          .catch(message => this.loaderUI?.addMessage({ source: 'api' })({ message, lapse: Date.now() - this.loading.start }))
       }
 
       this.start()
@@ -162,14 +150,17 @@ export class App extends AppView {
     }
 
     const resource = injector.createInstance(Resource)
-    resource.registerCallbacks({ progressCallback: handleProgress, errorCallback: handleError({ source: 'assets' }) })
+    resource.registerCallbacks({
+      progressCallback: handleProgress,
+      errorCallback: (message) => this.loaderUI?.addMessage({ source: 'assets' })({ message, lapse: Date.now() - this.loading.start })
+    })
 
     this.registerEvents()
   }
 
   private start = () => {
-    if (this.errors.length) return
-    this.loaderUI?.destroy()
+    if (this.loaderUI?.errors) return
+    this.loaderUI?.addMessage({ source: 'info' })({ message: 'Game ui initialization' })
 
     this.caught = inject(Caught)
     this.singlePlayerUI = injector.createInstance(SinglePlayerUI, { enginePause: this.handleEnginePause })
@@ -235,6 +226,7 @@ export class App extends AppView {
     }
 
     this.handleMenuShow()
+    queueMicrotask(this.loaderUI!.destroy)
   }
 
   private registerEvents = () => {

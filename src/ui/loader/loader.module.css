@@ -9,6 +9,8 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  background-color: var(--color-blue10);
+  z-index: 100;
 }
 
 .loader__progress {

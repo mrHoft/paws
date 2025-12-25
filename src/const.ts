@@ -27,7 +27,7 @@ export const SpriteSize = {
 
 // Core game constants
 export const GAME = {
-  version: 'v.0.5.19',
+  version: 'v.0.5.20',
   catchRange: 24, // A range where an animal can be caught
   shadowsEnable: false,
 

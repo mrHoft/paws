@@ -2,12 +2,15 @@ import { Paws } from "./paws"
 
 import styles from './loader.module.css'
 
+type TMessageSource = 'assets' | 'api' | 'info'
+
 export class LoaderUI {
   private container: HTMLDivElement
   private loaderBar: HTMLDivElement
   private loaderValue: HTMLDivElement
   private message: HTMLDivElement
   private paws: Paws
+  private _errors = 0
 
   constructor() {
     this.container = document.createElement('div')
@@ -33,13 +36,18 @@ export class LoaderUI {
     this.loaderBar.setAttribute('style', `width: ${progress}%;`)
   }
 
-  public addMessage = (msgEl: HTMLElement) => {
+  public addMessage = ({ source }: { source: TMessageSource }) => ({ message, lapse = 0 }: { message: string, lapse?: number }) => {
+    if (source !== 'info') this._errors += 1
+    console.log(message, `(${lapse}ms)`)
+
+    const msgEl = document.createElement('div')
+    msgEl.innerText = message
     this.message.appendChild(msgEl)
   }
 
-  public get element() {
-    return this.container
-  }
+  public get element() { return this.container }
+
+  public get errors() { return this._errors }
 
   public destroy = () => {
     this.paws.destroy()
