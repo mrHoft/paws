@@ -12,7 +12,7 @@ export class CopyLink {
   constructor({ text, link }: { text: string, link: string }) {
     this.yandexGames = inject(YandexGamesService)
     this.msg = document.createElement('span')
-    this.msg.innerText = 'Copied'
+    this.msg.innerText = '\u2714'
     this.msg.className = styles.copy_link__msg
 
     this.container = document.createElement('a')

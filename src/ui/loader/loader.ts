@@ -1,3 +1,4 @@
+import { GENERAL } from "~/const"
 import { Paws } from "./paws"
 
 import styles from './loader.module.css'
@@ -40,9 +41,11 @@ export class LoaderUI {
     if (source !== 'info') this._errors += 1
     console.log(message, `(${lapse}ms)`)
 
-    const msgEl = document.createElement('div')
-    msgEl.innerText = message
-    this.message.appendChild(msgEl)
+    if (GENERAL.sdk !== 'yandex-games') {
+      const msgEl = document.createElement('div')
+      msgEl.innerText = message
+      this.message.appendChild(msgEl)
+    }
   }
 
   public get element() { return this.container }
