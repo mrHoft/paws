@@ -21,7 +21,7 @@ import { ShepardTone, type ShepardToneConfig } from '~/service/shepardTone'
 import { SoundService } from "~/service/sound";
 import { Localization } from '~/service/localization'
 import { WindowFocusService } from '~/service/focus'
-import { YandexGamesService } from '~/service/sdk/yandex'
+import { SDKService } from '~/service/sdk/sdk'
 import { MultiplayerMenu } from '~/ui/menu/multiplayer'
 import { Caught } from '~/ui/caught/caught'
 import { injector, inject } from '~/utils/inject'
@@ -31,9 +31,12 @@ import { EventPreventService } from '~/service/eventPrevent'
 
 const autoStartScene: TSceneName | null = null  // 'lake'
 
+type TErrorSource = 'assets' | 'api'
+
 export class AppView {
   protected root: HTMLDivElement
   protected game: HTMLDivElement
+  protected errors: { source: TErrorSource, message: string, lapse: number }[] = []
 
   constructor() {
     const root = document.querySelector<HTMLDivElement>('#app')
@@ -68,10 +71,11 @@ export class App extends AppView {
   private loaderUI?: LoaderUI
   private weather?: Weather
   private audioService: AudioService
+  private soundService: SoundService
   private mainMenu?: MainMenu
   private storage: Storage
   private focusService: WindowFocusService
-  private yandexGames?: YandexGamesService
+  private sdkService?: SDKService
   private caught?: Caught
   private engineStart?: (options1?: EngineOptions, options2?: EngineOptions) => void
   private enginePause?: (state: boolean, force?: boolean) => void
@@ -107,13 +111,13 @@ export class App extends AppView {
     }
     const tone = injector.createInstance(ShepardTone, config)
 
-    const soundService = injector.createInstance(SoundService)
-    soundService.volume = soundVolume
+    this.soundService = injector.createInstance(SoundService)
+    this.soundService.volume = soundVolume
 
     this.focusService = new WindowFocusService()
     this.focusService.registerCallback({
-      focusLoss: () => { this.audioService.mute = true; soundService.mute = true; tone.stop() },
-      focusGain: () => { this.audioService.mute = false; soundService.mute = false }
+      focusLoss: () => { this.audioService.mute = true; this.soundService.mute = true; tone.stop() },
+      focusGain: () => { this.audioService.mute = false; this.soundService.mute = false }
     })
   }
 
@@ -122,22 +126,14 @@ export class App extends AppView {
     this.game.append(this.loaderUI.element)
     this.loading.start = Date.now()
 
-    const handleReady = async () => {
-      if (GENERAL.sdk === 'yandex-games') {
-        this.loading.start = Date.now()
-        this.loaderUI?.addMessage({ source: 'info' })({ message: 'Yandex games api initialization' })
-        this.yandexGames = inject(YandexGamesService)
-        await this.yandexGames.initSync()
-          .then(sdk => {
-            const lang = sdk.environment.i18n.lang
-            if (lang) this.loc.language = lang
-            sdk.features.LoadingAPI.ready()
-            console.log(`\x1b[33msdk\x1b[0m init in \x1b[33m${Date.now() - this.loading.start}ms\x1b[0m`)
-          })
-          .catch(message => this.loaderUI?.addMessage({ source: 'api' })({ message, lapse: Date.now() - this.loading.start }))
-      }
+    const handleError = ({ source }: { source: TErrorSource }) => (message: string) => {
+      const lapse = Date.now() - this.loading.start
+      this.errors.push({ source, message, lapse })
+      console.error(message, `(${lapse}ms)`)
 
-      this.start()
+      const msgEl = document.createElement('div')
+      msgEl.innerText = message
+      this.loaderUI?.addMessage(msgEl)
     }
 
     const handleProgress = (progress: number) => {
@@ -145,38 +141,54 @@ export class App extends AppView {
 
       if (progress === 100) {
         console.log(`\x1b[33m${resource.total}\x1b[0m assets loaded in \x1b[33m${Date.now() - this.loading.start}ms\x1b[0m`)
-        handleReady()
+        this.sdkService?.loading.ready()
+        this.start()
       }
     }
 
+    // Initialization sequence
+    this.sdkService = inject(SDKService)
+    await this.sdkService.initSync()
+      .then(() => {
+        console.log(`\x1b[33mSDK\x1b[0m init in \x1b[33m${Date.now() - this.loading.start}ms\x1b[0m`)
+      })
+      .catch(reason => handleError({ source: 'api' })(reason))
+    const lang = this.sdkService.lang
+    if (lang) this.loc.language = lang
+
+    this.sdkService.settings.addSettingsChangeListener(this.handlers.sdkSettingsChange)
+    if (this.sdkService.settings.isAudioMuted) {
+      this.audioService.mute = true
+      this.soundService.mute = true
+    }
+
+    this.loading.start = Date.now()
     const resource = injector.createInstance(Resource)
-    resource.registerCallbacks({
-      progressCallback: handleProgress,
-      errorCallback: (message) => this.loaderUI?.addMessage({ source: 'assets' })({ message, lapse: Date.now() - this.loading.start })
-    })
+    resource.registerCallbacks({ progressCallback: handleProgress, errorCallback: handleError({ source: 'assets' }) })
+    resource.init()
 
     this.registerEvents()
   }
 
   private start = () => {
-    if (this.loaderUI?.errors) return
-    this.loaderUI?.addMessage({ source: 'info' })({ message: 'Game ui initialization' })
+    if (this.errors.length) return
+    this.loaderUI?.destroy()
 
     this.caught = inject(Caught)
-    this.singlePlayerUI = injector.createInstance(SinglePlayerUI, { enginePause: this.handleEnginePause })
+    this.singlePlayerUI = injector.createInstance(SinglePlayerUI, { enginePause: this.handlers.enginePause })
     this.multiplayerUI = new MultiplayerUI()
     this.confirmationModal = injector.createInstance(ConfirmationModal)
     const aboutUI = injector.createInstance(AboutUI)
     this.settingsUI = injector.createInstance(SettingsUI)
     const upgradeUI = injector.createInstance(UpgradeUI)
-    const leaderboardUI = injector.createInstance(LeaderboardUI)
+    const leaderboardUI = GENERAL.sdk === 'yandexGames' ? injector.createInstance(LeaderboardUI) : null
     const achievementsUI = injector.createInstance(AchievementsUI)
     const multiplayerMenu = injector.createInstance(MultiplayerMenu, { startMultiplayerGame: this.startMultiplayerGame })
     this.mainMenu = new MainMenu({ startSinglePlayerGame: this.startSinglePlayerGame })
     this.pauseModal = new PauseModal({
-      pause: (state: boolean) => { this.handleEnginePause(state); this.weather?.pause(state) },
-      restart: this.handleEngineRestart,
-      menu: this.handleMenuShow
+      pause: (state: boolean) => { this.handlers.enginePause(state); this.weather?.pause(state) },
+      restart: this.handlers.engineRestart,
+      menu: this.handlers.menuShow
     })
     this.canvas = Array.from({ length: 2 }, (_, i) => {
       const el = document.createElement('canvas')
@@ -188,10 +200,10 @@ export class App extends AppView {
     })
     this.weather = new Weather()
     this.weather?.element.setAttribute('style', 'display: none;')
-    this.stageCompleteModal = new StageCompleteModal({ menu: this.handleMenuShow, sceneUpdate: this.mainMenu.sceneUpdate })
+    this.stageCompleteModal = new StageCompleteModal({ menu: this.handlers.menuShow, sceneUpdate: this.mainMenu.sceneUpdate })
     this.winModal = new WinModal({
-      restart: this.handleEngineRestart,
-      menu: this.handleMenuShow
+      restart: this.handlers.engineRestart,
+      menu: this.handlers.menuShow
     })
     const message = inject(Message)
 
@@ -202,7 +214,6 @@ export class App extends AppView {
       this.singlePlayerUI.element,
       this.multiplayerUI.element,
       upgradeUI.element,
-      leaderboardUI.element,
       achievementsUI.element,
       multiplayerMenu.element,
       aboutUI.element,
@@ -213,6 +224,7 @@ export class App extends AppView {
       this.confirmationModal.element,
       message.element
     )
+    if (leaderboardUI) this.game.append(leaderboardUI.element)
 
     if (autoStartScene) {
       this.initGame().then(() => {
@@ -225,8 +237,7 @@ export class App extends AppView {
       return
     }
 
-    this.handleMenuShow()
-    queueMicrotask(this.loaderUI!.destroy)
+    this.handlers.menuShow()
   }
 
   private registerEvents = () => {
@@ -253,9 +264,9 @@ export class App extends AppView {
         this.pauseModal?.show(state)
         this.weather?.pause(state)
       },
-      updateCombo: this.handleUpdateCombo,
-      updateScore: this.handleUpdateScore,
-      updateProgress: this.handleUpdateProgress,
+      updateCombo: this.handlers.updateCombo,
+      updateScore: this.handlers.updateScore,
+      updateProgress: this.handlers.updateProgress,
       updateCaught: (value: string) => this.caught?.handleUpdate(value),
       showTooltip: (value: string) => this.singlePlayerUI?.handleTooltip(value),
       handleFinish: (result: { scene: string, score: number, time: number, caught?: number, player?: 'top' | 'bottom' }) => {
@@ -266,7 +277,7 @@ export class App extends AppView {
           this.stageCompleteModal?.handleComplete(result)
         }
       },
-      renderCallback: () => { this.handleSdkApiState(true) }
+      renderCallback: () => { this.handlers.sdkApiState(true) }
     }
     const engines = Array.from({ length: 2 }, (_, i) => new Engine({ ctx: this.canvas[i].getContext('2d')!, handlers }))
 
@@ -274,7 +285,7 @@ export class App extends AppView {
       engines.forEach((engine) => {
         engine.pause(state, force)
       })
-      this.handleSdkApiState(!state)
+      this.handlers.sdkApiState(!state)
     }
 
     this.engineStart = (options1?: EngineOptions, options2?: EngineOptions) => {
@@ -300,7 +311,7 @@ export class App extends AppView {
       engines.forEach((engine) => {
         engine.stop()
       })
-      this.handleSdkApiState(false)
+      this.handlers.sdkApiState(false)
     }
 
     this.settingsUI?.registerCallback({
@@ -312,7 +323,7 @@ export class App extends AppView {
     this.focusService.registerCallback({
       focusLoss: () => {
         if (engines[0].isActive) {
-          this.handleEnginePause(true);
+          this.handlers.enginePause(true);
           this.weather?.pause(true);
         }
       },
@@ -342,55 +353,62 @@ export class App extends AppView {
     }
   }
 
-  private handleEngineRestart = () => {
-    if (this.engineStart) {
-      if (this.multiplayer) {
-        this.engineStart(this.multiplayer.options1, this.multiplayer.options2)
-      } else {
-        this.engineStart()
+  private handlers = {
+    sdkSettingsChange: (newSettings: { muteAudio: boolean }) => {
+      this.audioService.mute = newSettings.muteAudio
+      this.soundService.mute = newSettings.muteAudio
+    },
+    engineRestart: () => {
+      if (this.engineStart) {
+        if (this.multiplayer) {
+          this.engineStart(this.multiplayer.options1, this.multiplayer.options2)
+        } else {
+          this.engineStart()
+        }
+        this.weather?.pause(false)
       }
-      this.weather?.pause(false)
+    },
+
+    enginePause: (state: boolean) => {
+      if (this.enginePause) {
+        this.enginePause(state)
+      }
+    },
+
+    updateScore: (value: number, player?: 'top' | 'bottom') => {
+      this.singlePlayerUI?.handleScore(value)
+      this.multiplayerUI?.handleScore(value, player)
+    },
+
+    updateCombo: (value: number, player?: 'top' | 'bottom') => {
+      this.singlePlayerUI?.handleCombo(value)
+      this.multiplayerUI?.handleCombo(value, player)
+    },
+
+    updateProgress: (value: number, player?: 'top' | 'bottom') => {
+      this.singlePlayerUI?.handleProgress(value)
+      this.multiplayerUI?.handleProgress(value, player)
+    },
+
+    menuShow: () => {
+      if (this.engineStop) this.engineStop();
+      this.singlePlayerUI?.toggleView('menu')
+      this.multiplayerUI?.show(false)
+      this.canvas.forEach(el => el.setAttribute('style', 'display: none;'))
+      this.multiplayer = null
+      this.weather?.pause(true)
+      this.weather?.element.setAttribute('style', 'display: none;')
+      this.mainMenu?.show()
+    },
+
+    sdkApiState: (state: boolean) => {
+      // console.log('Gameplay:', state ? 'start' : 'stop')
+      if (state) {
+        this.sdkService?.gameplay.start()
+      } else {
+        this.sdkService?.gameplay.stop()
+      }
     }
-  }
 
-  private handleEnginePause = (state: boolean) => {
-    if (this.enginePause) {
-      this.enginePause(state)
-    }
-  }
-
-  private handleUpdateScore = (value: number, player?: 'top' | 'bottom') => {
-    this.singlePlayerUI?.handleScore(value)
-    this.multiplayerUI?.handleScore(value, player)
-  }
-
-  private handleUpdateCombo = (value: number, player?: 'top' | 'bottom') => {
-    this.singlePlayerUI?.handleCombo(value)
-    this.multiplayerUI?.handleCombo(value, player)
-  }
-
-  private handleUpdateProgress = (value: number, player?: 'top' | 'bottom') => {
-    this.singlePlayerUI?.handleProgress(value)
-    this.multiplayerUI?.handleProgress(value, player)
-  }
-
-  private handleMenuShow = () => {
-    if (this.engineStop) this.engineStop();
-    this.singlePlayerUI?.toggleView('menu')
-    this.multiplayerUI?.show(false)
-    this.canvas.forEach(el => el.setAttribute('style', 'display: none;'))
-    this.multiplayer = null
-    this.weather?.pause(true)
-    this.weather?.element.setAttribute('style', 'display: none;')
-    this.mainMenu?.show()
-  }
-
-  private handleSdkApiState = (state: boolean) => {
-    // console.log('Gameplay API:', state ? 'start' : 'stop')
-    if (state) {
-      this.yandexGames?.sdk?.features.GameplayAPI.start()
-    } else {
-      this.yandexGames?.sdk?.features.GameplayAPI.stop()
-    }
   }
 }

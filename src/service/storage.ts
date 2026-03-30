@@ -71,7 +71,7 @@ export class Storage extends Crypt {
         if (encryptedData) {
           const data = this.decrypt<GameData>(encryptedData)
           if (data) {
-            this._state.data = data
+            this._state.data = { ...this._state.data, ...data }
           }
         }
       }

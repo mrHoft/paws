@@ -91,6 +91,9 @@ export class LeaderboardUI extends LeaderboardView {
       for (const item of leaderboard) {
         this.leaderboard.append(this.createEntry(item))
       }
+    }).catch(e => {
+      console.log(e)
+      this.leaderboard.innerHTML = this.loc.get('loadingError')
     })
   }
 

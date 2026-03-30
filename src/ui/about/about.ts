@@ -4,6 +4,7 @@ import { GamepadService } from "~/service/gamepad"
 import { Injectable, inject } from "~/utils/inject"
 import { iconSrc } from "~/ui/icons"
 import { CopyLink } from "../copy-link/copy"
+import { GENERAL } from "~/const"
 
 import modal from '~/ui/modal.module.css'
 import layer from '~/ui/layers.module.css'
@@ -50,7 +51,15 @@ class AboutView {
   }
 
   private createContent() {
-    const link = new CopyLink({ text: 'mrHoft', link: 'mrHoft@yandex.ru' }).element
+    const link = (() => {
+      if (GENERAL.sdk === 'yandexGames') {
+        const text = document.createElement('span')
+        text.innerText = 'mrHoft'
+        return text
+      } else {
+        return new CopyLink({ text: 'mrHoft', link: 'https://github.com/mrHoft' }).element
+      }
+    })()
 
     const author = document.createElement('p')
     const text = document.createElement('span')
@@ -58,7 +67,7 @@ class AboutView {
     author.append(text, '\u00a0', link)
 
     const copyright = document.createElement('div')
-    copyright.innerText = '© 2025'
+    copyright.innerText = '© Daytec 2025 - 2026'
 
     return [author, copyright]
   }

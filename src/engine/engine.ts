@@ -1,4 +1,4 @@
-import { GENERAL, ANIMALS, OBSTACLES, GAME, TARGET_SCORE, SCENE_NAMES, caughtDefault, type TAnimalName } from '~/const'
+import { GENERAL, ANIMALS, OBSTACLES, GAME, TARGET_SCORE, caughtDefault, type TAnimalName } from '~/const'
 import { Draw } from './draw'
 import { Resource } from './resource'
 import { Backdrop } from './backdrop'
@@ -14,8 +14,7 @@ import type { GifObject } from '~/utils/gif'
 import { AudioService } from '~/service/audio'
 import { ShepardTone } from '~/service/shepardTone'
 import { inject } from '~/utils/inject'
-import { caughtNameTransform } from "~/utils/caught";
-import { YandexGamesService } from '~/service/sdk/yandex'
+import { caughtNameTransform } from "~/utils/caught"
 
 const prophecyDefault = {
   total: GAME.roundLength,
@@ -31,8 +30,8 @@ const upgradesDefault = {
 
 export class Engine {
   private audioService: AudioService
-  private achievements: AchievementsService
-  private yandexGamesService: YandexGamesService
+  private achievementsService: AchievementsService
+  // private sdkService: SDKService
   private ctx: CanvasRenderingContext2D
   private game: TGame = {
     sceneName: 'default',
@@ -109,8 +108,8 @@ export class Engine {
     if (initialScore) this.game.score = initialScore
 
     this.audioService = inject(AudioService)
-    this.achievements = inject(AchievementsService)
-    this.yandexGamesService = inject(YandexGamesService)
+    this.achievementsService = inject(AchievementsService)
+    // this.sdkService = inject(SDKService)
     this.tone = inject(ShepardTone)
     this.targetService = inject(TargetService)
     this.gamepadService = inject(GamepadService)
@@ -150,9 +149,11 @@ export class Engine {
       })
 
       if (!this.game.multiplayer) {
-        this.achievements.check('stage')
+        this.achievementsService.check('stage')
+        /*
         const meta1 = SCENE_NAMES.indexOf(this.game.sceneName)
-        this.yandexGamesService.sdk?.multiplayer.sessions.push({ meta1, meta2: prophecy, meta3: 0 })
+        this.sdkService.multiplayer.sessions.push({ meta1, meta2: prophecy, meta3: 0 })
+        */
       }
     }
   }
@@ -183,10 +184,10 @@ export class Engine {
       this.audioService.use('impact')
       this.gamepadService.vibrate(this.game.control == 'any' || this.game.control === 'gamepad1' ? 0 : 1)
       if (this.target.nameCurr.startsWith('cactus')) {
-        this.achievements.check('cactus')
+        this.achievementsService.check('cactus')
       }
       if (this.target.nameCurr.startsWith('puddle')) {
-        this.achievements.check('spill')
+        this.achievementsService.check('spill')
       }
     } else {
       if (this.game.definingTrajectory) {
@@ -202,12 +203,12 @@ export class Engine {
     this.updateScore(TARGET_SCORE[this.target.nameCurr].success, multiplier)
 
     if (!this.target.atPosition) {
-      this.achievements.check('pegasus')
+      this.achievementsService.check('pegasus')
     }
 
     if (this.target.isObstacle) {
       if (this.target.nameCurr === 'dog') {
-        this.achievements.check('dog')
+        this.achievementsService.check('dog')
       }
     } else {
       this.game.combo += 1
@@ -219,11 +220,11 @@ export class Engine {
         this.audioService.use('combo')
       }
       if (this.game.combo === 10) {
-        this.achievements.check('streak')
+        this.achievementsService.check('streak')
       }
 
       const name = this.target.nameCurr as TAnimalName
-      this.achievements.check('catch', name)
+      this.achievementsService.check('catch', name)
 
       this.game.caught[caughtNameTransform(name)] += 1
       if (multiplier) this.game.prophecy.multiplied += 1
@@ -278,11 +279,13 @@ export class Engine {
       // console.log('Jump height: ', this.cat.jumpHeight, '/', this.game.successHeight, this.game.success)
 
       if (!this.game.multiplayer) {
-        this.yandexGamesService.sdk?.multiplayer.sessions.commit({
+        /*
+        this.sdkService.multiplayer.sessions.commit({
           jump: this.cat.jumpHeight,
           success: this.game.success,
           target: this.target.nameCurr
         })
+        */
       }
     }
   }
@@ -529,7 +532,7 @@ export class Engine {
       }, 3000)
     } else {
       this.tooltip.show('startNewGame')
-      this.yandexGamesService.sdk?.multiplayer.sessions.init()
+      // this.sdkService.multiplayer.sessions.init()
     }
   }
 

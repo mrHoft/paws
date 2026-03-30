@@ -69,7 +69,6 @@ export class Resource {
 
   constructor() {
     this.total = Object.keys(assets).length
-    this.initialize()
   }
 
   public getImageBitmap = (name: string) => this.sprite[name] as ImageBitmap
@@ -126,7 +125,7 @@ export class Resource {
       return null
     })
 
-  private initialize = () => {
+  public init = () => {
     const keys = Object.keys(assets)
     for (const key of keys) {
       const fileName = assets[key]

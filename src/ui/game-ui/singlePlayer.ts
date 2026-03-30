@@ -5,7 +5,8 @@ import { Caught } from '~/ui/caught/caught'
 import { Localization } from '~/service/localization'
 import { inject } from '~/utils/inject'
 import { FullscreenService } from '~/service/fullscreen'
-import { YandexGamesService } from '~/service/sdk/yandex'
+import { SDKService } from '~/service/sdk/sdk'
+import { InstallManager } from '~/service/installManager'
 
 import styles from './ui.module.css'
 import layer from '~/ui/layers.module.css'
@@ -79,14 +80,16 @@ export class SinglePlayerUI extends SinglePlayerView {
   private btnPause: HTMLDivElement
   private caught: Caught
   private fullscreen: FullscreenService
-  private yandexGames: YandexGamesService
+  private sdkService: SDKService
+  private installManager: InstallManager
 
   constructor({ enginePause }: { enginePause: (_show: boolean) => void }) {
     super()
     this.audioService = inject(AudioService)
     this.caught = inject(Caught)
     this.fullscreen = inject(FullscreenService)
-    this.yandexGames = inject(YandexGamesService)
+    this.sdkService = inject(SDKService)
+    this.installManager = inject(InstallManager)
 
     this.btnSound = buttonIcon({ src: this.audioService.muted ? iconSrc.soundOn : iconSrc.soundOff })
     const soundIconElement = this.btnSound.children[0] as HTMLImageElement
@@ -101,28 +104,28 @@ export class SinglePlayerUI extends SinglePlayerView {
     upperRight.append(this.btnSound)
     this.upper.append(upperLeft, this.caught.element, upperRight)
 
+    const bottomLeft = document.createElement('div')
     this.btnPause = buttonIcon({ src: iconSrc.pause })
     this.btnPause.addEventListener('mousedown', (event) => {
       event.stopPropagation()
       enginePause(true)
     })
-
-    const bottomLeft = document.createElement('div')
     bottomLeft.append(this.btnPause)
-    this.bottom.append(bottomLeft)
-
-    const btnFullscreen = buttonIcon({ src: iconSrc.fullscreen })
-    const fullscreenIconElement = btnFullscreen.children[0] as HTMLImageElement
-    btnFullscreen.addEventListener('mousedown', (event) => {
-      event.stopPropagation()
-      this.handleFullscreenToggle(fullscreenIconElement)
-    })
-    this.fullscreen.registerEvents({ 'fullscreenchange': this.onFullscreenChange(fullscreenIconElement) })
-    this.onFullscreenChange(fullscreenIconElement)()
 
     const bottomRight = document.createElement('div')
-    bottomRight.append(btnFullscreen)
-    this.bottom.append(bottomRight)
+    if (this.installManager.getDeviceType() === 'desktop') {
+      const btnFullscreen = buttonIcon({ src: iconSrc.fullscreen })
+      const fullscreenIconElement = btnFullscreen.children[0] as HTMLImageElement
+      btnFullscreen.addEventListener('mousedown', (event) => {
+        event.stopPropagation()
+        this.handleFullscreenToggle(fullscreenIconElement)
+      })
+      this.fullscreen.registerEvents({ 'fullscreenchange': this.onFullscreenChange(fullscreenIconElement) })
+      this.onFullscreenChange(fullscreenIconElement)()
+      bottomRight.append(btnFullscreen)
+    }
+
+    this.bottom.append(bottomLeft, bottomRight)
   }
 
   public toggleView = (view: 'menu' | 'single-player' | 'multiplayer') => {
@@ -179,14 +182,14 @@ export class SinglePlayerUI extends SinglePlayerView {
   }
 
   private handleFullscreenToggle = (iconElement: HTMLImageElement) => {
-    const active = this.yandexGames.sdk ? this.yandexGames.sdk.screen.fullscreen.status === 'on' : this.fullscreen.isFullscreenActive()
+    const active = this.sdkService.sdk.yandexGames ? this.sdkService.sdk.yandexGames.screen.fullscreen.status === 'on' : this.fullscreen.isFullscreenActive()
     const element = document.querySelector('main')
     if (element) {
-      if (this.yandexGames.sdk) {
+      if (this.sdkService.sdk.yandexGames) {
         if (active) {
-          this.yandexGames.sdk.screen.fullscreen.exit()
+          this.sdkService.sdk.yandexGames.screen.fullscreen.exit()
         } else {
-          this.yandexGames.sdk.screen.fullscreen.request()
+          this.sdkService.sdk.yandexGames.screen.fullscreen.request()
         }
       } else {
         this.fullscreen.switch(!active, element)
@@ -196,7 +199,7 @@ export class SinglePlayerUI extends SinglePlayerView {
   }
 
   private onFullscreenChange = (iconElement: HTMLImageElement) => () => {
-    const active = this.yandexGames.sdk ? this.yandexGames.sdk.screen.fullscreen.status === 'on' : this.fullscreen.isFullscreenActive()
+    const active = this.sdkService.sdk.yandexGames ? this.sdkService.sdk.yandexGames.screen.fullscreen.status === 'on' : this.fullscreen.isFullscreenActive()
     iconElement.src = active ? iconSrc.fullscreenExit : iconSrc.fullscreen
   }
 

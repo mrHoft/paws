@@ -1,4 +1,4 @@
-import { GAME, GENERAL, SCENE_NAMES, SCENE_TARGETS, ANIMALS, type TSceneName, type TAnimalName } from "~/const"
+import { GENERAL, SCENE_NAMES, SCENE_TARGETS, ANIMALS, type TSceneName, type TAnimalName } from "~/const"
 import { buttonCircle, buttonIcon, buttonClose } from "~/ui/button"
 import { SettingsUI } from "~/ui/settings/settings"
 import { AboutUI } from "~/ui/about/about"
@@ -102,10 +102,10 @@ class MenuView {
     this.scene = this.sceneCreate()
     this.container.append(backdrop, this.gamepadSupport, levels, this.menu, this.scene.element)
 
-    if (GAME.version) {
+    if (GENERAL.version) {
       const version = document.createElement('div')
       version.className = `${styles.version} text-shadow`
-      version.innerText = GAME.version
+      version.innerText = GENERAL.version
       this.container.append(version)
     }
   }
@@ -213,7 +213,7 @@ export class MainMenu extends MenuView {
   private settingsUI: SettingsUI
   private aboutUI: AboutUI
   private upgradeUI: UpgradeUI
-  private leaderboardUI: LeaderboardUI
+  private leaderboardUI?: LeaderboardUI
   private achievementsUI: AchievementsUI
   private deviceType: 'desktop' | 'android' | 'iOS'
 
@@ -241,10 +241,12 @@ export class MainMenu extends MenuView {
     this.aboutUI.registerCallback({ onClose })
     this.upgradeUI = inject(UpgradeUI)
     this.upgradeUI.registerCallbacks({ onClose, onUpdate: this.handleMarkersUpdate })
-    this.leaderboardUI = inject(LeaderboardUI)
-    this.leaderboardUI.registerCallbacks({ onClose })
     this.achievementsUI = inject(AchievementsUI)
     this.achievementsUI.registerCallbacks({ onClose })
+    if (GENERAL.sdk === 'yandexGames') {
+      this.leaderboardUI = inject(LeaderboardUI)
+      this.leaderboardUI.registerCallbacks({ onClose })
+    }
 
     this.menuInit()
     this.sceneInit()
@@ -258,10 +260,14 @@ export class MainMenu extends MenuView {
       { id: 'start', icon: iconSrc.start, func: () => { this.activeMenuItemId = 'start'; this.handleStart() } },
       { id: 'twoPlayers', icon: iconSrc.gamepad, func: () => { this.isActive = false; this.multiplayerMenu.show() } },
       { id: 'upgrades', icon: iconSrc.upgrade, marker: true, func: () => { this.isActive = false; this.upgradeUI.show() } },
-      { id: 'leaderboard', icon: iconSrc.crown, marker: true, func: () => { this.isActive = false; this.leaderboardUI.show() } },
-      { id: 'achievements', icon: iconSrc.achievement, marker: true, func: () => { this.isActive = false; this.achievementsUI.show() } },
       { id: 'settings', icon: iconSrc.settings, func: () => { this.isActive = false; this.settingsUI.show() } },
+      { id: 'achievements', icon: iconSrc.achievement, marker: true, func: () => { this.isActive = false; this.achievementsUI.show() } },
     ]
+    if (GENERAL.sdk === 'yandexGames') {
+      menuItems.push(
+        { id: 'leaderboard', icon: iconSrc.crown, marker: true, func: () => { this.isActive = false; this.leaderboardUI?.show() } }
+      )
+    }
     if (this.deviceType !== 'desktop') {
       const index = menuItems.findIndex(item => item.id === 'twoPlayers')
       if (index !== -1) {

@@ -1,9 +1,6 @@
-import { GENERAL } from "~/const"
 import { Paws } from "./paws"
 
 import styles from './loader.module.css'
-
-type TMessageSource = 'assets' | 'api' | 'info'
 
 export class LoaderUI {
   private container: HTMLDivElement
@@ -11,7 +8,6 @@ export class LoaderUI {
   private loaderValue: HTMLDivElement
   private message: HTMLDivElement
   private paws: Paws
-  private _errors = 0
 
   constructor() {
     this.container = document.createElement('div')
@@ -22,6 +18,7 @@ export class LoaderUI {
     this.loaderBar.classList.add(styles.loader__progress_bar)
     this.loaderValue = document.createElement('div')
     this.loaderValue.classList.add(styles.loader__progress_value)
+    this.loaderValue.innerText = '0%'
     progress.append(this.loaderBar, this.loaderValue)
 
     this.message = document.createElement('div')
@@ -37,20 +34,13 @@ export class LoaderUI {
     this.loaderBar.setAttribute('style', `width: ${progress}%;`)
   }
 
-  public addMessage = ({ source }: { source: TMessageSource }) => ({ message, lapse = 0 }: { message: string, lapse?: number }) => {
-    if (source !== 'info') this._errors += 1
-    console.log(message, `(${lapse}ms)`)
-
-    if (GENERAL.sdk !== 'yandex-games') {
-      const msgEl = document.createElement('div')
-      msgEl.innerText = message
-      this.message.appendChild(msgEl)
-    }
+  public addMessage = (msgEl: HTMLElement) => {
+    this.message.appendChild(msgEl)
   }
 
-  public get element() { return this.container }
-
-  public get errors() { return this._errors }
+  public get element() {
+    return this.container
+  }
 
   public destroy = () => {
     this.paws.destroy()

@@ -1,16 +1,16 @@
 import { Storage } from "./storage"
-import { YandexGamesService } from "./sdk/yandex"
+import { SDKService } from "./sdk/sdk"
 import { LeaderboardService } from "~/service/leaderboard"
 import { inject } from "~/utils/inject"
 
 export class ScoreService {
   private storage: Storage
-  private yandexGames: YandexGamesService
+  private sdkService: SDKService
   private leaderboardService: LeaderboardService
 
   constructor() {
     this.storage = inject(Storage)
-    this.yandexGames = inject(YandexGamesService)
+    this.sdkService = inject(SDKService)
     this.leaderboardService = inject(LeaderboardService)
   }
 
@@ -26,9 +26,7 @@ export class ScoreService {
     const totalScore = Object.values(sceneData).reduce((acc, cur) => acc + cur.score, 0)
     this.storage.set('data.score', totalScore)
 
-    if (this.yandexGames.sdk) {
-      await this.yandexGames.sdk.leaderboards.setScore('leaderboard', totalScore)
-    }
+    await this.sdkService.leaderboards.setScore('leaderboard', totalScore)
     this.leaderboardService.update()
   }
 }

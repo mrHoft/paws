@@ -1,7 +1,16 @@
 import { iconSrc } from "~/ui/icons"
+import type { TSDK } from "./service/sdk/types"
 
-export const GENERAL = {
-  sdk: null,  // 'yandex-games',  // | null
+interface General {
+  version: string | null
+  sdk: TSDK | null
+  canvas: { width: number, height: number, aspectRatio: number }
+  thumb: { width: number, height: number }
+}
+
+export const GENERAL: General = {
+  version: 'v.0.5.20',
+  sdk: null,
   canvas: {
     width: 1280,
     height: 720,
@@ -25,9 +34,7 @@ export const SpriteSize = {
   },
 }
 
-// Core game constants
 export const GAME = {
-  version: 'v.0.5.20',
   catchRange: 24, // A range where an animal can be caught
   shadowsEnable: false,
 

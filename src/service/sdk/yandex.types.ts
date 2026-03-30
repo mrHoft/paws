@@ -1,11 +1,11 @@
 declare global {
   const YaGames: {
-    init<TGlobalSigned extends boolean = false>(opts?: { signed?: TGlobalSigned }): Promise<SDK<TGlobalSigned>>;
+    init<TGlobalSigned extends boolean = false>(opts?: { signed?: TGlobalSigned }): Promise<YandexGamesSDK<TGlobalSigned>>;
   };
-  var sdk: SDK | undefined;
+  var sdk: YandexGamesSDK | undefined;
 }
 
-export interface SDK<TGlobalSigned extends boolean = false> {
+export interface YandexGamesSDK<TGlobalSigned extends boolean = false> {
   EVENTS: {
     ACCOUNT_SELECTION_DIALOG_CLOSED: "ACCOUNT_SELECTION_DIALOG_CLOSED";
     ACCOUNT_SELECTION_DIALOG_OPENED: "ACCOUNT_SELECTION_DIALOG_OPENED";
