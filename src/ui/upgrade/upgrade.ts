@@ -294,7 +294,7 @@ export class UpgradeUI extends UpgradeView {
     })
 
     this.container.addEventListener('click', event => {
-      event.preventDefault()
+      event.stopPropagation()
       const { target, currentTarget } = event;
       if (target === currentTarget) {
         this.show(false)
@@ -302,7 +302,8 @@ export class UpgradeUI extends UpgradeView {
       }
     })
 
-    this.close.addEventListener('click', () => {
+    this.close.addEventListener('click', event => {
+      event.stopPropagation()
       this.show(false)
       if (this.callbacks.onClose) this.callbacks.onClose()
     })
@@ -314,7 +315,10 @@ export class UpgradeUI extends UpgradeView {
           this.handleOptionSelect()
         }
       })
-      item.element.addEventListener('click', () => this.handleUpgrade(item.name))
+      item.element.addEventListener('click', event => {
+        event.stopPropagation()
+        this.handleUpgrade(item.name)
+      })
     })
     this.handleOptionSelect(true)
   }

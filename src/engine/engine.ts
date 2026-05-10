@@ -99,10 +99,10 @@ export class Engine {
     }
   }
 
-  constructor({ ctx, handlers, initialScore }: { ctx: CanvasRenderingContext2D, handlers: EngineHandlers, initialScore?: number }) {
+  constructor({ canvas, handlers, initialScore }: { canvas: HTMLCanvasElement, handlers: EngineHandlers, initialScore?: number }) {
     this.handlers = handlers
 
-    this.ctx = ctx
+    this.ctx = canvas.getContext('2d')!
     this.ctx.font = '32px Arial'
 
     if (initialScore) this.game.score = initialScore
@@ -116,9 +116,9 @@ export class Engine {
     this.resource = inject(Resource)
     this.cat.source = this.resource.sprite.cat1 as GifObject
     this.meter = new PerformanceMeter(this.ctx)
-    this.draw = new Draw({ ctx })
+    this.draw = new Draw({ ctx: this.ctx })
     this.flyingValues = new FlyingValues(this.ctx)
-    this.backdrop = new Backdrop({ ctx })
+    this.backdrop = new Backdrop({ ctx: this.ctx })
     this.tooltip = new Tooltip(this.handlers.showTooltip)
     this.events = inject(EventsService)
   }

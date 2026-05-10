@@ -234,7 +234,8 @@ export class SettingsUI extends SettingsView {
     }
 
     this.container.addEventListener('click', handleOutsideClick)
-    this.close.addEventListener('click', () => {
+    this.close.addEventListener('click', event => {
+      event.stopPropagation()
       this.show(false)
       if (this.onClose) this.onClose()
     })

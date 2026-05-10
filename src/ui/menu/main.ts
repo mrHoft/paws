@@ -127,7 +127,8 @@ class MenuView {
 
 
     const sceneClose = buttonClose()
-    sceneClose.addEventListener('click', () => {
+    sceneClose.addEventListener('click', event => {
+      event.stopPropagation()
       this.scene.element.setAttribute('style', 'display: none;')
     })
 
@@ -297,7 +298,11 @@ export class MainMenu extends MenuView {
   private aboutInit = () => {
     const btnAbout = buttonIcon({ src: iconSrc.about })
     btnAbout.classList.add(styles['top-right'])
-    btnAbout.addEventListener('click', () => { this.isActive = false; this.aboutUI.show(true) })
+    btnAbout.addEventListener('click', event => {
+      event.stopPropagation()
+      this.isActive = false
+      this.aboutUI.show(true)
+    })
     this.container.append(btnAbout)
   }
 

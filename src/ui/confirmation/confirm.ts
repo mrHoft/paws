@@ -32,7 +32,8 @@ export class ConfirmationModalView {
     this.inner = document.createElement('div')
     this.inner.classList.add(modal.inner, modal.small)
     const btnClose = buttonClose()
-    btnClose.addEventListener('click', () => {
+    btnClose.addEventListener('click', event => {
+      event.stopPropagation()
       this.container.setAttribute('style', 'display: none;')
     })
     this.message = document.createElement('p')
@@ -74,7 +75,7 @@ export class ConfirmationModal extends ConfirmationModalView {
     })
 
     this.container.addEventListener('click', event => {
-      event.preventDefault()
+      event.stopPropagation()
       const { target, currentTarget } = event;
       if (target === currentTarget) {
         this.handleCancel()

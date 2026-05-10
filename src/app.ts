@@ -27,7 +27,6 @@ import { Caught } from '~/ui/caught/caught'
 import { injector, inject } from '~/utils/inject'
 import type { EngineOptions, EngineHandlers, TUpgrades } from '~/engine/types'
 import { debounce } from '~/utils/throttle'
-import { EventPreventService } from '~/service/eventPrevent'
 
 const autoStartScene: TSceneName | null = null  // 'lake'
 
@@ -36,22 +35,22 @@ type TErrorSource = 'assets' | 'api'
 export class AppView {
   protected root: HTMLDivElement
   protected game: HTMLDivElement
+  protected main: HTMLElement
   protected errors: { source: TErrorSource, message: string, lapse: number }[] = []
 
   constructor() {
     const root = document.querySelector<HTMLDivElement>('#app')
     if (root) {
       this.root = root
-      const main = document.createElement('main')
-      main.className = 'main'
-      main.setAttribute('style', `max-width: ${GENERAL.canvas.width}px; max-height: ${GENERAL.canvas.height}px;`)
+      this.main = document.createElement('main')
+      this.main.className = 'main'
 
       this.game = document.createElement('div')
       this.game.className = 'game'
       this.game.setAttribute('style', `aspect-ratio: ${GENERAL.canvas.aspectRatio};`)
-      main.append(this.game)
+      this.main.append(this.game)
 
-      this.root.append(main)
+      this.root.append(this.main)
     } else {
       throw new Error('Root element not found')
     }
@@ -86,7 +85,6 @@ export class App extends AppView {
   constructor() {
     super()
     this.storage = inject(Storage)
-    // console.log("Saved score:", this.storage.get<number>('data.score'))
     this.loc = injector.createInstance(Localization, this.storage.get('language'))
 
     const musicVolume = Math.max(0, Math.min(this.storage.get<number>('music'), 1))
@@ -241,19 +239,35 @@ export class App extends AppView {
   }
 
   private registerEvents = () => {
-    new EventPreventService().init()
+    document.addEventListener('contextmenu', (e) => e.preventDefault(), { capture: true });
 
     const resizeCallback = debounce(() => {
-      const { width, height } = this.root.getBoundingClientRect()
+      // const { width, height } = this.root.getBoundingClientRect()
+      const width = window.visualViewport?.width ?? window.innerWidth;
+      const height = window.visualViewport?.height ?? window.innerHeight;
+
+      this.main.style.width = `${width}px`
+      this.main.style.height = `${height}px`
+
       let newWidth = Math.min(width, GENERAL.canvas.width)
       const newHeight = Math.floor(Math.min(height, GENERAL.canvas.height, newWidth / GENERAL.canvas.aspectRatio))
       if (newHeight * GENERAL.canvas.aspectRatio < newWidth) {
         newWidth = Math.floor(newHeight * GENERAL.canvas.aspectRatio)
       }
-      this.game.setAttribute('style', `width: ${newWidth}px; height: ${newHeight}px;`)
+
+      this.game.style.width = `${newWidth}px`;
+      this.game.style.height = `${newHeight}px`;
     })
-    window.addEventListener('resize', resizeCallback)
-    setTimeout(resizeCallback, 0);
+
+    window.visualViewport?.addEventListener('resize', resizeCallback, { passive: true });
+    window.addEventListener('resize', resizeCallback, { passive: true });
+    window.addEventListener('orientationchange', resizeCallback, { passive: true });
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', resizeCallback);
+    } else {
+      resizeCallback();
+    }
   }
 
   private initGame = async () => {
@@ -279,7 +293,7 @@ export class App extends AppView {
       },
       renderCallback: () => { this.handlers.sdkApiState(true) }
     }
-    const engines = Array.from({ length: 2 }, (_, i) => new Engine({ ctx: this.canvas[i].getContext('2d')!, handlers }))
+    const engines = Array.from({ length: 2 }, (_, i) => new Engine({ canvas: this.canvas[i], handlers }))
 
     this.enginePause = (state: boolean, force = false) => {
       engines.forEach((engine) => {

@@ -120,7 +120,7 @@ export class LeaderboardUI extends LeaderboardView {
     })
 
     this.container.addEventListener('click', event => {
-      event.preventDefault()
+      event.stopPropagation()
       const { target, currentTarget } = event;
       if (target === currentTarget) {
         this.show(false)
@@ -128,7 +128,8 @@ export class LeaderboardUI extends LeaderboardView {
       }
     })
 
-    this.close.addEventListener('click', () => {
+    this.close.addEventListener('click', event => {
+      event.stopPropagation()
       this.show(false)
       if (this.callbacks.onClose) this.callbacks.onClose()
     })

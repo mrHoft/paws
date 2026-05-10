@@ -21,7 +21,7 @@ export class CopyLink {
     this.container.append(this.msg)
 
     this.container.addEventListener('click', event => {
-      event.preventDefault()
+      event.stopPropagation()
       this.handleCopy(link)
     })
   }
