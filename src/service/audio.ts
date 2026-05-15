@@ -1,33 +1,53 @@
 import { Injectable } from "~/utils/inject"
 
-type TAudioType = 'sound' | 'music'
-type TSoundAssets = Record<string, { url: string, type: TAudioType }>
-
-const sounds: TSoundAssets = {
-  catch: { url: './audio/catch.ogg', type: 'sound' },
-  combo: { url: './audio/combo.ogg', type: 'sound' },
-  impact: { url: './audio/impact.ogg', type: 'sound' },
-  jump: { url: './audio/jump.ogg', type: 'sound' },
+const sounds: Record<string, { url: string }> = {
+  catch: { url: './audio/catch.ogg' },
+  combo: { url: './audio/combo.ogg' },
+  impact: { url: './audio/impact.ogg' },
+  jump: { url: './audio/jump.ogg' },
 }
 
 const tracks = [
   {
-    name: 'Mountains',
-    url: './audio/mountains.mp3',
+    name: 'autumn',
+    url: './audio/adventure-143065.mp3',
+  },
+  {
+    name: 'cliff',
+    url: './audio/adventure-271551.mp3',
+  },
+  {
+    name: 'desert',
+    url: './audio/adventure-457971.mp3',
+  },
+  {
+    name: 'forest',
+    url: './audio/adventure-511429.mp3',
+  },
+  {
+    name: 'jungle',
+    url: './audio/adventure-186924.mp3',
+  },
+  {
+    name: 'lake',
+    url: './audio/adventure-402992.mp3',
+  },
+  {
+    name: 'mountains',
+    url: './audio/adventure-506053.mp3',
   },
 ]
 
-const countTotal = Object.keys(sounds).length + tracks.length * 2
+const soundsTotal = Object.keys(sounds).length
 
-interface SoundBufferInfo {
+interface SoundTrack {
   buffer: AudioBuffer;
   name: string;
-  type: TAudioType;
 }
 
 interface MusicTrack {
-  name: string;
   buffer: AudioBuffer;
+  name: string;
   ready: boolean;
   track: number;
 }
@@ -37,8 +57,8 @@ export class AudioService {
   private _sound = { volume: 0.5, muted: false }
   private _music = { volume: 0.5, muted: true }
   private audioContext!: AudioContext
-  private soundBuffers: Record<string, SoundBufferInfo> = {}
-  private tracks: MusicTrack[] = []
+  private sounds: Record<string, SoundTrack> = {}
+  private tracks: (MusicTrack | null)[] = Array.from({ length: tracks.length }, () => null)
   private loaded = 0
   private ready = 0
   private pending = -1
@@ -64,10 +84,8 @@ export class AudioService {
     this.updateVolumes()
 
     Object.keys(sounds).forEach(name => {
-      const { url, type } = sounds[name as keyof typeof sounds]
-      this.loadSound(url, name, type)
+      this.loadSound(name)
     })
-    tracks.forEach(item => this.loadSound(item.url, item.name, 'music'))
 
     this.handleEnded = this.handleEnded.bind(this)
 
@@ -115,11 +133,15 @@ export class AudioService {
     this.updateVolumes()
   }
 
-  public play(track: number, auto?: boolean) {
-    if (this._music.muted || track === -1) return
+  public play(track: number, auto = true) {
+    if (this._music.muted || track === -1 || track >= tracks.length) return
 
     const music = this.tracks[track]
-    if (!music || !music.ready) {
+    if (!music) {
+      this.pending = track
+      this.loadMusic(track)
+      return
+    } else if (!music.ready) {
       this.pending = track
       return
     }
@@ -140,18 +162,14 @@ export class AudioService {
       gainNode.connect(this.musicGain)
       gainNode.gain.value = this._music.muted ? 0 : this._music.volume
 
-      source.onended = this.handleEnded(auto)
+      source.onended = () => this.handleEnded(auto)
       source.start(0)
 
       this.playing = { track, source, gainNode }
 
-      if (this.startPlayCallback) {
-        this.startPlayCallback(music.name)
-      }
+      this.startPlayCallback?.(music.name)
     } catch (error) {
-      if (this.exceptionCallback) {
-        this.exceptionCallback(error instanceof Error ? error.message : String(error))
-      }
+      this.exceptionCallback?.(error instanceof Error ? error.message : String(error))
     }
   }
 
@@ -165,12 +183,12 @@ export class AudioService {
 
   public use(name: string) {
     if (this._sound.muted) return
-    if (!this.soundBuffers[name]) {
+    if (!this.sounds[name]) {
       console.warn(`No sound: ${name}`)
       return
     }
 
-    const soundInfo = this.soundBuffers[name]
+    const soundInfo = this.sounds[name]
     if (!soundInfo.buffer) return
 
     try {
@@ -193,64 +211,73 @@ export class AudioService {
     }
   }
 
-  private async loadSound(path: string, name: string, type?: TAudioType) {
+  private async loadSound(name: string) {
+    const { url } = sounds[name as keyof typeof sounds] || {}
     try {
-      const response = await fetch(path)
+      const response = await fetch(url)
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        throw Error(`HTTP error! status: ${response.status}`)
       }
 
       const arrayBuffer = await response.arrayBuffer()
       const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer)
 
+      this.sounds[name] = {
+        buffer: audioBuffer,
+        name,
+      }
+
+
       this.loaded += 1
-      this.ready = ~~((this.loaded / countTotal) * 100)
-
-      if (type === 'music') {
-        this.tracks.push({
-          name,
-          buffer: audioBuffer,
-          ready: true,
-          track: this.tracks.length
-        })
-
-        this.loaded += 1
-        this.ready = ~~((this.loaded / countTotal) * 100)
-
-        if (this.pending === this.tracks.length - 1) {
-          this.play(this.pending, true)
-          this.pending = -1
-        }
-      } else {
-        this.soundBuffers[name] = {
-          buffer: audioBuffer,
-          name,
-          type: type || 'sound'
-        }
-      }
-
-      if (this.readyCallback) {
-        this.readyCallback(this.ready, name)
-      }
+      this.ready = ~~((this.loaded / soundsTotal) * 100)
+      this.readyCallback?.(this.ready, name)
     } catch (error) {
-      console.error(`Error loading sound ${name}:`, error)
-      if (this.exceptionCallback) {
-        this.exceptionCallback(`Failed to load sound: ${name}`)
-      }
+      console.error(`Error loading sound ${name}:`, error instanceof Error ? error.message : error)
+      this.exceptionCallback?.(`Failed to load sound: ${name}`)
     }
   }
 
-  private handleEnded(auto?: boolean) {
-    return () => {
-      if (!this.playing) return
-      let next = (this.playing.track ?? 0) + 1
-      if (next >= this.tracks.length) next = 0
-
-      if (auto) {
-        this.play(next, true)
-      } else {
-        this.playing = null
+  private async loadMusic(track: number) {
+    const { url, name } = tracks[track] || {}
+    try {
+      const response = await fetch(url)
+      if (!response.ok) {
+        throw Error(`HTTP error! status: ${response.status}`)
       }
+
+      const arrayBuffer = await response.arrayBuffer()
+      const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer)
+
+      this.tracks[track] = {
+        name,
+        buffer: audioBuffer,
+        ready: true,
+        track: this.tracks.length
+      }
+
+      if (~this.pending) {
+        this.play(this.pending)
+        this.pending = -1
+      }
+    } catch (error) {
+      console.error(`Error loading music ${name}:`, error instanceof Error ? error.message : error)
+      this.exceptionCallback?.(`Failed to load music: ${name}`)
+    }
+  }
+
+  private handleEnded(auto: boolean, loop = true) {
+    if (!this.playing) return
+
+    if (loop) {
+      this.play(this.playing.track)
+      return
+    }
+
+    if (auto) {
+      const next = ((this.playing.track ?? 0) + 1) % (this.tracks.length - 1)
+      this.play(next, true)
+    } else {
+      this.playing = null
     }
   }
 

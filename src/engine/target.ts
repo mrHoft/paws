@@ -1,4 +1,4 @@
-import { GAME, SCENE_TARGETS, type TSceneName, type TTargetName } from "~/const";
+import { GAME, SCENE, type TSceneName, type TTargetName } from "~/const";
 import { Injectable } from "~/utils/inject";
 
 @Injectable
@@ -30,9 +30,9 @@ export class TargetService {
 
   private getRandomTarget = () => {
     if (this.sceneName) {
-      const targets = SCENE_TARGETS[this.sceneName]
-      const rand = Math.floor(Math.random() * targets.length)
-      return targets[rand]
+      const { target } = SCENE[this.sceneName]
+      const rand = Math.floor(Math.random() * target.length)
+      return target[rand]
     } else {
       return 'none'
     }

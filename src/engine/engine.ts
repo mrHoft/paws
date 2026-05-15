@@ -1,4 +1,4 @@
-import { GENERAL, ANIMALS, OBSTACLES, GAME, TARGET_SCORE, caughtDefault, type TAnimalName } from '~/const'
+import { GENERAL, ANIMALS, OBSTACLES, GAME, TARGET_SCORE, SCENE_NAMES, caughtDefault, type TAnimalName } from '~/const'
 import { Draw } from './draw'
 import { Resource } from './resource'
 import { Backdrop } from './backdrop'
@@ -503,7 +503,8 @@ export class Engine {
     })
 
     this.audioService.musicMute = false
-    this.audioService.play(0, true)  // TODO: level music
+    const track = SCENE_NAMES.indexOf(sceneName)
+    this.audioService.play(track)
 
     this.target.nameCurr = 'none'
     this.game.caught = { ...caughtDefault }

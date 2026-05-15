@@ -1,4 +1,4 @@
-import { GENERAL, SCENE_NAMES, SCENE_TARGETS, ANIMALS, type TSceneName, type TAnimalName } from "~/const"
+import { GENERAL, SCENE_NAMES, SCENE, ANIMALS, type TSceneName, type TAnimalName } from "~/const"
 import { buttonCircle, buttonIcon, buttonClose } from "~/ui/button"
 import { SettingsUI } from "~/ui/settings/settings"
 import { AboutUI } from "~/ui/about/about"
@@ -417,7 +417,7 @@ export class MainMenu extends MenuView {
     ctx?.drawImage(this.resource.getImageBitmap(`thumb.${name}`), 0, 0)
     this.scene.inner.classList.add(modal.bounce)
 
-    const spoil: string[] = SCENE_TARGETS[name]
+    const spoil: string[] = SCENE[name].target
       .filter(el => ANIMALS.includes(el as TAnimalName))
       .map(caughtNameTransform)
 

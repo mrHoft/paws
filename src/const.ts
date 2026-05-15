@@ -9,7 +9,7 @@ interface General {
 }
 
 export const GENERAL: General = {
-  version: 'v.0.5.20',
+  version: 'v.0.5.21',
   sdk: null,
   canvas: {
     width: 1280,
@@ -69,15 +69,31 @@ export const OBSTACLES: TTargetName[] = ['cactus1', 'cactus2', 'puddle', 'boulde
 export type TSceneName = 'autumn' | 'cliff' | 'desert' | 'forest' | 'jungle' | 'lake' | 'mountains' | 'default'
 export const SCENE_NAMES: TSceneName[] = ['autumn', 'cliff', 'desert', 'forest', 'jungle', 'lake', 'mountains']
 
-export const SCENE_TARGETS: Record<TSceneName, TTargetName[]> = {
-  autumn: ['mouse', 'bird1', 'frog', 'puddle', 'flowerpot', 'boulder', 'dog', 'bucket'],
-  cliff: ['butterfly1', 'grasshopper', 'bird1', 'flowerpot', 'boulder', 'hedgehog'],
-  desert: ['butterfly1', 'mouse', 'cactus1', 'cactus2', 'boulder'],
-  forest: ['butterfly1', 'butterfly2', 'grasshopper', 'bird1', 'puddle', 'boulder', 'hedgehog'],
-  jungle: ['butterfly2', 'frog', 'bird2', 'puddle', 'boulder', 'cactus1', 'hedgehog'],
-  lake: ['mouse', 'bird2', 'frog', 'puddle', 'flowerpot', 'gnome', 'dog'],
-  mountains: ['mouse', 'grasshopper', 'puddle', 'flowerpot', 'gnome'],
-  default: [...ANIMALS, ...OBSTACLES], // Testing level
+export const SCENE: Record<TSceneName, { target: TTargetName[] }> = {
+  autumn: {
+    target: ['mouse', 'bird1', 'frog', 'puddle', 'flowerpot', 'boulder', 'dog', 'bucket']
+  },
+  cliff: {
+    target: ['butterfly1', 'grasshopper', 'bird1', 'flowerpot', 'boulder', 'hedgehog']
+  },
+  desert: {
+    target: ['butterfly1', 'mouse', 'cactus1', 'cactus2', 'boulder']
+  },
+  forest: {
+    target: ['butterfly1', 'butterfly2', 'grasshopper', 'bird1', 'puddle', 'boulder', 'hedgehog']
+  },
+  jungle: {
+    target: ['butterfly2', 'frog', 'bird2', 'puddle', 'boulder', 'cactus1', 'hedgehog']
+  },
+  lake: {
+    target: ['mouse', 'bird2', 'frog', 'puddle', 'flowerpot', 'gnome', 'dog']
+  },
+  mountains: {
+    target: ['mouse', 'grasshopper', 'puddle', 'flowerpot', 'gnome']
+  },
+  default: {
+    target: [...ANIMALS, ...OBSTACLES], // Testing level
+  },
 }
 
 export const TARGET_SCORE: Record<TTargetName, Record<'success' | 'fail', number>> = {

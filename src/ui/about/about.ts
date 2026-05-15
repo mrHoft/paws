@@ -52,7 +52,7 @@ class AboutView {
 
   private createContent() {
     const link = (() => {
-      if (GENERAL.sdk === 'yandexGames') {
+      if (GENERAL.sdk !== null) {
         const text = document.createElement('span')
         text.innerText = 'mrHoft'
         return text
