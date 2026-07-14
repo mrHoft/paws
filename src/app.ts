@@ -28,7 +28,7 @@ import { injector, inject } from '~/utils/inject'
 import type { EngineOptions, EngineHandlers, TUpgrades } from '~/engine/types'
 import { debounce } from '~/utils/throttle'
 
-const autoStartScene: TSceneName | null = null  // 'lake'
+const autoStartScene: TSceneName | null = null  // 'default'
 
 type TErrorSource = 'assets' | 'api'
 

@@ -14,6 +14,7 @@ const assets: Record<string, string> = {
   grasshopper: 'sprites/grasshopper.gif',
   mouse: 'sprites/mouse.gif',
   frog: 'sprites/frog.gif',
+  lizard: 'sprites/lizard.gif',
   // Obstacle
   cactus1: 'sprites/cactus1.png',
   cactus2: 'sprites/cactus2.png',

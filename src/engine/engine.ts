@@ -15,6 +15,7 @@ import { AudioService } from '~/service/audio'
 import { ShepardTone } from '~/service/shepardTone'
 import { inject } from '~/utils/inject'
 import { caughtNameTransform } from "~/utils/caught"
+import { defaultUserData } from '~/service/storage'
 
 const prophecyDefault = {
   total: GAME.roundLength,
@@ -41,7 +42,7 @@ export class Engine {
     updateTime: GAME.updateTime, // Frame reit, actually no :)
     action: null,
     ctx: null,
-    fps: true,
+    fps: defaultUserData.fps,
     definingTrajectory: false, // Jump attempt state
     timer: 0, // setTimeout link
     successHeightModifier: 1.3, // Defines jump to target height ratio
@@ -337,19 +338,22 @@ export class Engine {
 
   private runAway = () => {
     const speed = this.game.runAwaySpeed
-    if (this.target.nameLast.startsWith('butterfly') || this.target.nameLast.startsWith('bird')) {
-      this.target.xLast -= speed * (this.target.nameLast.startsWith('bird') ? 1.8 : 1.4)
-      this.target.yLast -= this.target.nameLast.startsWith('butterfly') ? Math.random() * speed : speed
+
+    if (this.target.nameLast === 'mouse') {
+      this.target.xLast += speed
       return
     }
-
-    if (this.target.nameLast.startsWith('grasshopper') || this.target.nameLast.startsWith('frog')) {
+    if (this.target.nameLast === 'lizard') {
+      this.target.xLast -= speed * 2.5
+      return
+    }
+    if (this.target.nameLast === 'grasshopper' || this.target.nameLast === 'frog') {
       this.target.xLast -= speed * 1.5
       return
     }
-
-    if (this.target.nameLast.startsWith('mouse')) {
-      this.target.xLast += speed
+    if (this.target.nameLast.startsWith('butterfly') || this.target.nameLast.startsWith('bird')) {
+      this.target.xLast -= speed * (this.target.nameLast.startsWith('bird') ? 1.8 : 1.4)
+      this.target.yLast -= this.target.nameLast.startsWith('butterfly') ? Math.random() * speed : speed
       return
     }
 
@@ -504,7 +508,7 @@ export class Engine {
 
     this.audioService.musicMute = false
     const track = SCENE_NAMES.indexOf(sceneName)
-    this.audioService.play(track)
+    this.audioService.play(~track ? track : 0)
 
     this.target.nameCurr = 'none'
     this.game.caught = { ...caughtDefault }

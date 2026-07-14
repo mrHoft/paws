@@ -17,7 +17,7 @@ interface GameData {
   ach: string[]
 }
 
-const defaultUserData: UserData & { data: GameData } = {
+export const defaultUserData: UserData & { data: GameData } = {
   music: 0.5,
   sound: 0.5,
   fps: false,
