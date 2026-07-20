@@ -32,7 +32,7 @@ export class ConfirmationModalView {
     this.inner = document.createElement('div')
     this.inner.classList.add(modal.inner, modal.small)
     const btnClose = buttonClose()
-    btnClose.addEventListener('click', event => {
+    btnClose.addEventListener('pointerdown', event => {
       event.stopPropagation()
       this.container.setAttribute('style', 'display: none;')
     })
@@ -74,7 +74,7 @@ export class ConfirmationModal extends ConfirmationModalView {
       onButtonUp: this.onGamepadButtonUp
     })
 
-    this.container.addEventListener('click', event => {
+    this.container.addEventListener('clipointerdownck', event => {
       event.stopPropagation()
       const { target, currentTarget } = event;
       if (target === currentTarget) {
@@ -82,8 +82,8 @@ export class ConfirmationModal extends ConfirmationModalView {
       }
     })
 
-    this.button.confirm.addEventListener('click', this.handleAccept)
-    this.button.cancel.addEventListener('click', this.handleCancel)
+    this.button.confirm.addEventListener('pointerdown', this.handleAccept)
+    this.button.cancel.addEventListener('pointerdown', this.handleCancel)
   }
 
   public registerCallback = (callbacks: { onClose?: () => void }) => {

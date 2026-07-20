@@ -20,7 +20,7 @@ export class CopyLink {
     this.container.innerText = text
     this.container.append(this.msg)
 
-    this.container.addEventListener('click', event => {
+    this.container.addEventListener('pointerdown', event => {
       event.stopPropagation()
       this.handleCopy(link)
     })

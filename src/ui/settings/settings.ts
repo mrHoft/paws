@@ -136,8 +136,9 @@ export class SettingsUI extends SettingsView {
       step: '0.1',
       defaultValue: musicVolume.toString(),
       // onchange: (event: Event) => console.log((event.currentTarget as HTMLInputElement).value),
-    });
-    this.opt.music.input.addEventListener('change', event => {
+    })
+    this.opt.music.input.addEventListener('input', event => {
+      event.stopPropagation()
       const value = Number((event.currentTarget as HTMLInputElement)?.value)
       if (isFinite(value)) this.handleMusicVolumeChange(value)
     })
@@ -233,8 +234,8 @@ export class SettingsUI extends SettingsView {
       }
     }
 
-    this.container.addEventListener('click', handleOutsideClick)
-    this.close.addEventListener('click', event => {
+    this.container.addEventListener('pointerdown', handleOutsideClick)
+    this.close.addEventListener('pointerdown', event => {
       event.stopPropagation()
       this.show(false)
       if (this.onClose) this.onClose()

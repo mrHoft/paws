@@ -119,7 +119,7 @@ export class LeaderboardUI extends LeaderboardView {
       onButtonUp: this.onGamepadButtonUp
     })
 
-    this.container.addEventListener('click', event => {
+    this.container.addEventListener('pointerdown', event => {
       event.stopPropagation()
       const { target, currentTarget } = event;
       if (target === currentTarget) {
@@ -128,7 +128,7 @@ export class LeaderboardUI extends LeaderboardView {
       }
     })
 
-    this.close.addEventListener('click', event => {
+    this.close.addEventListener('pointerdown', event => {
       event.stopPropagation()
       this.show(false)
       if (this.callbacks.onClose) this.callbacks.onClose()

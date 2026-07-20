@@ -119,7 +119,7 @@ export class StageCompleteModal extends StageCompleteView {
     this.gamepadService = inject(GamepadService)
     this.gamepadService.registerCallbacks({ onButtonUp: this.onGamepadButtonUp })
 
-    this.button.addEventListener('click', this.handleMenu)
+    this.button.addEventListener('pointerdown', this.handleMenu)
   }
 
   public handleComplete = (result: { scene: string, score: number, time: number, caught?: number, prophecy?: number }) => {

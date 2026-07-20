@@ -17,7 +17,12 @@
   column-gap: 0.5em;
 }
 
+.list__element input[type="checkbox"] {
+  pointer-events: auto;
+}
+
 .list__element input[type="range"] {
+  pointer-events: auto;
   font-size: inherit;
   width: 10em;
 }

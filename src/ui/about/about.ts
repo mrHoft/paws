@@ -104,7 +104,7 @@ export class AboutUI extends AboutView {
       onButtonUp: this.onGamepadButtonUp
     })
 
-    this.container.addEventListener('click', event => {
+    this.container.addEventListener('pointerdown', event => {
       event.stopPropagation()
       const { target, currentTarget } = event;
       if (target === currentTarget) {
@@ -113,7 +113,7 @@ export class AboutUI extends AboutView {
       }
     })
 
-    this.close.addEventListener('click', event => {
+    this.close.addEventListener('pointerdown', event => {
       event.stopPropagation()
       this.show(false)
       if (this.onClose) this.onClose()

@@ -93,7 +93,7 @@ export class SinglePlayerUI extends SinglePlayerView {
 
     this.btnSound = buttonIcon({ src: this.audioService.muted ? iconSrc.soundOn : iconSrc.soundOff })
     const soundIconElement = this.btnSound.children[0] as HTMLImageElement
-    this.btnSound.addEventListener('click', (event) => {
+    this.btnSound.addEventListener('pointerdown', (event) => {
       event.stopPropagation()
       this.handleSoundToggle(soundIconElement)
     })
@@ -106,7 +106,7 @@ export class SinglePlayerUI extends SinglePlayerView {
 
     const bottomLeft = document.createElement('div')
     this.btnPause = buttonIcon({ src: iconSrc.pause })
-    this.btnPause.addEventListener('click', (event) => {
+    this.btnPause.addEventListener('pointerdown', (event) => {
       event.stopPropagation()
       enginePause(true)
     })
@@ -116,7 +116,7 @@ export class SinglePlayerUI extends SinglePlayerView {
     if (this.installManager.getDeviceType() === 'desktop') {
       const btnFullscreen = buttonIcon({ src: iconSrc.fullscreen })
       const fullscreenIconElement = btnFullscreen.children[0] as HTMLImageElement
-      btnFullscreen.addEventListener('click', (event) => {
+      btnFullscreen.addEventListener('pointerdown', (event) => {
         event.stopPropagation()
         this.handleFullscreenToggle(fullscreenIconElement)
       })

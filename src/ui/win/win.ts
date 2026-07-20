@@ -110,8 +110,8 @@ export class WinModal extends WinView {
     this.gamepadService = inject(GamepadService)
     this.gamepadService.registerCallbacks({ onButtonUp: this.onGamepadButtonUp })
 
-    this.button.replay.addEventListener('click', this.handleReplay)
-    this.button.menu.addEventListener('click', this.handleMenu)
+    this.button.replay.addEventListener('pointerdown', this.handleReplay)
+    this.button.menu.addEventListener('pointerdown', this.handleMenu)
   }
 
   public handleFinish = (result: { score: number, time: number, player?: 'top' | 'bottom' }) => {

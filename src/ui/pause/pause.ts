@@ -44,22 +44,22 @@ export class PauseModal {
     continueIcon.setAttribute('draggable', 'false')
     continueIcon.src = iconSrc.start
     btnContinue.append(continueIcon, continueLabel)
-    btnContinue.addEventListener('click', this.handleResume)
+    btnContinue.addEventListener('pointerdown', this.handleResume)
 
     const btns = document.createElement('div')
     btns.className = modal.btns
     /*
     const btnResume = buttonCircle({ src: iconSrc.play })
-    btnResume.addEventListener('click', this.handleResume)
+    btnResume.addEventListener('pointerdown', this.handleResume)
     */
     const btnSettings = buttonCircle({ src: iconSrc.settings })
-    btnSettings.addEventListener('click', this.handleSettings)
+    btnSettings.addEventListener('pointerdown', this.handleSettings)
 
     const btnRestart = buttonCircle({ src: iconSrc.restart })
-    btnRestart.addEventListener('click', this.handleRestart)
+    btnRestart.addEventListener('pointerdown', this.handleRestart)
 
     const btnMenu = buttonCircle({ src: iconSrc.menu })
-    btnMenu.addEventListener('click', this.handleMenu)
+    btnMenu.addEventListener('pointerdown', this.handleMenu)
 
     btns.append(/* btnResume, */ btnRestart, btnSettings, btnMenu)
 
@@ -67,7 +67,7 @@ export class PauseModal {
     this.inner.append(btnContinue, btns)
     this.container.append(this.inner)
 
-    this.container.addEventListener('click', event => {
+    this.container.addEventListener('pointerdown', event => {
       event.preventDefault()
       const { target, currentTarget } = event;
       if (target === currentTarget) {

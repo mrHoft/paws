@@ -160,10 +160,10 @@ export class MultiplayerMenu extends MenuMultiplayerView {
           this.handleOptionSelect()
         }
       })
-      item.element.addEventListener('click', this.handleStart)
+      item.element.addEventListener('pointerdown', this.handleStart)
     }
 
-    this.container.addEventListener('click', event => {
+    this.container.addEventListener('pointerdown', event => {
       event.stopPropagation()
       const { target, currentTarget } = event;
       if (target === currentTarget) {
@@ -172,7 +172,7 @@ export class MultiplayerMenu extends MenuMultiplayerView {
       }
     })
 
-    this.close.addEventListener('click', event => {
+    this.close.addEventListener('pointerdown', event => {
       event.stopPropagation()
       this.show(false)
       if (this.onClose) this.onClose()

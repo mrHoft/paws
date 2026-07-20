@@ -293,7 +293,7 @@ export class UpgradeUI extends UpgradeView {
       onButtonUp: this.onGamepadButtonUp
     })
 
-    this.container.addEventListener('click', event => {
+    this.container.addEventListener('pointerdown', event => {
       event.stopPropagation()
       const { target, currentTarget } = event;
       if (target === currentTarget) {
@@ -302,7 +302,7 @@ export class UpgradeUI extends UpgradeView {
       }
     })
 
-    this.close.addEventListener('click', event => {
+    this.close.addEventListener('pointerdown', event => {
       event.stopPropagation()
       this.show(false)
       if (this.callbacks.onClose) this.callbacks.onClose()
@@ -315,7 +315,7 @@ export class UpgradeUI extends UpgradeView {
           this.handleOptionSelect()
         }
       })
-      item.element.addEventListener('click', event => {
+      item.element.addEventListener('pointerdown', event => {
         event.stopPropagation()
         this.handleUpgrade(item.name)
       })

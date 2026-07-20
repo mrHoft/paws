@@ -127,7 +127,7 @@ class MenuView {
 
 
     const sceneClose = buttonClose()
-    sceneClose.addEventListener('click', event => {
+    sceneClose.addEventListener('pointerdown', event => {
       event.stopPropagation()
       this.scene.element.setAttribute('style', 'display: none;')
     })
@@ -172,7 +172,7 @@ class MenuView {
       const text = document.createElement('span')
       this.loc.register(props.id, text)
       button.append(icon, text)
-      button.onclick = props.func
+      button.addEventListener('pointerdown', props.func)
 
       const marker = props.marker ? new CountMarker() : null
       if (marker) button.append(marker.element)
@@ -253,7 +253,7 @@ export class MainMenu extends MenuView {
     this.sceneInit()
     this.aboutInit()
 
-    this.registerEvents();
+    this.registerEvents()
   }
 
   private menuInit = () => {
@@ -298,7 +298,7 @@ export class MainMenu extends MenuView {
   private aboutInit = () => {
     const btnAbout = buttonIcon({ src: iconSrc.about })
     btnAbout.classList.add(styles['top-right'])
-    btnAbout.addEventListener('click', event => {
+    btnAbout.addEventListener('pointerdown', event => {
       event.stopPropagation()
       this.isActive = false
       this.aboutUI.show(true)
@@ -308,11 +308,11 @@ export class MainMenu extends MenuView {
 
   private registerEvents = () => {
     this.thumbs.forEach(el => {
-      el.element.addEventListener('click', this.handleSceneClick(el.name))
+      el.element.addEventListener('pointerdown', this.handleSceneClick(el.name))
     })
 
-    this.scene.btn.addEventListener('click', this.handleSceneStart)
-    this.scene.element.addEventListener('click', this.handleOutsideClick)
+    this.scene.btn.addEventListener('pointerdown', this.handleSceneStart)
+    this.scene.element.addEventListener('pointerdown', this.handleOutsideClick)
 
     if (this.deviceType === 'desktop') {
       this.gamepadService?.registerCallbacks({

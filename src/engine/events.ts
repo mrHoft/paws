@@ -88,7 +88,6 @@ export class EventsService {
         }
       }
     },
-    touchstart: (event: Event) => event.preventDefault(),
     gamepadButtonDown: (gamepadIndex: number, buttonIndex: number) => {
       const gamepad = `gamepad${gamepadIndex + 1}`
       for (const control of [gamepad, 'any'] as TControl[]) {
@@ -126,10 +125,6 @@ export class EventsService {
     this.game.addEventListener('pointerup', this.handlers.pointerup)
     this.game.addEventListener('pointercancel', this.handlers.pointerup)
     this.gamepadService.registerCallbacks({ onButtonDown: this.handlers.gamepadButtonDown, onButtonUp: this.handlers.gamepadButtonUp })
-
-    if ('ontouchstart' in window) {
-      this.game.addEventListener('touchstart', this.handlers.touchstart, { passive: false, capture: true })
-    }
   }
 
   public dispose = () => {
@@ -139,9 +134,5 @@ export class EventsService {
     this.game.removeEventListener('pointerup', this.handlers.pointerup)
     this.game.removeEventListener('pointercancel', this.handlers.pointerup)
     this.gamepadService.unRegisterCallbacks({ onButtonDown: this.handlers.gamepadButtonDown, onButtonUp: this.handlers.gamepadButtonUp })
-
-    if ('ontouchstart' in window) {
-      this.game.removeEventListener('touchstart', this.handlers.touchstart)
-    }
   }
 }
