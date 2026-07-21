@@ -9,7 +9,7 @@ interface General {
 }
 
 export const GENERAL: General = {
-  version: 'v.0.5.21',
+  version: 'v.0.5.22',
   sdk: null,
   canvas: {
     width: 1280,

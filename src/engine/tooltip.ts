@@ -6,8 +6,8 @@ export class Tooltip {
   private tooltip = {
     shown: false,
     firstTip: true,
-    firstAnimal: true,
-    firstBarrier: true,
+    animal: 0,
+    barrier: 0,
     firstTimeout: true,
   }
   private setTooltip: (tooltip: string) => void
@@ -46,10 +46,8 @@ export class Tooltip {
         }
         break
       case 'barrier':
-        if (this.tooltip.firstBarrier) {
-          this.tooltip.firstBarrier = false
-          this.set(this.loc.get('firstBarrier'))
-        }
+        this.tooltip.barrier += 1
+        this.set(this.loc.get(this.tooltip.barrier % 2 === 0 ? 'firstBarrier' : 'startNewGame'))
         break
       case 'timeout':
         if (this.tooltip.firstTimeout) {
@@ -58,10 +56,8 @@ export class Tooltip {
         }
         break
       case 'animal':
-        if (this.tooltip.firstAnimal) {
-          this.tooltip.firstAnimal = false
-          this.set(this.loc.get('firstAnimal'))
-        }
+        this.tooltip.animal += 1
+        this.set(this.loc.get(this.tooltip.animal % 2 === 0 ? 'firstAnimal' : 'startNewGame'))
     }
   }
 }

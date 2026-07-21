@@ -1,7 +1,7 @@
 {
   "name": "nimble-paws",
   "private": true,
-  "version": "0.5.21",
+  "version": "0.5.22",
   "type": "module",
   "main": "main.js",
   "description": "A nimble cat on an endless adventure game",

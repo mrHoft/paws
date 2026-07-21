@@ -15,10 +15,12 @@
 
 .loader__progress {
   position: relative;
-  width: 20rem;
-  height: 1lh;
+  width: 20em;
+  height: 1.5em;
   border-radius: 0.5em;
   border: 2px solid var(--color-orange60);
+  background-color: var(--color-blue10);
+  overflow: hidden;
 }
 
 .loader__progress_bar {
@@ -33,10 +35,12 @@
 }
 
 .loader__progress_value {
+  font-size: 1.5em;
   position: relative;
   width: 100%;
   text-align: center;
   z-index: 1;
+  line-height: 1;
 }
 
 .loader__message {

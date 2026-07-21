@@ -4,6 +4,7 @@ import styles from './loader.module.css'
 
 export class LoaderUI {
   private container: HTMLDivElement
+  private progress: HTMLDivElement
   private loaderBar: HTMLDivElement
   private loaderValue: HTMLDivElement
   private message: HTMLDivElement
@@ -12,21 +13,22 @@ export class LoaderUI {
   constructor() {
     this.container = document.createElement('div')
     this.container.classList.add(styles.loader)
-    const progress = document.createElement('div')
-    progress.classList.add(styles.loader__progress)
+    this.progress = document.createElement('div')
+    this.progress.classList.add(styles.loader__progress)
     this.loaderBar = document.createElement('div')
     this.loaderBar.classList.add(styles.loader__progress_bar)
+    this.loaderBar.setAttribute('style', 'width: 0%;')
     this.loaderValue = document.createElement('div')
     this.loaderValue.classList.add(styles.loader__progress_value)
     this.loaderValue.innerText = '0%'
-    progress.append(this.loaderBar, this.loaderValue)
+
+    this.progress.append(this.loaderBar, this.loaderValue)
 
     this.message = document.createElement('div')
     this.message.classList.add(styles.loader__message)
 
     this.paws = new Paws()
-    this.container.append(this.paws.element, progress, this.message)
-
+    this.container.append(this.paws.element, this.progress, this.message)
   }
 
   public progressUpdate(progress: number) {
@@ -50,6 +52,7 @@ export class LoaderUI {
     this.message.remove()
     this.loaderValue.remove()
     this.loaderBar.remove()
+    this.progress.remove()
     this.container.remove()
   }
 }

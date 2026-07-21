@@ -15,6 +15,7 @@ class SinglePlayerView {
   protected container: HTMLDivElement
   protected upper: HTMLDivElement
   protected middle: HTMLDivElement
+  protected tooltip: HTMLDivElement
   protected bottom: HTMLDivElement
   protected player: { element: HTMLDivElement, progress: HTMLDivElement, score: HTMLSpanElement, combo: HTMLSpanElement }
   private loc: Localization
@@ -29,6 +30,9 @@ class SinglePlayerView {
     this.upper.className = styles.row
     this.middle = document.createElement('div')
     this.middle.className = styles.middle
+    this.tooltip = document.createElement('div')
+    this.tooltip.className = styles.tooltip
+    this.middle.append(this.tooltip)
     const blank = document.createElement('div')
     this.bottom = document.createElement('div')
     this.bottom.className = styles.row
@@ -172,7 +176,8 @@ export class SinglePlayerUI extends SinglePlayerView {
   }
 
   public handleTooltip = (message: string) => {
-    this.middle.innerText = message
+    this.tooltip.innerText = message
+    this.bounce(this.tooltip)
   }
 
   private handleSoundToggle = (iconElement: HTMLImageElement) => {
